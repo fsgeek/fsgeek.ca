@@ -1,0 +1,182 @@
+/* fsgeek.ca — the notebook, not the front door.
+   wamason.com is the restrained daylight site; this one is the one left
+   open at 1am. Two type roles from one family (IBM Plex): mono for
+   structure (paths, dates, the directory-listing device), serif for
+   reading. Two accents, not decorative — copper marks the research wing,
+   signal-teal marks the teaching wing, everywhere both appear. */
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: local("IBM Plex Mono");
+}
+
+:root {
+  --ink: #14181f;
+  --surface: #1c212b;
+  --bone: #e7e2d3;
+  --dim: #9aa0ac;
+  --rule: #2e3542;
+  --copper: #c97d4f;
+  --signal: #5fa8a0;
+
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  --serif: "IBM Plex Serif", "Source Serif 4", Charter, Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--serif);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--copper); text-decoration-color: rgba(201, 125, 79, 0.4); }
+a:hover { text-decoration-color: var(--copper); }
+a.teaching-link { color: var(--signal); text-decoration-color: rgba(95, 168, 160, 0.4); }
+a.teaching-link:hover { text-decoration-color: var(--signal); }
+
+:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+
+.skip-link {
+  position: absolute; left: -999px; top: 0;
+  background: var(--copper); color: var(--ink);
+  padding: 8px 16px; z-index: 10; font-family: var(--mono); font-size: 14px;
+}
+.skip-link:focus { left: 0; }
+
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+.wrap-wide { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+/* Header: identity + the three real sections. No hamburger performance —
+   three links fit anywhere. */
+header.site {
+  border-bottom: 1px solid var(--rule);
+  padding: 22px 0;
+}
+.site-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+.wordmark {
+  font-family: var(--mono); font-size: 16px; font-weight: 500;
+  color: var(--bone); text-decoration: none; letter-spacing: -0.01em;
+}
+.wordmark:hover { color: var(--copper); }
+.wordmark .prompt { color: var(--copper); }
+nav.primary { font-family: var(--mono); font-size: 14px; }
+nav.primary a { color: var(--dim); text-decoration: none; margin-left: 22px; }
+nav.primary a:hover, nav.primary a[aria-current] { color: var(--bone); }
+
+/* The hero: a literal directory listing. This IS the homepage's thesis
+   and its primary navigation — not decoration standing in front of it. */
+.hero { padding: 56px 0 40px; }
+.hero-line {
+  font-family: var(--mono); font-size: 14px; color: var(--dim);
+  margin-bottom: 18px;
+}
+.hero-line .cwd { color: var(--bone); }
+.dirlisting {
+  font-family: var(--mono); font-size: 15px; line-height: 1.9;
+  border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--surface); padding: 22px 26px;
+}
+.dirlisting .entry { display: flex; gap: 18px; flex-wrap: wrap; }
+.dirlisting .entry + .entry { margin-top: 4px; }
+.dirlisting .perm { color: #5b6472; white-space: nowrap; }
+.dirlisting .name { min-width: 140px; }
+.dirlisting .name a { text-decoration: none; font-weight: 600; }
+.dirlisting .desc { color: var(--dim); font-family: var(--serif); font-style: italic; font-size: 14.5px; }
+.dirlisting .cursor {
+  display: inline-block; width: 8px; height: 15px; background: var(--copper);
+  vertical-align: -2px; margin-left: 2px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dirlisting .cursor { animation: blink 1.1s steps(1) infinite; }
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Log: recent posts as journal/commit lines. Real metadata, not markers
+   invented for rhythm. */
+.log { padding: 8px 0 48px; }
+.log h2 {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--dim); font-weight: 500;
+  margin: 0 0 18px;
+}
+.log-list { list-style: none; margin: 0; padding: 0; }
+.log-line {
+  display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid var(--rule);
+  font-family: var(--mono); font-size: 14px;
+}
+.log-line:last-child { border-bottom: none; }
+.log-date { color: var(--dim); white-space: nowrap; }
+.log-tag {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid var(--copper); color: var(--copper);
+  white-space: nowrap;
+}
+.log-tag.teaching { border-color: var(--signal); color: var(--signal); }
+.log-title { font-family: var(--serif); font-size: 15.5px; }
+.log-title a { color: var(--bone); text-decoration: none; }
+.log-title a:hover { color: var(--copper); }
+
+/* Article / page reading template */
+.breadcrumb {
+  font-family: var(--mono); font-size: 13px; color: var(--dim);
+  padding: 20px 0 0;
+}
+.breadcrumb a { color: var(--dim); text-decoration: none; }
+.breadcrumb a:hover { color: var(--copper); }
+
+article.entry { padding: 18px 0 64px; }
+article.entry h1 {
+  font-family: var(--serif); font-weight: 600; font-size: 32px;
+  line-height: 1.25; margin: 14px 0 10px; max-width: 20ch;
+}
+.entry-meta {
+  font-family: var(--mono); font-size: 13px; color: var(--dim);
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 36px; padding-bottom: 20px; border-bottom: 1px solid var(--rule);
+}
+.entry-body { font-size: 17px; }
+.entry-body p { margin: 0 0 20px; }
+.entry-body h2 { font-size: 22px; margin: 40px 0 14px; font-weight: 600; }
+.entry-body h3 { font-size: 18px; margin: 32px 0 10px; font-weight: 600; }
+.entry-body pre {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13.5px;
+}
+.entry-body code { font-family: var(--mono); font-size: 0.9em; }
+.entry-body img { max-width: 100%; border-radius: 4px; }
+.entry-body blockquote {
+  margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--copper);
+  color: var(--dim); font-style: italic;
+}
+.entry-body table {
+  width: 100%; border-collapse: collapse; margin: 24px 0;
+  font-family: var(--mono); font-size: 13.5px;
+}
+.entry-body table td, .entry-body table th {
+  border: 1px solid var(--rule); padding: 8px 12px; text-align: left;
+}
+.entry-body table tr:first-child { color: var(--copper); font-weight: 600; }
+.entry-body figure { margin: 28px 0; }
+.entry-body figcaption {
+  font-family: var(--mono); font-size: 12.5px; color: var(--dim); margin-top: 8px;
+}
+
+footer.site {
+  border-top: 1px solid var(--rule); padding: 28px 0 40px;
+  font-family: var(--mono); font-size: 13px; color: var(--dim);
+}
+footer.site a { color: var(--dim); }
+footer.site a:hover { color: var(--copper); }
+
+@media (max-width: 640px) {
+  .dirlisting .name { min-width: 0; }
+  .dirlisting .entry { flex-direction: column; gap: 2px; }
+  article.entry h1 { font-size: 26px; }
+}
