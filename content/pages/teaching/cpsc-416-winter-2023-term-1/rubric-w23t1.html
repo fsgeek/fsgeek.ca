@@ -1,0 +1,61 @@
+---
+title: "Rubric (Winter 2023 Term 1)"
+date: "2023-08-17 16:05:24"
+status: "publish"
+original_url: "https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/rubric-w23t1/"
+post_id: 1186
+---
+
+<!-- wp:paragraph -->
+<p><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Learning Objective</strong><strong>s</strong>:  There are a handful of learning objectives for this course.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>Understanding of persistent storage (databases and file systems, primarily) with particular emphasis on the most common core storage paradigm, the "key value store."</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Understanding of distributed transaction processing.  This is the idea that we need to change persistent information in two different databases when the data being changed is related.  Thus, to ensure correctness, you need to coordinate the change so it happens atomically.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Understanding of distributed consensus.  This is the idea that we need to <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">replicat</em><em>e</em> our data in order to protect against certain types of failures, including network failures, storage failures, power failures, etc.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Understanding the critical tools we use for <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">implementin</em><em>g</em> systems that provide both distributed transactions and distributed consensus.  Key to this is the concept of a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">journa</em><em>l</em> or a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">lo</em><em>g</em>.  There are other aspects of this, including state machines, snapshots, clocks (Lamport, vector, and matrix,) which we use for building these systems.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Learning that <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">desig</em><em>n</em> is an integral part of this process.  Robust distributed systems are built on the base of a well-considered software architecture, a design that addresses key issues for the specific system being constructed, and an implementation that can be validated and includes detailed instrumentation to ascertain the root cause of failures.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Evaluation</strong>: The primary student concern usually seems to be focused on grade maximization; this is a constant struggle in education, because in general no one will care about your grades six months after you graduate.  They <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">wil</em><em>l</em> care about your ability to reliably solve problems and there are few more difficult problems than those we face in distributed systems.  However, we do have to have some sort of assessment, so here is what I will be using this term:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:table -->
+<figure class="wp-block-table"><table><tbody><tr><td><strong>Assessment Description</strong></td><td><strong>Evaluation Criteria</strong></td><td><strong>Grade Contribution</strong></td></tr><tr><td>Post-class Self-assessment</td><td>Did you complete it?</td><td>10</td></tr><tr><td>Design Project 1</td><td>Design Document<br>Peer Feedback<br>Implementation Report<br>Peer Feedback</td><td>15</td></tr><tr><td>Design Project 2</td><td>Design Document<br>Peer Feedback<br>Implementation Report<br>Peer Feedback</td><td>15</td></tr><tr><td>Design Project 3</td><td>Design Document<br>Peer Feedback<br>Implementation Report<br>Peer Feedback</td><td>15</td></tr><tr><td>Capstone Project</td><td>Design Document<br>Implementation<br>Status Reports<br>Final Report<br>Final Presentation</td><td>25</td></tr><tr><td>Final Exam</td><td>Multi-question exam</td><td>20</td></tr></tbody></table><figcaption class="wp-element-caption"><strong>Course Grading Scheme</strong></figcaption></figure>
+<!-- /wp:table -->
+
+<!-- wp:paragraph -->
+<p><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Self-Assessmen</strong><strong>t</strong> will be a quiz, on Canvas, that you take when you want.  It will consist of a handful of questions about the reading for the individual lecture.  Note that nobody will be grading you on this - it's a <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">self-assessmen</strong><strong>t</strong> tool, so that you can determine how you did in understanding the material.  The quiz will open after the lecture is done and close when the next lecture begins.  The idea here then is to encourage you to keep up with the material.  The one exception here is that while registration is open the self-assessment quiz will be open (it will be set up for late submission, but you won't be penalized for late submission.)  If you just want to click some buttons and get a score, you can do that, I won't care.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Design Projects</strong> will consist of three different projects.  Each project will involve one of the non-trivial DSLabs projects but the emphasis will be on learning how to design solutions to distributed systems.  In the first part, you will be asked to write a design for the project.  The <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">goa</em><em>l</em> of this design is for you to describe your vision of how to implement the project.  You will not be asked to implement your own design.  Once you have submitted your design, you will then be asked to review the designs of three other students and provide feedback.  A suggested rubric will be provided for your review.  Once you are done, you will select one of the three designs that you reviewed and attempt to implement it.  You will then submit your code, via Gradescope, and your implementation report, reflecting upon the strengths and weaknesses of the design. Finally, you will be asked to peer review three other students implementation reports and provide feedback on them.  The learning objective is to help you understand good design as seen through the lens of distributed systems. <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">All designs will be shared with the clas</strong><strong>s</strong>.  You will not be expected to include your name on the document, and you need not tell people which design you implemented.  There are three of these so you have time to reinforce your skills in designing solutions to increasingly complex projects, reflect upon what works, and then sharpen your skills by using them again.  Note that <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">gradin</em><em>g</em> for these is strictly based upon whether or not you submitted something.  Your code doesn't need to run.  Your report could be as minimal as you would like.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Capstone Project</strong> will be your <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">own </strong>design and implementation of your own project.  The specific options will be discussed later, but the range of options will relate to distributed systems: key value stores, distributed transactions, log/journal systems, consensus systems, replicated data types (CRDTs or MRDTs,) etc.  Unlike the other assessments, <strong>these will be reviewed by the instructional team</strong> and awarded a grade.  Note that your work product will be shared (again, you can remain anonymous) with the rest of the class.   You may work in groups for a capstone project, with a limit of no more than 5 people in a group, but you are not <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">required</strong> to work in a group if you prefer to work solo.  Your final submission will consist of your (revised) design, test methodology, code, and a recorded presentation of the system that you have built. Note thereare no restrictions on the programming language or system that you use. Details of the rubric for the capstone will be provided later in the term. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Final Exam</strong> will be a proctored, timed, final examination consisting of multiple choice and true/false questions.  The questions will be drawn from the course concepts and materials. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>My goal is to try and make this the most useful course you take in your undergraduate program, both because it combines <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">theor</em><em>y</em> with <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">practic</em><em>e</em> as well as helps you develop skills you will find are important afterward.  Thus, the difficulty of the course will, hopefully, justify the benefits you receive from it.</p>
+<!-- /wp:paragraph -->

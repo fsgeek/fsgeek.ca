@@ -1,0 +1,73 @@
+---
+title: "March 27"
+date: "2018-04-22 15:14:21"
+status: "private"
+original_url: "https://fsgeek.ca/2018/04/22/march-27/"
+post_id: 436
+categories: ["Meetings with Andy", "Notes"]
+tags: ["Anna", "Graphs", "NVDIMM"]
+---
+
+I delved into my consideration of graph file systems.  Andy pointed out that Facebook is a model here.  A "social network" for data.  He pointed to F4 and Haystack and the fact that The lowest cost capacity tier is important to them because their cost per user is increasing over time (seems like a long-term limitation to their model.)
+
+Flat optix struct
+
+distributed meta data file system
+
+Fusion I/O (Onyx Servers x 5)
+
+TED Talks
+
+"Other paper" [NB: not sure what this means now]
+
+graph databases
+
+Intel contact for H/W [follow-up?]
+
+NSDI, Eurosys (for a forward paper)
+
+Need motivation: 3-10x multiplier in RAM capacity.  Fault for paging.
+
+Is memory a device or mapped as virtual memory [I've seen both in the literature]
+
+Access asymmetry: hot data on read versus write path
+
+writes to DRAM?
+
+NVHeap paper [I have this one]
+
+Need to be crisp on the use case.
+
+MassTree paper [I have this one now]
+
+Send Andy the Anna paper
+
+Graph paper [?]
+
+Pick a benchmark (narrowness of scope)
+
+Cache line consistency
+
+Host level durability
+
+Chain replication
+
+Replication to another host is a multiplication of storage access cost
+
+fs/db - make it run @ speed of memory, how does it decompose?  network hop dominates (10 us).  Optane is 1 us, RAM is 100 ns (partition events)
+
+Realtime response required.
+
+Stream by host.  Connected services that all must be local.  Host redundancy Scale for problem sizing (partition) how do you optimize the communication case.
+
+Focus loop: crisp picture of fast moving object with real world interaction.
+
+10 us granular reaction times, what would you do?  gyro, bsp, fast feedback loop systems, autonomous vehicles, Kinetc/whole room holographic system.
+
+10 fixed point cameras controlling a drone.  Must process and move before human can connect with the drone.  Maybe more baseball bats?
+
+New FS overlay destreams data.  Overlapping region pull out 3D.  GPU to NVDIMM connection?
+
+Human facing work.
+
+&nbsp;

@@ -1,0 +1,46 @@
+---
+title: "A Universal File Server"
+date: "2018-03-12 04:00:56"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/03/12/a-universal-file-server/"
+post_id: 383
+categories: ["File Systems", "Network File Systems"]
+---
+
+<a href="http://birrell.org/andrew/papers/UniversalFileServer.pdf">A Universal File Server</a>
+A. D. Birrell and R. M. Needham, in <em>IEEE Transactions on Software Engineering, Vol SE-6, No. 5, September 1980, pp. 450-453.</em>
+
+One of the challenges in this next group of papers is picking which ones to discuss. The advent of networks saw the blossoming of the idea of centralizing storage and having different computer systems accessing it via those networks.  By the time this paper is published quite a few network based file server solutions had been constructed and described within the literature - and we will get to them.
+
+The authors here decided to try and extract generality from these works.  So in this paper we step back and look for some generality.
+
+This is a rather short paper - four pages.
+
+The authors describe the division of responsibilities in a file server: the "high-level functions more properly associated with a filing system" and "functions belonging to a <em>backing store server</em>" [emphasis in the original].  When I read this I thought that this made sense: we have a functional layer that creates a name space, attributes, etc. and a storage layer that keeps track of storage blocks.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-1.png"><img class="alignleft size-medium wp-image-385" src="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-1-240x300.png" alt="Figure 1" width="240" height="300" /></a>
+
+By splitting out this functionality, the authors then suggest that the backing store server is a point of commonality that can be used to support a range of higher level services.  Thus, "[t]he backing store server is the sole agency concerned with allocating and relinquishing space on the storage medium."  To achieve this goal the authors propose a universal system of indexes as shown in Figure 1 (from the original paper).
+
+The authors argue for a master table that presents the per-system name space.  For each of these namespaces, there is a corresponding <em>master file directory </em>(MFD) and a collection of <em>user file directories</em> (UFDs) that are used to organize the user's information into a hierarchy.
+
+We note that the files, UFDs and MFD are all stored in storage elements - <em>segments</em> - that are managed by the file server.   Thus the file server is responsible for:
+
+&nbsp;
+<ul>
+ 	<li>Keeping track of its initial index</li>
+ 	<li>Preserve the names stored in the MFD and UFDs</li>
+ 	<li>Reclaim (delete) the entries in the MFD and UFDs when an entry is deleted</li>
+ 	<li>Manage storage space</li>
+</ul>
+From this simple model, they note that a broad range of systems can be constructed.
+
+The paper spends considerable (25% of the paper) time discussing "protection".  By this they refer to the issues inherent in having shared usage of a common resource, such as the files on the file server.  The authors describe using ACLs on the file server as one means of providing security.  They do not touch upon precisely how the file system will authenticate the users, though at one point they refer to using encryption for access bits in some circumstances.
+
+Their preferred mechanism for access is the <strong>capability</strong>.  This should not come as a surprise, given that they worked on the <a href="https://fsgeek.ca/2018/02/12/the-cap-file-system/">CAP</a> file system, which provided capabilities.  Their observation is that with a sufficiently sparse handle space, it is impractical for an unauthorized party to find the resource.  It probably doesn't require much to point out that this presumes the inherent integrity of the network itself.
+
+The authors complete their universal file server with an observation that this provides a general base upon which individual file systems can implement their own enhanced functionality. Indeed, this was one of their primary objectives in doing this work.  They do point out a number of potential issues in their system, but assert that they will not be problematic.
+
+The authors do a good job of describing a basic, abstract file server.  The system they describe may not have achieved broad use but this paper does provide a simple, high level view of how a file server might operate.  We'll turn our attention to actual implementations - and there are <em>many</em> such implementations to discuss in the coming posts.
+
+&nbsp;

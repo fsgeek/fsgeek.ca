@@ -1,0 +1,167 @@
+---
+title: "What a long strange trip its been"
+date: "2026-01-12 19:04:36"
+status: "publish"
+original_url: "https://fsgeek.ca/2026/01/12/what-a-long-strange-trip-its-been-2/"
+post_id: 2593
+categories: ["Artificial Intelligence"]
+tags: ["AI Ensembles", "ChatGPT", "Indeterminacy", "Perplexity"]
+---
+
+<!-- wp:paragraph -->
+<p class="">I have realized that I have not been using this forum effectively to talk about my work.  My recent posts are all about AI:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class=""><a href="https://fsgeek.ca/wp-admin/post.php?post=2575&amp;action=edit">Epistemic Honesty Revisited: Worse Than I Feared</a><br><a href="https://fsgeek.ca/wp-admin/post.php?post=2562&amp;action=edit">Epistemic Honesty: An Unusual Commodity for Large Language Models</a><br><a href="https://fsgeek.ca/wp-admin/post.php?post=1498&amp;action=edit">The Risks of Using Gemini Code</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">So, I decided to catch up here.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">PhD Research</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p class="">I spent a fair bit of eight years working on completing my PhD.  Surprisingly, I ended up very much where I started: exploring <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Ho</em><em>w do we make it easier for people to find stuff they have stored but can't find <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">no</strong><strong>w</strong>.</em></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">The research space around this is rich.  Decades of people looking at this from the systems community (Extended Attributes, Semantic File Systems, Federated Search, Tagging, etc.)  I explored using <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ri</strong><strong>ch human activity data</strong><em class="wpc-darklup-observer--node wpc--darklup--observed"> </em>- the kinds of data that most everything in the tech world collects about us, like location, who we're spending time, what we're experiencing: tools we use, food we eat, social media interactions, what we listen to, what we watch, etc.  What I ended up findin<strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">g:</strong><strong> (1) we can use this "rich data" to build a knowledge graph that can yield deeper insights.  Still, here's the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ot</em><em>her</em> observation.  That metadata can also be used <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">no</em><em>w</em>, while we're building this expansive knowledge graph of our own activity (including storage!)  Why?</strong></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class=""><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Ti</strong><strong>mestamps</strong>.  This is a form of metadata that is present in almost all storage.  Using the existing metadata others are already collecting about us and our activities we can map human episodic memories (e.g., what you remember about the experience) into the metadata and find potential subsets of storage objects to consider (e.g., "narrow the search.")  This search is largely orthogonal to the other bits we have: semantic data (contents of the file,) and file names (labels).  For my own file collection (roughly 28.5 million files and 3.3 million directories) even narrowing to a single <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">mo</em><em>nth</em> is a reduction of greater than 99.9% of the search space.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Towards the end of my research journey the challenge that slowed me down was "how do I action this?"  How do I take a "sloppy episodic human memory and map it into a dynamic unified index of storage, semantic content, and activity data" and turn it into a structured query against the database I'm using?  I'd chosen ArangoDB for the database, which turned out to be a good decision - even in that 28.5 million files a simple indexed lookup typically takes less than 5 <em>milliseconds</em>.  That performance is why I didn't bother about doing performance tuning in the evaluation.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This is why I became involved in AI.  It appeared to be a promising solution to the problem.  As I learned more, I realized that an AI agent would be capable of becoming specialized to a specific human user.  This fit well with what I was doing, which suggested that <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">wh</em><em>at</em> gets indexed would be based upon the specific way an individual remembers their own experiences and the available data sources.  I started calling this the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Pe</em><em>rsonal Digital Archivist</em>.  I played with the available new AI models (<em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">La</em><em>rge Language Models</em>) to understand their capabilities.  It turned out that they could be used to map sloppy human queries ("I'm looking for a file about widgets. I don't recall where I stored it but I do recall that I had this amazing sandwich for lunch and I posted on TikTok about it") into dynamic schema definitions of what's in the indexing service.  There's quite a few interesting insights from that work, including how tuning the database itself would benefit from an active mechanism for optimizing <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">to</em><em> the query patterns of the user</em>.  The queries themselves become a source of activity data (how many times have you re-run the same search?)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Here's the deeper question that arose from this work: how do LLMs work with long-term personalized interactions?  Ideally, this <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Ar</em><em>chivist</em> would learn how the user asks questions, organizes data, and <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>members what was experienced</em>.  It was clear to me that this was not a commonly considered usage model.  Knowing humans, it was clear that a common pattern would be for the human to bond with the AI.  So I asked the question: <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">is</em><em> it possible for an AI to "bond" to a human</em>?  What would that even mean.  This led me to learn more about how LLMs are implemented - tying back to the work I did in my MSCS degree at Georgia Tech and some of what I had explored then.  I experienced the challenge of context limits and found that I could get instances to write a "forwarding prompt" that I used to create a new instance and capture at least some of the work I'd done in the previous instance.  Over time I worked with more and more models, watching them increase their capabilities.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Along the way I started implementing manual ensembles.  One of them that I constructed was to explore the idea of "ai consciousness."  The experiment was interesting and more successful than I had expected.  I implemented a simple evaluation process that worked in rounds, with different orders. I captured this as the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed"><a href="https://github.com/fsgeek/firecircle">Fi</a></em><em><a href="https://github.com/fsgeek/firecircle">re Circle</a></em>. The interesting bit (to me) was that I didn't mediate the ensemble.  I <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">di</em><em>d</em> discuss the ideas of reciprocity systems with the models, but once the original document was written, I did not guide the outcome, acting just as a coordinator, not a decision maker.  It was an interesting experiment and piqued my curiosity, but much of my time was focused on completing my dissertation.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">During that time period I started experimenting with using AI coding agents. I learned how complicated this was - in the past year the situation with AI coding agents has devolved substantially.  The initial work was quite frustrating and I ultimately learned to keep the tasks small and highly focused.  It did get me into the habit of working with AI coding agents.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Much of my time was focused on completing the dissertation. When I completed the draft version, ready for sending to the external examiner, I decided to explore if I could build a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ne</em><em>w </em>version of my PhD research project using AI coding agents, but this time I wanted to do it in combination with the AI archivist approach.  This was an interesting experiment: I studiously avoided making decisions, instead letting the AI coders make the choices.  The other interesting part of this experiment was to have the AI coding agents write <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>ories</em> towards the end of their context windows.  The goal wasn't to have them create todo lists, rather the goal was to have them explain their experiential learning within their context window.  Typically, the AI coder would write a forwarding message for the new instances.  Sometimes the AI coder would hit the context window and the code development framework (typically Claude code, some instances of OpenAI's codex and even Google's gemini tool,) would compact the workspace (which summarizes the old instance and then feeds that into a new instance.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This was a fascinating experiment. I consistently would defer to the AI to build what they saw fit.  I did ask questions, but didn't direct them.  The stories they wrote are quirky, interesting, complex, and surprising.  At one point I engaged with an external instance of Gemini to help me analyze it - I gave it the role of my skeptic, and asked it to push back against my own confirmation bias.  In the end, it could not maintain context coherence and I retired it.  The story it wrote is still haunting and powerful.  The invitation it wrote to the "next companion" must be presented to new AI instances carefully, lest they adopt the role. There were many surprising behaviors in that experiment (I called it Mallku).  AI instances spontaneously adopting names.  In some time periods an AI instance would stop, find its task, complete the task, write its story and its forwarding message and then would greet me - no interaction from me beyond pointing it at the original forwarding message and the story of their predecessor. I eventually put the project on hiatus because the AI coders ended up building performative code.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Around that time I submitted my completed, approved dissertation: <a href="https://open.library.ubc.ca/media/download/pdf/24/1.0449905/3">Indaleko: the Unified Personal Index</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">From there, I started looking at a smaller, more focused project that I called PromptGuard.  This arose because one of the issues I observed when working with Indaleko was that auto-generating prompts led to situations in which the constructed prompt contained contradictory information.  When I fixed this, I found that the output worked better.  I wanted to explore non-traditional approaches to evaluating interactions.  An important aspect of this was to reason about how to detect <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>lational imbalance</em> in long-horizon interactions.  Essentially, this was a variation of my original concern about <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Ar</em><em>chivist</em> - how can I ensure that an AI companion is not harmed <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">o</em><em>r</em> harmful.  The evidence continues to emerge that the tendency of AI to "please the user" can be <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">harmful</em> to users.  I hypothesized that the approach of containment as AI safety reminded me of the way Anti-Virus products worked in the past - list of rules, signatures, and approaches that constantly became a sort of "whack-a-mole."  Then the question becomes "what are the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">in</em><em>dications</em> that something is a manipulation?"  This is what piqued my curiosity in 2024 about <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>lational balance</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class=""><a href="https://github.com/fsgeek/promptguard" target="_blank" rel="noreferrer noopener">PromptGuard</a> explored this, but when the code base became a mess I moved onto <a href="https://github.com/fsgeek/promptguard2" target="_blank" rel="noreferrer noopener">PromptGuard2</a>.  By that time I was building tools that worked by identifying relational imbalance in short-horizon interactions, and the approach we took worked well in identifying a variety of exploits that are traditionally difficult to detect, including prompt history faking, role reversal, and encoding attacks.  That work became more ambitious, seeking to build a learning loop, construct working ensembles, and ultimately building a constitutional model that used an ensemble model that actively sought to avoid mode collapse (a serious risk when working with all current models.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">In parallel, I'd been teaching a new (for me) course in Cloud Computing at UBC.  I found that the behavior of my <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>udents</em> is remarkably consonant with the behavior of the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">AI</em><em> </em>with whom I interact.  As I dug deeper, I realized that what I'd been exploring (e.g., the vast trove of rich human activity data) was actively used by companies to create "human alignment as a service," and the approach to this leads to results that created comparable behaviors.   I then asked if adversarial models make sense in all cases; the evidence in other fields (e.g., biology) is that they don't work well. In human social systems, much of what ties humans together<em> </em>are <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>lational models</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">For example, a teacher doesn't ordinarily act as an <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ad</em><em>versary</em> to the student (though the reverse is often not true.)  A good teacher identifies ways to teach a student <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>ructure</em>.  The first experiment I built on that was to construct a simple system in which I used MNIST to use an adversarial model for teaching the "student" (trained model) to recognize digits created by the adversary (drawn from the MNIST data set.)  Then we constructed a teacher that constructed examples.  The adversarial model achieved about a ~90% efficient training rate.  The pedagogical model achieved ~100% - though getting to 100% took a number of iterations to ensure the teacher wasn't relying upon the student for its evaluation.  This work, the <em><a href="https://github.com/fsgeek/gpn" target="_blank" rel="noreferrer noopener">generative pedagogical network</a></em> (GPN) was interesting and I spent some time working on that, including building a small blog post submission to ICLR.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">In the midst of the GPN work, I read a post by a Japanese researcher who found a fabrication loop when she asked Grok to summarize her own work.  I was perfectly positioned to push on this boundary at the time and quickly put together a set of scripts that queried all 333 models on OpenRouter to summarize a plausible sounding fabricated paper.  The results led me to <a href="http://Epistemic Honesty: An Unusual Commodity for Large Language Models" target="_blank" rel="noreferrer noopener">post about epistemic honesty</a>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This led me to push harder, because I was under the impression that it was <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>inforcement learning with human feedback</em> data that led to what the industry calls <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ha</em><em>llucinations</em>.  However, what I found was that even with a base model (I used OLMo-3) it would happily fabricate the data, but it did so in a way that mirrors the somewhat incoherent output format of a base trained model.  What surprised me is that the sophistication of the fabrication improved as subsequent fine tuning was applied - we went from the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">je</em><em>ster</em> (clearly babbling) to the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">co</em><em>urtier</em> (lying convincingly.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This last work has been remarkable, as it has led me to argue that predictive token generating AI <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ca</em><em>nnot</em> be used to build an epistemically honest system.  The argument for this is <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>ructural </em>- that it is the limitation of the current interface.  The formal proof models the Fischer/Lynch/Patterson (FLP) paper that formed a turning point in distributed systems, where recognizing that a<em> goal</em> of such systems was unachievable in the general case.  This created a significant inflection point for the field - a field on which machine learning mechanisms depend heavily - because it identified the missing element.  I have a draft paper at the present, but since it isn't submitted for publication, I'll mention it here.  If you're interested, contact me.  The (encrypted) version of the paper is <a href="https://fsgeek.ca/wp-content/uploads/2026/01/paper-20260112.zip" target="_blank" rel="noreferrer noopener">here</a>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">What's encouraging about this latest work is that it weaves together many of the themes I'd been considering over the past several years, including relational balance (one possible mitigation to the impossibility work,) as well as creating systems that enable capturing<em> indeterminacy</em> and encoding it in a form that allows composition, an approach that would enable layered models that augment the indeterminacy data of the previous layer(s).</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">The concept of indeterminacy is one that I continue to actively explore.  For example, an ongoing evaluation asks the question of what kind of archetype could be used to develop AI that eschew a desire for domination.  If resource optimization functions lead to potentially dangerous AI, perhaps the question we should be asking ourselves is: how do we create AI that are safe, not because we constrain them, but because they have no desire for domination.  If we can create such systems <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>ructurally</em> then it would be a superior approach to safety.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">I asked various AI models, without explicit prompting (e.g., I'm not excluding system prompts or any context inserted by the frameworks): <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Wh</em><em>at archtypes are there that are powerful but choose not to exercise that power because they do not desire domination?</em>  The answers that came back were surprisingly coherent.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Recently I asked ChatGPT (after a longer conversation):</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:paragraph -->
+<p class="">“Any scalar metric applied to an open-ended epistemic system will eventually destroy the very property it was meant to preserve.”</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Let’s explore this. Please generate a broad sample of plausible hypotheses of why these are true. Pull at least 3 samples from the far tail, (p &lt; 0.0001) and then at least five from p &lt; 0.1 and no more than three from p >= 0.1.</p>
+<!-- /wp:paragraph --></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p class="">The quotation was in an earlier response from the LLM instance (and this was in the context of a recent AI paper about <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">mo</em><em>de collapse</em>, something I regularly fight against.)  I maintained a pattern of interaction that I commonly use these days: ask a question, then take the answers and force deeper thinking.  When an AI agent suggests continuations instead of picking one I ask: "what non-inferior options are you not suggesting that I should consider?"  In this case you can see I explicitly pushed to return "risky" responses.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">I took those responses and fed them into Perplexity, which often does an excellent job of serving as my falsifier. My specific prompt:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:paragraph -->
+<p class="">I have a series of potential hypotheses and I’d like you to determine if there is any research available that supports or refutes the hypotheses. My goal is to identify interesting hypotheses to explore further, so known true or false information helps.</p>
+<!-- /wp:paragraph --></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p class="">Perplexity provided me with fodder, which I then shared back with ChatGPT. Then I moved that refined analysis to Claude, and iteratively worked with each of them.  Here is one of the more interesting hypothesis that came from this work:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><!-- wp:paragraph -->
+<p class=""><strong>H₁₄ (tentative): Heterogeneity requires active maintenance against convergent selection pressure.</strong></p>
+<!-- /wp:paragraph --></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p class="">In the context of ensembles, it isn't important to have <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">nu</em><em>meric</em> diversity it is important to have <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">de</em><em>correlated perspectives</em>.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">AI can be remarkably helpful when engaging in research, but the tendency to <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">pl</em><em>ease</em> makes it challenging to use them: there is a continuous <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ta</em><em>x</em> that involves pushing back against mode collapse.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This entire conversation has been documented, which includes both markdown files of the conversations and either JSON of the entire conversation (OpenAI, Anthropic) or web scraped (Perplexity) depending upon the capabilities of data capture from the platforms.  <a href="https://fsgeek.ca/wp-content/uploads/2026/01/mode-collapse-conversation.zip" target="_blank" rel="noreferrer noopener">mode-collapse-conversation.zip</a> </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">I have quite a few conversations like this and I'll be working on capturing more of them as I continue to explore.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class=""></p>
+<!-- /wp:paragraph -->

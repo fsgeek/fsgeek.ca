@@ -1,0 +1,42 @@
+---
+title: "The Future of Synchronization on Multicores: The Mulitcore Transformation"
+date: "2018-04-27 04:00:15"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/04/27/the-future-of-synchronization-on-multicores-the-mulitcore-transformation/"
+post_id: 490
+categories: ["Conferences Journals and Workshops", "Hardware", "Memory"]
+tags: ["Deadlocks", "HTM", "Locks", "Transactions"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=2618405">The Future of Synchronization on Multicores: The Multicore Transformation</a>
+Maurice Herlihy in <em>Ubiquity, September 2014.</em>
+
+I'm going to round out the week with a much lighter read.  Despite this, it has some useful observations that underlie some of the other papers that I've been discussing.
+
+The editor's introduction to this piece really does a good job of summing up the problem:
+<blockquote><em>Synchronization bugs such as data races and deadlocks make every programmer cringe — traditional locks only provide a partial solution, while high-contention locks can easily degrade performance. Maurice Herlihy proposes replacing locks with transactions. He discusses adapting the well-established concept of data base transactions to multicore systems and shared main memory.</em></blockquote>
+The author points out: "Coarse-grained locks ... generally do not scale: Threads block one another even when they do not really interfere, and the lock itself becomes a source of contention."  I have personally experienced this <em>and</em> moved on to the next solution, which has its own separate problems: "Fine-grained locks can mitigate these scalability problems, but they are difficult to use effectively and correctly."
+
+When I have taught about locking in the past, I've often approached it from the debugging perspective: fine-grained locks create <em>deadlocks</em>, which can be almost impossible to debug without instrumentation.  In operating systems, we prevent deadlocks by defining a lock hierarchy.  The order in which locks <em>can be</em> acquired forms a graph.  To prevent deadlocks, we require that the graph be acyclic.  That sounds simple and for simple code bases, it is.  However, in the real world where we introduce such fine-grained locks, the code base is seldom simple and we end up finding complex situations, such as re-entrant behavior, where the cycles appear.  Cycles can be introduced because we have multiple discreet components, each doing something logical, that creates a lock cycle unwittingly.
+
+The author also points out another problem with locks that is important in real systems: "Locks inhibit concurrency because they must be used conservatively: a thread must acquire a lock whenever there is a possibility of synchronization conflict, even if such conflict is actually rare."  A common maxim in systems programming is to optimize the common case.  Locks do the opposite: they <em>burden</em> the common case with logic that is normally not useful.
+
+The author also points out that our lock mechanisms do not compose well:  when we need to construct consistent higher level logic from lower level locked primitives, we have no simple way to interlock them unless they expose their own locking state.  I have built such systems and the complexity of verifying state <em>after </em>you acquire each lock and unwinding when the state has changed is challenging to explain and conceptualize.
+
+This is so complicated that in many cases concurrency is handled within the tools themselves in order to insulate the programmer from that complexity.  It may be done by isolating the data structures - single threaded data structures don't need locks - so you can use isolation and message passing.  It can be done in a transactional manner, in which the locking details are handled by the tools and lock issues cause the transaction to roll back (abort), leaving the application programmer to restart again (or the tools to attempt to handle it gracefully).
+
+One such way to achieve this is to implement transactional memory: a series of operations that are performed sequentially and once the operation is done, the outcome is determined: the transaction either becomes visible (it is <strong>committed</strong>) or it fails (it is <strong>aborted</strong>) and no changes are made.  General transaction systems can be quite complicated: this is a common database approach.
+
+How do we make transactions simple enough to be useful in multicore shared memory environments?
+<ul>
+ 	<li>Keep them small: they don't change much state</li>
+ 	<li>Keep them brief: they either commit or abort quickly</li>
+ 	<li>Keep them ephemeral: they don't involve disk I/O, they aren't related to <em>persistence</em> they are related to <em>consistency</em>.</li>
+</ul>
+One benefit of transactions is they <em>are</em> composable: they can be nested.  Transactions can avoid issues around priority inversion, convying, and deadlocks.  The author points to other evidence that says they're easier for programmers and yield better code.
+
+Transactions aren't new.  We've been using them for decades.  When we use them at disk I/O speeds, we find the overhead is acceptable.  When we use them at <em>memory</em> speeds we find the overhead of transactions is too high to make them practical to do <em>in software</em>.  This gave birth to the idea of hardware transactions.  Hardware transactions can be used in databases (see <em><a href="https://fsgeek.ca/2018/04/26/exploiting-hardware-transactional-memory-in-main-memory-databases/">Exploiting Hardware Transactional Memory in Main-Memory</a><a href="https://fsgeek.ca/2018/04/26/exploiting-hardware-transactional-memory-in-main-memory-databases/"> Databases</a></em>) quite effectively.  They don't suffer from the high overhead of software transactions.  The author points out a limitation here: "Hardware transactions, while efficient, are typically limited by the size and associativity of the last-level cache".   When a cache line cannot remain in the CPU, the transaction is aborted.  Software must then handle the abort: "For these reasons, programs that use hardware transactions typically require a software backup."  As we saw in previous work (again <em><a href="https://fsgeek.ca/2018/04/26/exploiting-hardware-transactional-memory-in-main-memory-databases/">Exploiting Hardware Transactional Memory in Main-Memory</a><a href="https://fsgeek.ca/2018/04/26/exploiting-hardware-transactional-memory-in-main-memory-databases/"> Databases</a>) </em>just retrying the operation once or twice often resolve the fault.  But sometimes the operation is just not viable on the system at the present time.
+
+The author's summary of the impact of hardware transactions is interesting:
+<blockquote><em>The author predicts that direct hardware support for transactions will have a pervasive effect across the software stack, affecting how we implement and reason about everything from low-­level constructs like mutual exclusion locks, to concurrent data structures such as skip-­‐lists or priority queues, to system-­‐level constructs such as read-­‐copy-­‐update (RCU), all the way to run-­time support for high-­‐level language synchronization mechanisms.</em></blockquote>
+So far, this change has not been pervasive.  I have seen signs of it in the operating system, where lock operations now take advantage of lock elision in some circumstances.   Systems, and software stacks, do change slowly.  Backwards compatibility is a big issue.  As we move forward though, we need to keep these new mechanisms in mind as we construct new functionality. Better and faster are the goals.

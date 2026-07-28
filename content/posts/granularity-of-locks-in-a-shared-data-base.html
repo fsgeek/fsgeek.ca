@@ -1,0 +1,41 @@
+---
+title: "Granularity of Locks in a Shared Data Base"
+date: "2018-02-14 10:08:54"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/02/14/granularity-of-locks-in-a-shared-data-base/"
+post_id: 329
+categories: ["Conferences Journals and Workshops", "Database"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=1282513">Granularity of locks in a shared data base</a>,
+Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, in <em>Proceedings </em><i>of the 1st International Conference on Very Large Data Bases</i>, pp. 428-451. ACM, 1975.
+
+I was originally going to do a write-up of <a href="https://fsgeek.ca/2018/02/15/a-client-based-transaction-system-to-maintain-data-integrity/"><em>A Client-Based Transaction System to Maintain Data Integrity</em></a> but realized that I should help motivate the use of locks and transactions better before diving into this topic area.  So to do this, I've picked to talk about <strong>locks</strong>.  This is a critical concept that we utilize in file systems development on a routine basis.  Note that this work actually started out in the <strong>database</strong> community, not the file systems community.
+
+I will note that this is a long paper (23 pages) and there is considerable detail that I will omit for the sake of brevity - but I do want to touch on the key points that are raised in this paper.
+
+They start off by defining <strong>consistency</strong> and <strong>transaction</strong>.  They define consistency first:
+<blockquote><em>We assume the data base consists of a collection of records and constraints defined on these records.  There are physical constraints (ex: in a list of records, if a record A points to record B then record B must exist) as well as logical constraints (ex: conservation of money in a bank checking account application). When all such constraints are satisfied the data base is said to be <span style="text-decoration: underline;">consistent.</span></em></blockquote>
+Then they move on to transaction:
+<blockquote><em>A <span style="text-decoration: underline;">transaction</span> is a series of accesses (for read or write operations) to the data base which, applied to a consistent data base, will product a consistent data base.  During the execution of a transaction, the data base may be temporarily inconsistent.  The programs used to perform the transactions assume that they "see" a consistent data base.  So if several transactions are run concurrently, a locking mechanism must be used to insure that one transaction does not see temporarily inconsistent data cause by another transaction.  Also, even if there are no consistency constraints, locks must be used so that the updates of one transaction are not made available to others before the transaction completes.  Otherwise, transaction backup might cascade to other transactions which read or updated the "back up" updates.</em></blockquote>
+This text does not lay out the modern description of transactions that we use (atomic, consistent, isolated, and durable or <strong>ACID</strong>) but what it describes is a system in which these properties do in fact exist.  This concept is not unique to databases - we see it in <em>any</em> multi actor system sharing resources.  The usual analogy that I use when describing this are traffic intersection based, as the intersection is a shared resource and the individual vehicles separate actors. <a href="https://fsgeek.ca/wp-content/uploads/2018/02/lock-free-picture.jpg"><img class="aligncenter size-medium wp-image-331" src="https://fsgeek.ca/wp-content/uploads/2018/02/lock-free-picture-300x169.jpg" alt="lock free traffic flow" width="300" height="169" /></a>
+
+The optimal configuration for resource sharing is where the need to share is minimized.  If there is no shared data, there is no need for locks. Similarly, if the data is <strong>immutable</strong> (a concept I know we'll return to over time) we don't need to protect it.  Only <strong>mutable</strong> state needs to use locks.  As it turns out, frequently mutable state doesn't actually <em>change</em> but because it <em>can</em> change, if we rely upon it, we must protect against change.
+
+This concept of transitioning from one consistent state to another consistent state safely is why we use locks.  The primary contribution of the authors in this paper is not the creation of locks and consistency but rather their creation of a clear language that we still use to describe these concepts.
+
+In Section 2 they then describe what a "lockable object" is.  There are several important observations here, which I summarize:
+<ul>
+ 	<li>A transaction is sequentially consistent.  This is a very strong consistency guarantee (as we will see in later papers when things get far more general.)</li>
+ 	<li>The basic lock type is reader-writer.  A <strong>reader lock</strong> provides shared access to mutable state, along with the guarantee that the mutable state won't change while the lock is held.  A <strong>writer lock</strong> provides exclusive access to mutable state, along with the guarantee that the only changes to that state will be made by the owner of the writer lock.</li>
+ 	<li>Locks may be used to protect non-existent resources, for example, to block the creation of a new object.  Since the object doesn't exist, you can't lock it yet (interestingly, I usually tend to think of that as locking the structure in which the new object exists, but their observation that you can lock non-existent items is certainly valid.</li>
+ 	<li>Locks are requested dynamically.</li>
+ 	<li>There is a dynamic balance between lock granularity and overhead.  If we lock many small objects, there is a cost associated with each of those lock operations.  In the years since this paper we have made uncontended lock acquisition rather inexpensive, but contended lock acquisition remains an expensive proposition.</li>
+</ul>
+The paper then goes on to discuss lock hierarchies.   This is because in any dynamic lock system in which you obtain more than a single lock, you need to ensure that there will never be a situation in which an actor blocks waiting for a lock that will never be released.  The simplest case of this is when an actor blocks waiting for a lock <em>which it owns</em>.  This is clearly a programming error, but it is one that I have seen numerous times over the years.  The more complex case of this is when we have a cycle in lock acquisition.  The paper points out that to prevent this we need to construct a directed acyclic graph showing the order in which locks are acquired.  <em>Usually</em> these are trees, but I have seen environments in which they really are DAGs, due to re-entrant behavior.
+
+The paper describes their model for one type of lock, which is focused on locking within an hierarchical name space.  Thus, they have <strong>exclusive</strong> (X) access, <strong>shared </strong>(S) access, and <strong>intention</strong> (I) locks.  The intention lock is then used to protect each object along the lock hierarchy, with X or S access to the final node in the hierarchy.  The paper goes into greater detail about this; I'll omit it because it is not really germane to what I found most interesting about this paper.
+
+The final point that I'll draw out of this paper is that they discuss the idea of lock scheduling, deadlock, and lock thrashing.  The lock hierarchy is intended on preventing deadlock.  Lock scheduling can be used to detect deadlocks.  Thrashing relates to memory contention and calls out to other operating system mechanisms for resolution.
+
+With this behind us, we should have a better basis for understanding how we use transactions and locking to ensure consistency in file systems.

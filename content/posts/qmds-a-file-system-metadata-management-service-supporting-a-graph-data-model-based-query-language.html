@@ -1,0 +1,96 @@
+---
+title: "QMDS: A File System Metadata Management Service Supporting a Graph Data Model-based Query Language"
+date: "2019-05-02 04:00:57"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/05/02/qmds-a-file-system-metadata-management-service-supporting-a-graph-data-model-based-query-language/"
+post_id: 603
+categories: ["File Systems", "Name Spaces"]
+---
+
+<!-- wp:paragraph -->
+<p><a href="https://users.soe.ucsc.edu/~carlosm/Papers/ames-nas11.pdf">QMDS: A File System Metadata Management Service Supporting a Graph Data Model-based Query Language</a><br><br>Sasha Ames, Maya B. Gokhale, and Carlos Maltzahn, International Journal of Parallel, Emergent and Distributed Systems, Volume 28, Number 2, pp. 159-183, 2013.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This paper came to my attention via feedback from an anonymous reviewer, observing that our idea of constructing a graph file system had "already been done".  It never ceases to amaze me that, despite how much time I have spent combing the literature, there seem to be things I miss.  In this particular case, I have to agree with the reviewer that the basic idea we proposed really had been done before, though it seems as if the design space has not been exhausted <strong>and</strong> this paper actually will save me considerable time because up to this point it's been a challenge to even explain <strong>why</strong> this kind of file system is useful.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Indeed, my read of this paper really suggests that these authors <em>also</em> struggled with similar objections because they spend considerable time justifying the need for their work: the introduction is fairly long because it explains the underlying problem, and the prior work section also goes to great length to explain why prior work is inadequate to the job.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p><em>In this paper, we discuss an exploration of our approach to the problem: the use of a graph data model for representing file system user-defined metadata and a query language for retrieval. The purpose of this approach is to provide management of user-defined file metadata along with data under a single file system interface, delivering a common service across applications. Applications would be able to offload their metadata management needs to the service, alleviating the need for their own solution. This arrangement would benefit applications by reducing their code complexity, by virtue of not having their own custom metadata management components. A second benefit is improved opportunities for interoperability among separate applications.</em></p></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>The model we have been discussing, and trying to present, is one in which we have a richer model for meta-data to capture not only <em>attributes</em> of files, but also <em>relationships</em> across files.  Like these authors we reached the conclusion that a graph is likely a better representational model for data.  This encompasses the hierarchical model that is a fundamental part of <strong>POSIX</strong>, while at the same time providing us with a robust platform on which to build additional functionality.  Before I start explaining that, though, I should go through this paper because it has valid results that I can use moving forward.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":605,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://fsgeek.ca/wp-content/uploads/2019/04/figure1.png" alt="" class="wp-image-605"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>In Figure 1 from the paper, the authors describe the type of graph they are using: it has vertices (files) and edges (parent/child), with labels on the edges (attributes).  I am not convinced this is the right graph model, but I will save <em>that</em> conversation for a future blog post.<br></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":606,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://fsgeek.ca/wp-content/uploads/2019/04/figure2.png" alt="" class="wp-image-606"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>In Figure 2, the authors delve into the structure of their graph in greater detail, as they compare their model to that of Resource Description Framework (RDF) triples that are used in several graph processing systems.  Here we see a better description of their format (which is actually closer to what I'll describe for my own work): "Our data model for file system metadata is a directed graph with attributes on nodes and edges, shown in Figure 1. Nodes in the graph can represent files, and this allows the system to manage relationships among files. We call our directed edges links, connecting parent and child nodes."</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>They note that applications do not explicitly define schemas (something <em>else</em> I need to discuss in a future blog post) nor does their system require classes be defined.  The authors argue this provides greater flexibility and indeed, the fact it does not force an application to be locked into a specific model.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>"A heterogeneous approach to managing metadata gives all applications the<br> same tools to manage relationships." It seems to me that <strong>this</strong> is one of the most compelling reasons on why this is a systems problem and not an application problem.  If we insist applications implement this, most will not.  Those that do will have no mechanism for interaction <em>across</em> applications.  If files were truly isolated from one another, that would be fine, but in the real world, files do have relationships with other objects, whether it is other files, or external references (e.g., the "get me the e-mail from whence this file originated" example I described <a href="https://fsgeek.ca/?p=597">recently</a>.)  This helps with motivation, which I mentioned before has been an area of resistance I've received as well.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":607} -->
+<figure class="wp-block-image"><img src="https://fsgeek.ca/wp-content/uploads/2019/04/figure3-1024x484.png" alt="" class="wp-image-607"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Figure 3 shows how the authors optimized their file system's meta-data efficiency.  This provides some interesting insight into the cases they expect to be common.  I found their emphasis on <em>navigation</em> a useful one as well, particularly given the discussion of it <a href="https://fsgeek.ca/?p=597">recently</a>. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The choice of optimization models certainly seems to be an important one, given that we can't optimize for everything, and if we optimize for the wrong things we end up with something that looks much like brute-force search, which I can't imagine is going to perform well.<br></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":608} -->
+<figure class="wp-block-image"><img src="https://fsgeek.ca/wp-content/uploads/2019/04/figure4.png" alt="" class="wp-image-608"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>In Figure 4 the authors turn their attention to their implementation model.  They use the FUSE file systems interface to aid their implementation.  This is interesting because one of the areas I've been exploring (sigh, yet <em>another</em> area to discuss in greater detail) is ways to more easily enhance the FUSE interface to enable exploring enhanced interfaces.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>It seems that one downside to this approach is that it focuses on existing mechanisms for finding and accessing files, without providing a useful mechanism for exploiting enhanced search. Admittedly, the extended attribute interface does provide <em>some</em> mechanism for achieving this, but this is a useful paradigm for exploring how such a file system will work with existing applications - certainly an important aspect of constructing any file system that one expects will be useful.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":609} -->
+<figure class="wp-block-image"><img src="https://fsgeek.ca/wp-content/uploads/2019/04/figure5-1024x459.png" alt="" class="wp-image-609"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Figure 5 was <em>quite</em> interesting to me, because it addresses one of the concerns I've seen in prior work based on relational databases (e.g., they're often <em>slow</em>).  I suspect that these results, with good times within QMDS relative to their evaluation relate to their optimization model for the queries they are executing. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One thing this doesn't evaluate is how QDMS performs relative to other FUSE based file systems.  The queries they do execute on QMDS seem to be targeted search queries and not necessarily well-correlated to actual usage as a file system.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>There is no follow-up to this work, unfortunately, which makes it difficult to understand the general usefulness of QMDS.  The upside to this is that it leaves considerable room for future work.  It <em>does</em> provide a strong case for exploring this approach more thoroughly and I have already suggested that better evaluation seems justified under the circumstances.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I'll discuss more of these issues as I turn my attention to describing my own work in future posts.<br></p>
+<!-- /wp:paragraph -->

@@ -1,0 +1,30 @@
+---
+title: "KV Design Thoughts"
+date: "2018-04-25 14:59:29"
+status: "private"
+original_url: "https://fsgeek.ca/2018/04/25/kv-design-thoughts/"
+post_id: 478
+categories: ["Key-Value Stores"]
+---
+
+This page is here to capture my thoughts on key value store design.
+
+Anna achieves high scalability by using strict partitioning; this suffers for workloads that are not fairly uniform (or you end up over-provisioning).
+
+MassTreee achieves high scalability by using judicious locking (none for reads) and novel data structures for their variable length binary keys.  It allows multi-core access for scalability.
+
+Faster needs to be fully evaluated
+
+KV-Direct achieves high scalability with NIC cards and hardware.
+
+There's not as much work with persistent memory (there are some) and I need to capture that here.
+
+My thought: you want to use isolation whenever possible.  It <strong>is </strong>faster ("Exploiting Hardware Transactional Memory in Main-Memory Databases").  So how do we identify the "tipping point" at which it makes sense to allow scaling?  It seems there are three obvious inflection points: (1) multi <strong>core</strong><strong> </strong>(should we evaluate SMT behavior?); (2) multi <strong>NUMA node</strong>; (3) multi <strong>machine</strong>.  Each of these is going to impact us, but there is an interesting question of where the scaling point for these systems are.
+
+Suppose we started with a model in which the key space is fragmented in some abstract "fair" fashion.  We could start with the data structure(s) <strong>locked</strong> by the owning core.  As requests arrive, we can note how busy that core is.  Once the core becomes sufficiently busy ("handwave" or "to be evaluated") it can flip a switch that says "this key is busy, start distributing it across the next compute tier".  The inbound routing mechanism can keep a hash of only those hot keys (cuckoo hash, perhaps?)  If the key is unbound like that it can then route them (round robin?  latest reported load?  I'm not sure - this is a handwaving idea still) to one of the <em>group</em> of processors that are handling it.
+
+If the load continues to be "too high" we can then begin to distribute it across multiple <em>nodes</em> within the same system.
+
+Once you move beyond nodes, you need to engage the distributed stated algorithms (2PC, Paxos, Raft, VR, Quorum, etc.)  Then things get much more complicated.
+
+But my observation was that you could start out with the key <em>locked</em> by default.  Then when you switch it the lock owner will notice and start unlocking.  That ensures a model of correctness.  I'd bet you that you get a nice tail distribution for this approach.  The counter-measure would be to look at the scaling for the level of effort required.

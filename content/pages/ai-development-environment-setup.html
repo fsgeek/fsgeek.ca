@@ -1,0 +1,404 @@
+---
+title: "AI Development Environment Setup"
+date: "2025-09-08 12:20:01"
+status: "publish"
+original_url: "https://fsgeek.ca/ai-development-environment-setup/"
+post_id: 1519
+---
+
+<!-- wp:html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPSC 436C - AI Development Environment Setup</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .goal {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .step-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+        
+        .verification {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+            margin-top: 15px;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .checklist li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+        
+        .support {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 30px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .platform-tabs {
+            display: flex;
+            background: #e9ecef;
+            border-radius: 6px 6px 0 0;
+            margin-bottom: 0;
+        }
+        
+        .platform-tab {
+            flex: 1;
+            padding: 10px 15px;
+            text-align: center;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .platform-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .platform-content {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 6px 6px;
+            border: 1px solid #e9ecef;
+            border-top: none;
+        }
+        
+        .platform-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI Development Environment Setup</h1>
+        <p><strong>CPSC 436C: Cloud Computing</strong> | 2025 Winter Term 1</p>
+        <p>This guide helps you set up a local AI development environment for critical collaboration and model comparison.</p>
+    </div>
+
+    <div class="goal">
+        <h3>🎯 Your Goal</h3>
+        <p>Yyou should be able to:</p>
+        <ul>
+            <li>Run AI models locally (not just web interfaces). Note: "locally" just means a machine you control.</li>
+            <li>Compare responses across different models</li>
+            <li>Document your AI interactions for course projects</li>
+            <li>Critically evaluate AI outputs for technical accuracy</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>⚠️ Important Notes</h3>
+        <ul>
+            <li><strong>Time Investment</strong>: Plan 1-2 hours for initial setup</li>
+            <li><strong>Disk Space</strong>: You'll need 5-10GB free space for models</li>
+            <li><strong>Internet</strong>: Initial model downloads can be large (1-4GB each)</li>
+            <li><strong>Help Available</strong>: TA office hours specifically for setup support</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <div class="step-title">
+            <span class="step-number">1</span>
+            Python Environment Setup
+        </div>
+        <p>First, let's get a modern Python environment. We recommend <code>uv</code> (modern) but <code>pip</code> works too.</p>
+        
+        <div class="platform-tabs">
+            <button class="platform-tab active" onclick="showTab('python-modern')">Modern (uv)</button>
+            <button class="platform-tab" onclick="showTab('python-traditional')">Traditional (pip)</button>
+        </div>
+        
+        <div id="python-modern" class="platform-content active">
+            <h4>Using uv (Recommended)</h4>
+            <div class="code-block">
+# Install uv<br />
+curl -LsSf https://astral.sh/uv/install.sh | sh<br />
+# Create project directory<br />
+mkdir ~/cpsc436c-ai<br />
+cd ~/cpsc436c-ai<br />
+# Initialize Python project<br />
+uv init<br />
+uv add litellm<br />
+            </div>
+        </div>
+        
+        <div id="python-traditional" class="platform-content">
+            <h4>Using pip (Traditional)</h4>
+            <div class="code-block">
+# Create project directory<br />
+mkdir ~/cpsc436c-ai<br />
+cd ~/cpsc436c-ai<br />
+
+# Create virtual environment<br />
+python -m venv .venv<br />
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />
+
+# Install requirements<br />
+pip install litellm
+            </div>
+        </div>
+        
+        <div class="verification">
+            <strong>✅ Verification:</strong> Run <code>python -c "import litellm; print('Success')"</code>
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-title">
+            <span class="step-number">2</span>
+            Local AI Models Setup
+        </div>
+        <p>Choose ONE of these options to run models locally:</p>
+        
+        <div class="platform-tabs">
+            <button class="platform-tab active" onclick="showTab('ollama-setup')">Ollama (Recommended)</button>
+            <button class="platform-tab" onclick="showTab('lmstudio-setup')">LM Studio</button>
+        </div>
+        
+        <div id="ollama-setup" class="platform-content active">
+            <h4>Option A: Ollama</h4>
+            <ol>
+                <li>Download from <a href="https://ollama.ai" target="_blank">ollama.ai</a></li>
+                <li>Install and start Ollama</li>
+                <li>Download a model:</li>
+            </ol>
+            <div class="code-block">
+# Start with a smaller model for testing<br />
+ollama pull llama3.2:3b<br />
+
+# Or a more capable model (larger download)<br />
+ollama pull llama3.1:8b<br />
+            </div>
+        </div>
+        
+        <div id="lmstudio-setup" class="platform-content">
+            <h4>Option B: LM Studio</h4>
+            <ol>
+                <li>Download from <a href="https://lmstudio.ai" target="_blank">lmstudio.ai</a></li>
+                <li>Install and launch LM Studio</li>
+                <li>Browse and download a model (try llama-3.2-3b-instruct for starting)</li>
+                <li>Start the local server in LM Studio</li>
+            </ol>
+        </div>
+        
+        <div class="verification">
+            <strong>✅ Verification:</strong> You should be able to chat with your local model through the respective interface.
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-title">
+            <span class="step-number">3</span>
+            Model Comparison Setup
+        </div>
+        <p>Set up litellm proxy to compare different models:</p>
+        
+        <div class="code-block">
+# Create a config file<br />
+cat > config.yaml << EOF<br />
+model_list:<br />
+  - model_name: local-llama<br />
+    litellm_params:<br />
+      model: ollama/llama3.2:3b<br />
+      api_base: http://localhost:11434<br />
+      <br />
+  - model_name: gpt-5<br />
+    litellm_params:<br />
+      model: gpt-5<br />
+      # Add your OpenAI API key if you have one<br />
+      <br />
+  - model_name: claude-sonnet<br />
+    litellm_params:<br />
+      model: claude-sonnet-4-20250514<br />
+      # Add your Anthropic API key if you have one
+EOF
+<br />
+# Start the proxy<br />
+litellm --config config.yaml<br />
+        </div>
+        
+        <div class="verification">
+            <strong>✅ Verification:</strong> Visit <code>http://localhost:4000</code> to see the litellm interface.
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-title">
+            <span class="step-number">4</span>
+            Test Your Setup
+        </div>
+        <p>Create a simple test to verify everything works:</p>
+        
+        <div class="code-block">
+# Create test.py<br />
+cat > test.py << EOF<br />
+import litellm<br />
+<br />
+# Test local model<br />
+response = litellm.completion(<br />
+    model="ollama/llama3.2:3b",<br />
+    messages=[{"role": "user", "content": "Explain serverless vs containers in 2 sentences"}],<br />
+    api_base="http://localhost:11434"<br />
+)<br />
+print("Local model response:", response.choices[0].message.content)<br />
+EOF<br />
+<br />
+# Run the test<br />
+python test.py<br />
+        </div>
+        
+        <div class="verification">
+            <strong>✅ Verification:</strong> You should get a reasonable 2-sentence explanation about serverless vs containers.
+        </div>
+    </div>
+
+    <div class="step">
+        <div class="step-title">
+            <span class="step-number">5</span>
+            Document Your First AI Collaboration
+        </div>
+        <p>For Thursday's class, try this exercise:</p>
+        
+        <ul class="checklist">
+            <li>Ask your local model: "What's the best database for my project?"</li>
+            <li>Note the generic response you get</li>
+            <li>Ask: "I need a database for unpredictable traffic, AWS free tier, fast key-value lookups for a URL shortener. Compare DynamoDB vs RDS Aurora Serverless with cost and performance trade-offs."</li>
+            <li>Compare the quality of responses</li>
+            <li>Write 2-3 sentences about what you learned</li>
+        </ul>
+        
+        <div class="verification">
+            <strong>✅ Verification:</strong> Bring your documented comparison to Thursday's class.
+        </div>
+    </div>
+
+    <div class="support">
+        <h3>🆘 Need Help?</h3>
+        <ul>
+            <li><strong>TA Office Hours</strong>: Dedicated AI setup support sessions</li>
+            <li><strong>Discord</strong>: <a href="https://discord.gg/PdBSTFWA">#setup</a> channel for setup questions</li>
+            <li><strong>Common Issues</strong>: Check pinned messages in Discord for solutions</li>
+            <li><strong>Alternative</strong>: If local setup fails, you can use web interfaces temporarily, but document what didn't work</li>
+        </ul>
+        <p><strong>Remember</strong>: The goal is professional AI collaboration skills, not perfect technical setup. If you're struggling, document the problems - that's valuable learning too!</p>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all platform content
+            const contents = document.querySelectorAll('.platform-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active from all tabs
+            const tabs = document.querySelectorAll('.platform-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected content and mark tab as active
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+<!-- /wp:html -->
+
+<!-- wp:paragraph -->
+<p class=""></p>
+<!-- /wp:paragraph -->

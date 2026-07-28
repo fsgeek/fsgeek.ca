@@ -1,0 +1,44 @@
+---
+title: "Setting up Debugging"
+date: "2019-05-23 04:03:16"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/05/23/setting-up-debugging/"
+post_id: 658
+categories: ["File Systems", "Windows"]
+---
+
+<!-- wp:paragraph -->
+<p>No matter how many times I do this over the years, I find it to be a slow and painful process - install a clean virtual machine image, set up kernel debugging, install the (test signed) driver.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>It never ceases to amaze me how non-intuitive it is to set up <em>talk</em> to the new VM image that I've set up on my computer.  This time was certainly no exception.  Since I'm running on Windows 10, I choose to use Hyper-V (otherwise I can't use the Windows 10 docker support, for example).  I downloaded the latest and greatest version of Windows 10 (1903 Enterprise) and installed it inside a Generation 2 Hypervisor.  There's the usual challenges (oh right, I reset the machine, so of course none of my Hyper-V networking choices worked, so of course I don't have an external network switch set up).  So I set up the VM with no networking.  Windows is <em>most</em> displeased with this option and warns me that a machine without networking is like a Bloody Mary without vodka; one nice upside to this was that it <em>didn't</em> prompt me to log into an internet account, so I gleefully set up a local account. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Then of course I had to figure out (again) how to get things transferred between the <em>local</em> machine and the <em>virtual</em> machine.  I made the usual changes to enable ICMP ("advanced settings" in the firewall, and then it is buried under "File and Printer Sharing" because <em>obviously</em> supporting <strong>ICMP </strong>is all about file and printer sharing.... </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I was amused to find that I could ping<em> </em>from my laptop <em>to</em> the virtual machine, but not the reverse.  Repeating this process on the laptop of changing the File and Printer sharing options fixed that issue.  Next trick was to get SMB working since I have to move files between the two machines.  I enabled other File and Printer sharing options (for the private/domain network options - I don't want to share on a public network, after all) but that <em>still</em> didn't work.  So I turned off the firewall on the virtual machine; not best practice vis-a-vis security but it is a test machine.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Voila!  I can map a share.  So now I copy <strong>kdnet</strong> from the host to the debug target.  It of course tells me that I have to turn off secure boot to continue. I first tried with PowerShell but it balked at me so I sighed and shut down the VM image, changed it inside the Hyper-V management console, rebooted and restarted.  I could then run <strong>kdnet</strong> successfully to enable boot debugging (admittedly, that is a nice improvement, since I'm used to dealing with <strong>bcdedit</strong> to enable kernel debugging).  I fire up the debugger and reboot the VM - and it hangs.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So I start poking around on the host machine.  Much to my annoyance, it seems that Hyper-V has installed a virtual adapter on top of my wireless and marked it as a <strong>public network</strong>.  Well of course <em>that</em> isn't going to work so well.  The option to change the network type just silently doesn't show up on the laptop (ironically it <em>did</em> show up inside the VM).  After some internet searching and poking and prodding I get the network type changed to private using PowerShell - and then the debugger attached and the VM finished starting.  Life is good!</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I've now copied my test driver, inf script, <em>and </em>certificate over to the test machine.  I went through the steps of installing the test certificate as well.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>While doing all of this I <em>also</em> did a quick bit of research as to the least expensive code signing certificate.  At the time I write this (May 2019) the best option (if your primary concern is cost) is <a href="https://www.digicert.com/friends/sysdev/">Digicert</a>. They list a price of $99 per year for an EV code signing cert.  Of course EV certs are a bit of a pain to get, since they actually do some small amount of work to verify that you're legit; I need to do a bit more work to ensure that my phone number is independently verifiable (one of their requirements) as I'm not quite sure how they will validate it. But I don't expect I'll need that for a while yet, since that's really needed when I want to hand the driver to someone who <em>isn't</em> a developer and wants to test the driver.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I installed the driver and... the machine crashed.  So I know that my configuration is now working and I can debug the driver.  Progress!</p>
+<!-- /wp:paragraph -->

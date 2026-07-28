@@ -1,0 +1,91 @@
+---
+title: "CPSC 416 Winter 2023 Term 1"
+date: "2023-06-10 09:42:54"
+status: "publish"
+original_url: "https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/"
+post_id: 1161
+---
+
+<!-- wp:paragraph -->
+<p><strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Note</strong><strong>:</strong> This is preliminary and will be changing over the next couple of weeks.  The course starts September 5, 2023.  The first in-person lecture is September 7, 2023.<br><br>The first time that I taught this course (<a rel="noreferrer noopener" class="wpc-darklup-observer--node darklup--link" href="https://courses.students.ubc.ca/cs/courseschedule?pname=subjarea&amp;tname=subj-course&amp;dept=CPSC&amp;course=416" target="_blank">Distributed Systems (CPSC 416)</a>) was January to April 2023 (UBC called it Winter 2022 Term 2).  This course will differ from my prior offering, so while you are free to review the materials from my prior offering, <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">do no</strong><strong>t</strong> expect that this offering will be the same.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>First: this course is challenging. It is not&nbsp;<em>gratuitously</em>&nbsp;challenging (e.g., I won’t make you suffer because&nbsp;<em>I&nbsp;</em>suffered and think you somehow need to “pay your dues.”) My goal is to help you build a mental model for understanding the field but the field is&nbsp;<em>difficult</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Distributed Systems are difficult because:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>The&nbsp;<em>primary</em>&nbsp;concern for this field is dealing with&nbsp;<em>failure</em>. Most of the courses you have taken teach you how to do things. Frequently “failure” means killing the program, rebooting the computer, fixing the bug in the code. In distributed systems we have to figure out how to make things work&nbsp;<em>in the presence of failure</em>.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>A major challenge is that, unlike programs running on a single computer, there is limited&nbsp;<a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Fate-sharing" target="_blank"><em>fate sharing</em>.</a>&nbsp;In other words, parts of the system can keep running while other parts have failed. When different parts of the system do not have the same view of reality we lose the ability to know what the “correct” state of the system is.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>We care about <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">persistent stat</strong><strong>e</strong>.  What this means is that, unlike ephemeral state where we can reboot to recover, any errors we make will be there <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">after we reboo</strong><strong>t</strong>.  That's why this version of the course is organized around the two primary ways we store persistent data: <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">database</strong><strong>s</strong> and <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">file system</strong><strong>s</strong>.  They're really mostly the same, with different access interfaces.  Even databases come in a variety of flavours, depending upon the access model for which they optimize (e.g., SQL, NoSQL, Graph, Vector, etc.)</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>We are primarily interested in just <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">tw</strong><strong>o</strong> core problems:<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>How do we ensure that changes to two <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">different</em><em> </em>databases that are related to each other are done in a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">consisten</em><em>t</em> fashion. In other words, <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">if and only i</strong><strong>f</strong> the bank machine gives you the cash you requested should your account balance be adjusted.  For this we use <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">transactional consistenc</strong><strong>y</strong> mechanisms.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>How do we ensure that our databases can recover from the failure of a single copy (or instance) of the database.  For this we use <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">consensus algorithm</strong><strong>s</strong>.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list --></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>We can easily develop working solutions that are not <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">practically usabl</em><em>e</em> because they are too slow.  The complications arise because we must both <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">optimiz</em><em>e</em> our techniques and <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">preserv</em><em>e</em> our correctness.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>We cannot protect against all possible failures.  What we do, instead, is identify failures we <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">d</strong><strong>o</strong> want to protect against.  Over time, we can expand on the failures we can handle.  Of course, it turns out that <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">figuring out if you did it righ</em><em>t</em> is <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">har</strong><strong>d</strong>.  It's like backups: the time you figure out they didn't work is when you need them.  Failure at that point often means data loss.  There are numerous articles that describe the impact of data loss on organizations.  Here's a good quotation from one: "<a href="https://www.businessdit.com/impact-of-data-loss-on-business/" target="_blank" rel="noreferrer noopener">[M]any companies don't understand what constitutes their most critical data and how to protect it.</a>"</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Why do distributed systems matter? Because, while they are not 100% proof against all possible failures they can achieve high – but not absolute – reliability. Cloud compute vendors use the techniques we will discuss in this course to build “high availability systems.” Their failure model extends to protecting against regional level disasters.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>During the term I will be updating the materials I have provided here as necessary:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/instructional-team-winter-2023-term-1/" target="_blank" rel="noreferrer noopener">Instructional Team</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/books-winter-2023-term-1/">Books</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/syllabus-winter-2023-term-1/">Syllabus</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/projects-winter-2023-term-1/">Projects</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/exams-winter-2023-term-1/">Exams</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/rubric-w23t1/">Rubric</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/resources-winter-2023-term-2/">Resources</a></li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->

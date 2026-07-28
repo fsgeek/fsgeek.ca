@@ -1,0 +1,64 @@
+---
+title: "The Ubiquitous Digital File: A Review of File Management Research"
+date: "2019-04-29 04:00:35"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/04/29/the-ubiquitous-digital-file-a-review-of-file-management-research/"
+post_id: 597
+categories: ["File Systems", "Semantic File Systems"]
+---
+
+<!-- wp:paragraph -->
+<p><a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/asi.24222">The Ubiquitous Digital File: A Review of File Management Research</a></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Jesse David Dinneen and Charles-Antoine Julien, Journal of the Association for Information Science and Technology, April 12, 2019.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I recently stumbled across this recent paper, which I found to be very useful and timely for my current project.  As I mentioned in my recent post about Eurosys 2019, I am looking at how we can do a better job of creating associative relationships across our data.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This isn't a new idea - I described the <em><a href="https://fsgeek.ca/2018/03/05/as-we-may-think/">Memex</a></em><a href="https://fsgeek.ca/2018/03/05/as-we-may-think/"> </a>previously, which posited the idea of an associative data storage model.  The current hierarchical model does a poor job of capturing this idea, but <strong>observing</strong> this is definitely not new, as even a cursory review of the literature points out.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This paper is a survey paper, capturing decades of research in the area of "File Management".  This is reflected in the paper's exhaustive bibliography, which is roughly 7.5 <em>pages</em> of 32 page paper, or almost 25% of the full paper (32 pages).  Since I have spent a considerable amount of time digesting much of the systems focused research as well as some of the Human Computer Interface (HCI) focused research in this area, I found this paper to be particularly insightful, both for categorizing the literature as well as identifying useful research questions, some of which I find particularly interesting.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3>Frameworks</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>One of the observations that I found interesting was the authors' identification that "[t]here do not currently exist any explicit theories about FM [File Management] or theoretical frameworks specifically for understanding it."  As a result, trying to <em>evaluate</em> alternative models or approaches remains particularly challenging.  They do draw upon personal information management (PIM) as being valid for consideration and identify three categories to consider: <strong>keeping</strong>, <strong>exploiting</strong>, and <strong>managing</strong> data (or <strong>keeping</strong>, <strong>finding</strong>/<strong>refinding</strong>, and <strong>organizing</strong>). They do explore various ways of evaluation, but my sense from reading the paper is that the field is complex and not well-understood.  This either creates complexity when it comes to evaluation or creates further research opportunities (or likely both!</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3>Systems</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Of course, my interest really lies in how this impacts systems.  Ultimately, the only way to make effective <em>system</em> level optimizations is to understand the usage patterns of the applications.  Some of the cases they observed resonated with me.  For example "from a user-remembered event to an email in which it is discussed and then to a document that was attached to the email".  I liked this because I have used the reverse process of following back from a document <em>to</em> the e-mail from which it originated as a good use case for considering the design of a new file system.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>They point out that their work is relevant to "computer science" (and particularly the branch with which I work): "... a considerable body of existing literature aims to understand the contents and access patterns of file systems, such as file size distribution, to optimize hardware, firmware, and software. FM studies focusing on real-world file systems that users have interacted with may provide valuable data sets for such design goals, especially given that most of such computer science studies have<br> examined only files stored on servers and software development<br> machines." <br><br>Thus two important observations: (1) there is a synergy between file management and storage management that should be realized; and (2) prior work in systems really has focused on specific workloads that are not likely representative of what is useful for file management (and correspondingly, for users of file management). </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One observation the users make is surprising to me: "A preference for navigating to files is much more common than a preference for searching , even among users who prefer to search rather than navigate folders when retrieving their emails".  What this suggests to me is that trying to shift people to a search based paradigm may not, in fact, be useful.  Thus, it may be more important to consider ways in which information can be presented for navigation in a more flexible way than the current hierarchical model would suggest.  The authors do point out that using augmented search mechanisms still likely have a place.  Another potential model to consider is to provide mechanisms by which applications can convert navigation into search queries in a more dynamic fashion. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Perhaps something more radical is in order, some sort of automated mechanism for augmenting navigation and management functions: suggesting locations to create new files based upon similarity, for example, or allowing temporal navigation.  Some of these are issues that I have been considering and discussing with others, but this paper really emphasizes their importance and I would be remiss to ignore the research literature they have summarized.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This is a text-dense paper, with no figures and only text tables.  I've now read through it twice and expect I will do so several more times as I try to extract the salient points for my own work, which is what I will start describing in subsequent posts.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><br></p>
+<!-- /wp:paragraph -->

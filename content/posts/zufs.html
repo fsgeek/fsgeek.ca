@@ -1,0 +1,49 @@
+---
+title: "ZUFS"
+date: "2019-07-16 04:00:43"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/07/16/zufs/"
+post_id: 748
+categories: ["File Systems", "FUSE", "Linux"]
+tags: ["fuse", "FUSE Filesystem", "ZUFS"]
+---
+
+<!-- wp:paragraph -->
+<p>After one of my earlier posts on FUSE file system performance, someone mentioned this project to me - the Zero copy Userspace File System project (<strong>ZUFS</strong>) which appears to be a NetApp sponsored project.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":749} -->
+<figure class="wp-block-image"><img src="https://i1.wp.com/fsgeek.ca/wp-content/uploads/2019/07/AdobeStock_130934292.jpeg?fit=600%2C300&amp;ssl=1" alt="Sometimes Zero is best" class="wp-image-749"/><figcaption>Sometimes Zero is best.</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>There have been a variety of talks about this project, including the <a href="https://linuxplumbersconf.org/event/2/contributions/87/">Linux Plumber's Conference</a> (which was held next door to me - I can see the venue from my window as I write this), as well as the <a href="https://www.snia.org/sites/default/files/PM-Summit/2018/presentations/04_A_PMSummit_18_Golander_Final_Post.pdf">SNIA Persistent Memory Summit in 2018</a>. The NetApp repositories on Github.com contain both a file system reflector (<a href="https://github.com/NetApp/zufs-zuf">zufs-zuf</a>), which appears to be similar to the FUSE kernel driver, as well as the user mode server (<a href="https://github.com/NetApp/zufs-zus">zufs-zus</a>) which handles dispatching the kernel level requests to the user mode file system implementations.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Their concern appears to be eliminating the copy of <strong>any</strong> data between kernel and user mode, which makes sense given their objective of supporting persistent memory, such as the new <a href="https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html">Intel Optane DC Persistent Memory</a> that has recently become commercially available.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Persistent memory<em> </em>benefits from a direct access model, in which traditional file data caching is eschewed in favor of direct access.  Thus, data is read or written directly from the underlying persistent memory, rather than copied from a buffer cache.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>There are a few persistent memory file systems, including UCSD's <a href="https://cseweb.ucsd.edu/~swanson/papers/FAST2016NOVA.pdf">NOVA</a> file system, though usually they were developed using emulation of persistent memory.  In such systems, there is no benefit to copying the data from persistent memory into DRAM and back; indeed, it is a significant performance impediment.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>What is not currently present in the NetApp repository is an implementation of a user mode persistent file system (they have a dummy file system implementation, which appears to be the base from which one could build a real file system).   This definitely presents an interesting alternative to using traditional FUSE.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":752} -->
+<figure class="wp-block-image"><img src="https://i0.wp.com/fsgeek.ca/wp-content/uploads/2019/07/FUSE-v-ZUFS-Penalty.png?fit=600%2C353&amp;ssl=1" alt="Fuze vs ZUFS" class="wp-image-752"/><figcaption>FUSE vs ZUFS Performance (from NetApp SNIA presentation)</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>I have not had an opportunity to play with this new system yet, but it certainly does seem to be intriguing - and the performance graph from the SNIA presentation is rather compelling, given the massive improvement in scalable performance.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>There sure are quite a few alternatives to traditional FUSE to consider...</p>
+<!-- /wp:paragraph -->

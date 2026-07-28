@@ -1,0 +1,44 @@
+---
+title: "Indexing Failures: one more step to frustration"
+date: "2024-05-31 10:50:34"
+status: "draft"
+original_url: "https://fsgeek.ca/?p=1429"
+post_id: 1429
+categories: ["Uncategorized"]
+---
+
+<!-- wp:paragraph -->
+<p class="">I use metadata as part of my research work and indexing it is a key aspect of making that metadata available to improve the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">findin</em><em>g</em> process.  A challenge with metadata is that even when collecting information from similar sources, the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">metadat</em><em>a</em> provided by the data source can vary substantially, <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">even if the metadata is equivalen</strong><strong>t<em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">.  </em></strong>This creates one of the challenges in making the index useful.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">So today I was going over some older material that relates to the metadata returned by Windows file systems.  With decades of experience working with this metadata, I know it shows signs of an <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ad ho</em><em>c</em> development process early in its lifecycle: it has <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">FILE_STANDARD_INFORMATIO</strong><strong>N </strong>and <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">FILE_BASIC_INFORMATIO</strong><strong>N</strong>, each of which contains some of the metadata that is typically used when accessing files (basic relates to timestamps and file attributes, standard gives us length, link count, deletion pending status, and a bit indicating if it is a directory, or not.)  This data has some overlap (file attributes indicate if what we have is a directory, or not.)  Over time, the available metadata has grown to support ever more nuanced but important functionality.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">The <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">detail</em><em>s</em> of this are in a couple of standard header files that Microsoft distributed as part of the Windows Driver Kit (WDK): <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">wdm.</em><em>h</em>, <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ntddk.</em><em>h</em>, and <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ntifs.</em><em>h</em>.  Each of these header files is used by slightly different types of kernel components, so that information not generally required by certain types of projects is not included in the relevant header file.  The <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ntifs.</em><em>h</em> header file is the most expansive since it is used by anyone building kernel file systems components on Windows.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">I am currently using my laptop for my work.  I have not installed the WDK since I rebuilt the laptop, so my first step was to install the latest and greatest version of the <a href="https://learn.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk">WDK</a>.  The "new" way of installing this is via Visual Studio 2022 and <em>NuGet</em>.  That (of course) involved ensuring that I had updated Visual Studio 2022 (I seldom use it these days, preferring VS Code for my work.) Then I installed the updated components needed for the WDK, <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">then</em> I installed the WDK.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Of course, what I cared about were the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">header file</em><em>s</em>, because those contain the information I wanted in order to discuss the enhanced metadata that NTFS provides.  They were not to be found in their old location, which didn't surprise me.  I then turned to Microsoft's built in search mechanism, with just the name of the header file.  This took a surprisingly long time to find... a document that I'd written that <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">references</em><em> </em>the header file.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Of course, fast indexing is a key aspect of my research work because fast indexing allows me to perform fast searches.  I know that I can do a "show me all the files named <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">foo</em> on my computer" query very quickly - typically in well under 1 second.  This turns out to be important in other contexts, such as when my Outlook add-in captures information about files that you send to others (and <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">thi</em><em>s</em> is so I can answer queries like: "show me files that I sent to Aki Rise last week.")  Outlook add-ins are fairly restricted in what metadata they can capture - in this case, the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">nam</em><em>e</em> and <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">lengt</em><em>h</em> of the file - but not the <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">pat</em><em>h</em> to the file.  As it turns out, with fast file search I can figure out, with a high degree of accuracy, which file was attached because I can get a list of potential candidate files and then look at which of those files were accessed by Outlook.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">What did surprise me is that Windows Search took the time to see if that reference was in <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">file conten</em><em>t</em>.  I think there is a way to restrict the search to only file <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">name</em><em>s</em> but of course I'd have to go find the documentation on their search language (or ask an LLM trained against the Microsoft Search documentation, of course.)  The natural language approach here <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">coul</em><em>d</em> be used to realize this search more effectively, and I suspect that if this work isn't already done, it will be soon enough.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Of course, my own research goes beyond this basic metadata to capture additional metadata (e.g., the fact that you sent the file as an attachment to a particular set of recipients on a given date, etc.)  Eventually, I hope that I'll be able to use that information on the recipients side as well (Outlook saved this file to the following location in your storage, so you can right click on the file and say "show me the e-mail where this file originated".</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph {"nfdAnimation":"nfd-wb-fade-in-top-short","nfdAnimationDelay":"nfd-delay-150"} -->
+<p class="nfd-wb-animate nfd-wb-fade-in-top-short nfd-delay-150">Bottom line: indexing is important, <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">speed </em>of getting results back quickly is vital, and searches should be no more general than is necessary.</p>
+<!-- /wp:paragraph -->

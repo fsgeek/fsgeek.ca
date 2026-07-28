@@ -1,0 +1,46 @@
+---
+title: "April 17 2018"
+date: "2018-04-22 15:53:55"
+status: "private"
+original_url: "https://fsgeek.ca/2018/04/22/april-17-2018/"
+post_id: 438
+categories: ["Meetings with Andy", "Notes"]
+tags: ["Graphs", "HTM", "SQL", "STM"]
+---
+
+Google Clock Sync Paper - NSDI 2018 ["Exploiting a Natural Network Effect for Scalable, Fine-grained Clock Synchronization"]
+
+Spanner: bounds on drift are enough to construct a commit protocol.
+
+Epoch based consistency
+
+Compare net rtt to [?]
+
+Versioning (in-log?)  streamed log per-client.
+
+Maurice Herlihey Brown; virtualizing transactional memory. [That's its name - Virtualizing Transactional Memory.  2004.  Interesting paper.]
+
+If I can't find hybrid transactional memory, ask Andy to ping Tim Harris
+
+Erez Petrank [?]
+
+Read-only data structures with no consistency requirements.
+
+What happens if you try to get precise about conflicting access: conflicting updates require logging.  With no conflict, no need to log.
+
+What updates is it good for?
+
+SQL over graph.  use case: "build me a distributed event service for perf/liveness data."
+
+[Here's a question: can supervised learning be used to extract a SQL schema?]
+<ul>
+ 	<li>Live results</li>
+ 	<li>Orthogonal queries (link saturation on links)</li>
+ 	<li>"stream query"</li>
+ 	<li>Allow archival questions</li>
+ 	<li>Receive stats, save forever</li>
+ 	<li>Network config bugs</li>
+ 	<li>Phy gone crazy</li>
+ 	<li>Make SQL run on Graph (KV?) Spark wins b/c of SQL query engine. [What about CockroachDB?]</li>
+</ul>
+&nbsp;

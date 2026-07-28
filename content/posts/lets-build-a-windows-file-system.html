@@ -1,0 +1,80 @@
+---
+title: "Let's Build a Windows File System"
+date: "2019-05-16 04:00:44"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/05/16/lets-build-a-windows-file-system/"
+post_id: 641
+categories: ["File Systems", "Windows"]
+---
+
+<!-- wp:paragraph -->
+<p>It's been a while since I upgraded my Windows kernel development tools, so I thought I'd write about the steps I'm taking to do so.   <em>How</em> you build a Windows file system has changed over the years but the basic structure of the file system driver itself has not.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At the time I'm writing this, the standard tools to do this are the Microsoft Visual Studio Integrated Development Environment and the Windows Driver Kit (WDK).  The <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk">WDK download page </a>(which could move, I just search for "Microsoft WDK" when I need to find it) actually describes the basic steps needed to develop drivers for Windows.  As I write this, Visual Studio 2019 is downloading.  I do not need many of the parts of it, so I just installed the "Windows Desktop Apps" components.  Don't forget to install the Windows SDK as well (it's an optional component as part of the Visual Studio installation).</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Once Visual Studio is installed, I'll install the WDK.  It will add the WDK integration components into Visual Studio and those will permit me to build Windows drivers.  That will also install one of the most important tools: the <em>debugger</em>.  I have been working with WinDBG for several decades and it is now an indispensable tool for kernel debugging, including both a graphical user interface as well as a command line version.  It has support for <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/setting-up-kernel-mode-debugging-in-windbg--cdb--or-ntsd">debugging over a variety of transports </a>(it used to support debugging over modems, but I haven't done that in many years, so it may no longer be supported) including serial ports, USB ports, networks, and <a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/attaching-to-a-virtual-machine--kernel-mode-">synthetic debugging </a>(over a virtual device) for virtual machines.  Since I will be using a virtual machine for my development, I will set up synthetic debugging.  Easing this, it seems Microsoft has automated the process.  I have never done it automatically, so I look forward to seeing if that works.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I still need to write about what I am building, but I will defer that for the moment because it deserves a post of its own.  I <em>can</em> explain why I want to build this as a file system, though.  I hope this is useful for anyone reading it who is thinking of building a file system.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The file systems interface, whether it is UNIX, Linux, MacOS, <em>or</em> Windows, is a clearly delineated boundary at which I can implement functionality that becomes available to anyone using the file system itself.  The specifics of that interface vary somewhat across operating systems, but there is a high degree of commonality.  One reason for this is that mainstream operating systems have a common heritage.  Perhaps that will change in the future (<a href="https://penberg.org/parakernel-hotos19.pdf">one recent paper </a>suggests that our OS architecture assumes that I/O is slow relative to processors and memory, an assumption that is no longer true) but it seems unlikely to change in the near-term.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The decision to implement functionality at the file systems interface is because essentially <em>all</em> applications for our operating systems know how to use it.  New functionality - provided it conforms to the file systems interface - can be exposed to all those applications by supporting the file systems interface, which means that it seamlessly integrates into the existing system.  If the new functionality is substantially different than what can be provided by the file systems interface, this will not be a good solution.  Since my goal is to provide both compatibility and new functionality, I am using the file systems interface but will also look at ways in which I can augment it further.  Indeed, one interesting aspect of the <a href="https://fsgeek.ca/wp-admin/post.php?post=636">GFS paper </a>I described earlier is they tried to implement functionality within the constraints of the existing interface.  This has made me think about how I would go beyond what they did, without changing the interface, though I do expect at some point I will need to augment the existing interface.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I decided to do this on Windows for several reasons:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>I am familiar with Windows file systems development; I am comfortable in the kernel environment, and I know how to integrate user mode services and kernel mode drivers together to provide my desired functionality;</li><li>I am looking at how to extend the namespace management.  By doing this as a file system, I know it will be visible in standard applications, which in turn will make it easier for me to gauge how effective the changes are for ordinary users.</li><li>More than a decade ago Microsoft incorporated quite a few interesting features into their user interface in anticipation of the new Windows File System (WinFS).  While WinFS was never released, its goals of augmenting existing file management mechanisms were partially integrated into Windows.</li><li>The NTFS file system in Windows supports a <a href="https://docs.microsoft.com/en-us/windows/desktop/fileio/change-journals">change journal</a> that will be a good place to start for prototyping capturing some relationship data.  I expect that we will ultimately provide additional mechanisms for doing this, but this should provide a good head start.</li><li>User mode file systems, while convenient for prototyping, are a dead end if I need a kernel mode file system.  <a href="https://www.usenix.org/system/files/conference/fast17/fast17-vangoor.pdf">User mode file systems are known to be much slower</a>, and this is amplified for meta-data operations.  Since I expect to be implementing primarily meta-data operations, I expect it is highly likely that I will not be able to demonstrate acceptable performance if I were to use <a href="https://github.com/billziss-gh/winfsp">FUSE for Windows</a>, for example.</li><li>Windows already has a supported mechanism for accessing files via a file identifier.  We <em>know</em> that applications do not need hierarchical name spaces - that is one of the lessons from the <a href="https://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf">Google File System</a> paper.  What applications need is a <em>key</em>.  This is hardly a new observation: both <a href="http://pages.cs.wisc.edu/~remzi/OSTEP/dist-nfs.pdf">NFS </a>and <a href="http://tele.informatik.uni-freiburg.de/Teaching/ws01/dsys/Lectures/Lecture19-1.pdf">AFS</a> employed file identifiers in their implementations.  Indeed, one reason that CDFS and NTFS on Windows have long support "open by file ID" is because they needed it to support <a href="https://en.wikipedia.org/wiki/Apple_Filing_Protocol">AFP </a>for the <a href="https://www.itprotoday.com/macos/services-macintosh">Services for Macintosh</a> support in Windows NT.  While the NTFS source code is not generally available, the <a href="https://github.com/Microsoft/Windows-driver-samples/tree/master/filesys/cdfs">CDFS file system source code for Windows is in the WDK</a> - and demonstrates how CDFS supports "open by file ID". Note that NTFS is more permissive in its support, as it allows absolute path name opens, while CDFS does not. </li><li></li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>Now that I've stalled a bit, my Visual Studio 2019 installation has finished and I went to install the WDK; that installation was unhappy that it could not find the right version of the Windows SDK to install and it <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk">pointed me off to another web page </a>to download the correct version.  Installation still is not a seamless experience, it would seem. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So now, as I install the SDK, I can return to discussing my project in a bit more detail, even though this is probably unfair since I haven't really told you much about what I am trying to achieve.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I have opined about the challenges of managing hundreds of thousands of files across multiple devices.  I pointed to projects that have explored alternative ways of managing the name space (e.g., <a href="https://fsgeek.ca/2019/05/02/qmds-a-file-system-metadata-management-service-supporting-a-graph-data-model-based-query-language/">QMDS</a> and <a href="https://fsgeek.ca/wp-admin/post.php?post=636">GFS</a>) and they have done a good job of laying the groundwork.  Prior discussions I have had with others have focused on <em>search</em> as a paradigm, but <a href="https://fsgeek.ca/2019/04/29/the-ubiquitous-digital-file-a-review-of-file-management-research/">the survey paper on File Management Research</a> I recently described helped me better understand that <em>navigation</em> seems to be the approach users prefer over search.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One possible reason for this preference for navigation is the nature of the task itself. When we <em>search</em> on the Internet, we are seeking <em>an answer</em> to our question.  When we look for something within our personal files, we are seeking <em>the answer</em> to our question.  We fall back to search when navigation fails us.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The SDK finally finished installing... I'll try the WDK again.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Over the years, I have constructed a number of <em>virtual</em> or <em>pseudo</em> file systems.  For example, I once constructed a file system that didn't store any data, it just presented an ephemeral name space.  I crafted it to support a broad range of meta-data features: object IDs, file IDs, extended attributes, alternate data streams, and access control lists (ACLs).  But read operations were satisfied by zero-filling the memory buffer, and writes were discarded - thus, the only data that was visible is data which persisted in the virtual memory file data cache.  This was a fun file system to build, not the last of which because it really was <em>only</em> the namespace and meta-data management parts of the file system.  My motivation for doing this was performance testing for a file systems construction framework but I realized at some point that it could also be a good baseline from which to construct a new file system.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Thus, my project direction: building an abstract file systems interface that has rich support for meta-data.  Actual file I/O can then be redirected to the underlying file, within its own native file system</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The WDK installation is now finished!  My next steps are:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>Constructing a virtual machine image that I can use for debugging; the wonderful thing about most file systems work is we aren't dependent on hardware, so it is easy to do development inside the virtual machine environment.</li><li>Sketch out my skeleton file system model.</li><li>Begin to implement it.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>I don't expect to build production quality code.  Over the years I have learned that the bar for <strong>production quality file systems code</strong> is quite high.  Thus, my goal is to construct a working prototype and then, from that, begin building my new file system namespace.</p>
+<!-- /wp:paragraph -->

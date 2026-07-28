@@ -1,0 +1,161 @@
+---
+title: "What is the Optimal Location for Storing Metadata"
+date: "2022-11-06 14:48:37"
+status: "publish"
+original_url: "https://fsgeek.ca/2022/11/06/what-is-the-optimal-location-for-storing-metadata/"
+post_id: 900
+categories: ["Activity Context", "File Systems", "Key-Value Stores", "Media File Systems", "Metaverse", "Network File Systems", "Research Ideas", "Semantic File Systems"]
+tags: ["Activity Context", "cloud storage", "metadata", "Metaverse"]
+---
+
+<!-- wp:paragraph -->
+<p>The past month has included both a very interesting talk from someone at a major storage vendor and an in-depth discussion about my work and how it might be applicable to an issue that confronts the Metaverse community.  I haven't been at the keyboard much (at least not for my research) but I have been mulling this over as I have worked to try and explain these insights.  Each iteration helps me refine my mental model by considering what else I have learned.  Fortunately, this latest round doesn't impact the work that I have done, but it <em>has</em> provided me with a model that I think could be useful in explaining this work to others.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I have previously talked about a type of metadata that I call <em><a rel="noreferrer noopener" href="https://fsgeek.ca/2022/01/11/better-finding-combine-semantic-and-associative-context-with-indaleko/" data-type="post" data-id="839" target="_blank">activity context</a></em>.  Of course, there is quite a lot of metadata that is involved in managing storage and I have been using a model in which the metadata I am collecting is <em>not</em> at the point of storage but rather at the point of analysis. In my case, the point of analysis is on (or near) my local device ecosystem.  As I learned more about the needs of the emerging metaverse field (by speaking with my friend Royal O'Brien, who is the general manager for the <a rel="noreferrer noopener" href="https://www.o3de.org/" target="_blank">Open 3D Foundation</a>, which is part of the Linux Foundation) and combined some of what I learned there with insights I gained from a recent talk given to my research group I observed what I think are some useful insights:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>Storage vendors have no mechanism for capturing all the kinds of activity data that I envision using as the basis for activity context.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Some high-performance data consumers need to maintain replicated <em>data</em> and use <em>metadata</em> about that data to make critical decisions.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Metadata needs to be <em>close to where it will be consumed</em>.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Metadata needs to be <em>produced</em> where the information is available and optimally where it is least expensive to do so.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>That isn't a long list, but it is one that requires a bit more unpacking.  So I'm going to dive deeper, step by step.  This probably isn't the right order, but I will start here and worry about (re)-organizing it later.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Metadata Production</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>I had not really considered the depth of the question about <em>where </em>to produce the meta-data until I started mulling over the myriad of questions that have arisen recently.  The cost of producing metadata can be a critical factor.  Agents that extract semantic information about the data (e.g., its content) need to be close to the data.  However, it is important to note that is not the same as "the final location of the data" but rather "a current location of the data."  Yet, even that isn't quite right: metadata might be extracted from something other than the data, like something from the running system, or even an external source.  For example, the <em>activity data</em> that I have been focused on collecting (see <a href="https://fsgeek.ca/2022/02/16/challenges-of-capturing-system-activity/" data-type="post" data-id="874">System Activity</a>) largely arises on the system where the data itself is accessed.  The metaverse model is one where the <em>user</em> has considerable insight (ah, but a bit more on this later) and since I've always envisioned an extensible metadata management system it makes sense to permit a specialized application to contribute to the overall body of metadata.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Thus, the insight here is that it makes sense to generate metadata at the "lowest cost" point to do so.  For example, the activity data on my local machine <em>can't</em> be collected by a cloud storage engine.  It <em>could</em> be collected by an agent on the local machine and <em>sent</em> to the cloud storage engine, but that runs into a separate cost that I'll touch on when I describe <em>where</em> we should be storing metadata.  For example, extracting semantic content makes sense to do at the point of production and again at the point of storage.  Activity data, which is related to "what else is happening" can't be extracted at the point of storage.  Even causal data (e.g., the kinds of activity information we convert into provenance data to represent causal relationships) can't easily be replicated at the storage engine. There's another subtle point here to consider: if I'm willing to pay the cost of <em>producing</em> metadata it seems intuitively obvious that it is probably worth storing the results of that metadata.  For example, I find that I often end up doing repetitive searches - this past week, working on a project completely unrelated to my research, I found myself repeatedly doing searches over the same data set using the same or similar terms.  For example, if I want to find files that have both the term "customer" and "order" in them and then repeat that with "customer" and "device_id" I have to do complex compound searches that can take 5-10 <em>minutes</em> to produce.  I suspect this can be made more efficient (though I don't know if this is really a useful test case - I just keep wondering how I could support this sort of functionality, which would enable us to figure out if it <em>is</em> useful.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So, back to producing metadata.  Another cost to consider is the cost to <em>fetch the data</em>.  For example, if I want to compute the checksum of a file, it is probably most efficient to do so when it is in the memory of the original device creating it or possibly on the device where it is stored (e.g., a remote storage server.)  Even if it is the same <em>cost</em> I need to keep in mind that I will be using devices that don't compute the same checksum.  That lack of service uniformity helps me better understand the actual cost: if the storage device does not support the generation of the metadata that I want then my cost rises dramatically because now I have to pull the data back from the storage server so I can compute the checksum I want to use. Thus, I think what drives <em>this</em> question is where we store that metadata, which is leading to my next rambling thought process in the <em>next</em> section.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>In the case where the metadata is being provided externally, I probably don't care <em>where</em> it is produced - that's their problem.  So, for the metaverse data storage challenge I really need to focus more on <em>where</em> I am storing the metadata rather than where it is generated (at least for now.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Medata Storage</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>One question I've been handwaving is the "where do you store the metadata?"  I started thinking about this because the <em>real</em> answer is ugly.  Some of that metadata <em>will</em> be stored on the underlying storage, e.g., a file system is going to store timestamps and length information in some form regardless of specific issues like time epochs.  However, as I was mulling over some of the issues involved in object management needs for metaverse platforms (ugh, a tongue-twister with the "metaverse" buzzword) I realized that one of the challenges described to me (namely the cost associated with fetching data) is <em>really</em> important to me as well:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>To be useful, this metadata needs to be present everywhere it is analyzed - it is impractical for us to be fetching data across the network if we want this to have decent performance.  I can certainly handwave some of this away ("oh, we'll just use eventually consistent replication of the metadata") but I don't expect that's terribly realistic to add to a prototype system.  What probably <em>does</em> make sense is to think that this will be stored on a system that is "close to" the sources that generate the metadata. It <em>might</em> be possible to construct a cloud-based metadata service, but that case has additional considerations that I'm mulling over (and plan on capturing in a future blog post - this one is already too long!)  Thus, I suspect that this is a restricted implementation of the replication problem.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>Metadata <em>does not</em> need to be close to the data.  In fact, one of the interesting advantages of having the metadata close to where it is needed is that it helps overcome a major challenge in using distributed storage: the farther away the data storage is from the data consumer, the higher the cost of fetching that data.  In turn, the benefits of having more metadata is that it helps improve the efficiency of fetching data, since fetching data that we don't need is wasteful.  In other words, a cost benefit associated with having more metadata is that we can work to minimize unnecessary data fetching.  Indeed, this could be a solid metric for determining the efficiency of metadata and search algorithms that use the metadata: the "false fetch rate."  The benefits of this are definitely related to the cost of retrieving data.  Imagine (for example) that you are looking through data that is expensive to retrieve, such as <a rel="noreferrer noopener" href="https://azure.microsoft.com/en-us/blog/introducing-azure-cool-storage/" target="_blank">Azure Cold Blob Storage</a> or <a href="https://aws.amazon.com/s3/storage-classes/glacier/">Amazon Glacial Storage</a>. The <em>reason</em> that people use these slow storage services is that they are extremely cost efficient: this is data that is unlikely to be needed. While this is an extreme example, it also makes it easier to understand why additional metadata is broadly beneficial, since <em>any</em> fetch of data from a remote system is that is not useful is a complete waste of resources.  Again, my inspiration here was the discussion with Royal about multiple different instantiations of the same object that appear in the metaverse.  I will touch on this when I get into that metaverse conversation.  For now, I note that these instantiations of a single digital object might be stored in different locations.  The choice of a specific instance of this is typically bounded by several costs involved, including the fetch cost (latency + bandwidth) and any transformation costs (e.g., CPU cost.) This becomes quite interesting in mobile networks where the network could impose <em>surge pricing</em> as well and there are <em>capacity</em> limitations combined with the hard requirements that these objects need to be available for use quickly (another aspect of cost.)</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>My sense is there is probably more to say here, but I captured some key ideas and I will consider how to build on this in the future.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Metaverse Data Needs</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>That conversation with Royal was quite interesting.  I've known him for more than a decade and some of what I learned from him about the specialized needs of the game industry led me to question things that I learned from decades of building storage systems.  That background in game development has positioned him to point out that many of the challenges in metaverse construction have <em>already</em> been addressed in the game development area.  One interesting aspect of this is in the world of "asset management."  An <em>asset </em>in a game is pretty much anything that the game uses to create the game world.  Similarly, a metaverse must also combine assets to permit 3D scaling as it renders the world for each participant of that world.  He explained to me by way of example, that one type of graphical object is often computed at different resolutions.  While it <em>is</em> possible for our devices to scale these, the size of the objects and the computational cost of scaling is high.  In addition, the cost of <em>fetching</em> these objects can be high as well; he was telling me that you might need 200 objects in order to render the current state of the world for an individual user.  If their average size is 60MB it becomes easy to see how this is not terribly practical.  In fact, what is usually required are a <em>few</em> of these very high-resolution graphical objects and lower resolution versions of the others.  For example, objects that are "far away in the distance" need not have the same resolution.  While he didn't point it out, I know that I have seen games where sometimes objects have low resolution and are later repainted with higher resolution images. I am now wondering if I saw this exact type of behavior already being practiced.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Let's combine this with the need to distribute these objects broadly <em>and</em> to realize there is a high degree of locality involved.  Metaverse participants interacting with each other in a 5G or 6G network are likely to be accessing many of the same objects.  Thus, we are likely to see a high degree of correlation across edge nodes within the mobile network.  Similarly, it moves to a very distributed storage model, where data objects are not necessarily being retrieved from a central storage server but rather edge storage servers or even peer clients.  One benefit of using strong checksums is that it allows easy to verify replication in untrusted networks - something like <a rel="noreferrer noopener" href="https://www.bittorrent.com/" target="_blank">bittorrent</a> or even <a rel="noreferrer noopener" href="https://www.ipfs.tech" target="_blank">IPFS</a> do with their own checksums.  As long as the <em>checksum</em> comes from a trusted source, the data retrieved can be verified.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>In <em>this</em> case the metadata would correspond to something very different than I'd been considering:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>An identifier of the <em>object</em> itself</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>A list of one or more specific <em>instances</em> of that objects with a set of properties</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>A list of where each of these instances <em>might</em> be stored (I'm choosing to use an optimistic list here because the reality is sources will appear and disappear.)</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>Independent of this would be information about the constraints involved: the deadline required for receiving the data to be timely, the cost for retrieving the various versions, etc.  With this information both the edge and end devices can make decisions: which versions to fetch and from where as well as placement, caching, and pre-fetching decisions.  All of these are challenging and none of them are new so I'm not going to dive in further.  What <em>is</em> new is the idea that we could embed the necessary metadata within a more general-purpose metadata management system overlaying disparate storage systems.  This is a fairly specialized need, but it is also one Royal observed needs to be solved.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Oh, one final number that sticks out in my mind: Royal told me that a single <em>asset </em>could consist of around 200 different versions, including different resolutions <em>and</em> different formats required by the various devices.  I was quite surprised at this, but it also helped me understand the magnitude of the problem.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>While I have considered versioning as a desirable feature, I had never considered <em>parallel</em> versions quite like this.  Having these kinds of conversations helps me better understand new perspectives and broaden my own thinking.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I left that conversation knowing that I had just barely started to wrap my head around the specific needs of this area.  I capture those thoughts here in hopes I can foster further thought about them, including more conversations with others.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Storage Vendors</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>A couple weeks ago we had a guest speaker from a storage vendor talking about his thoughts along the future for his company and their products.  There were specific aspects of that talk that really stood out to me:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>Much of what he talked about was <em>inward</em> focused.  In other words, it was about the need for better semantic understanding.  I realized that the ideas on which I'm working - of using <em>extrinsic</em> information to find relationships between files was not even on his horizon, yet could be very beneficial to him - or to <em>any</em> large storage vendor.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>He acknowledged many of the challenges that are arising as the sheer volume of storage continues to grow.  Indeed, each time I think about this I remember that for all the emphasis on fast access storage (e.g., NVRAM and SSDs) the slower storage tiers continue to expand as well: hard disks now play more of an archival role. <a rel="noreferrer noopener" href="https://www.microsoft.com/en-us/research/project/hsd/" target="_blank">Microsoft Research's Holographic Storage Device</a>, for example, offers a potential higher capacity device for data center use.  Libraries of recordable optical storage or even high capacity linear tape also exist and are used to keep vast amounts of data.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>During that time I'd been also thinking about how to protect sensitive information from being exploited or mined.  In other words, as a <em>user</em> of these services, how can I store data and/or metadata with them that doesn't divulge information. After the talk I realized that the approach I'd been considering (basically providing labels the meaning of which requires a separate decoder ring) could be quite useful to a storage vendor: such sanitized information could still be used to better understand the relationships - ML driven pattern recognition (e.g., clustering) without requiring that the storage vendor understand <em>what</em> those patterns mean.  Even providing that information to the end user could minimize the amount of extra data being fetched which in turn would improve the use of their own storage products.  Again, I don't think this is fully fleshed out, but it does seem to provide some argument for storage vendors to consider supporting enhanced metadata services.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>I admit, I like the idea of enabling storage vendors to provide optimization services that do not require they understand the innards of the data itself.  This would allow customers with highly sensitive data to store it in a public cloud service (for example) in fully encrypted form and still provide indexing information for it.  The "secret decoder rings" can be maintained by the data owner yet the storage vendor can provide useful value-added services at enterprise scale.  Why?  Because, as I noted earlier, the right place to store metadata is as close as possible to the place where it is consumed.  At enterprise scale, that would logically be someplace that is accessible throughout the enterprise.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At this point I realized that our propensity to store the metadata with the data really does not make sense when we think of multiple storage silos - it's the <em>wrong</em> location.  Separating the metadata service, placing it close to where the metadata is being absorbed, and using strategically located agents for generating the various types of metadata, including activity context and semantic information, all make sense because the <em>owner</em> of that data is really "closest" to where that metadata is used.  A "file system" that maintains no metadata is really little more than a key-value store, as the metadata server can be maintained separately.  Of course, that potentially creates other issues (e.g., space reuse.)  I don't think I need to solve such issues because in the end that consideration is not important at this point in my own research.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->

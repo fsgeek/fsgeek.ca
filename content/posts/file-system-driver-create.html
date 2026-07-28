@@ -1,0 +1,53 @@
+---
+title: "File System Driver: Create"
+date: "2019-06-13 04:00:06"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/06/13/file-system-driver-create/"
+post_id: 684
+categories: ["File Systems", "Windows"]
+tags: ["Create", "windows"]
+---
+
+<!-- wp:image {"id":685} -->
+<figure class="wp-block-image"><img src="https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/06/AdobeStock_173912327.jpeg?fit=600%2C433&amp;ssl=1" alt="" class="wp-image-685"/><figcaption>The road ahead.</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>The usual place to start when building a file system is to think about the <em>Create</em> operation. This may also be referred to as an <em>open</em> operation, but that conflates the object with the handle.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I think of <em>Create</em> as being "create a handle to the object".  The creation of the object itself can be a <em>side effect</em> of creating the handle; it does not make much sense to create a handle to something that doesn't exist.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>POSIX actually does have a <strong>create</strong> system call (and at one point it was<em><strong> </strong></em><strong>creat</strong> for obscure historical reassons).  Now you can call <strong>open</strong> and specify <strong>O_CREATE</strong> and it will perform the same operation.  In Windows the native call is <strong>NtCreateFile</strong>, though there is also an <strong>NtOpenFile</strong>, but they both ultimately invoke the same internal kernel operation (<strong>IoCreateFile</strong> or its successor <strong>IoCreateFileEx</strong> - the <em>Ex</em> thing is one way of saying "oh, we need to pass in more parameters, so sorry." I'll just talk about <strong>IoCreateFile</strong> since it is shorter and if you need the other version for some peculiar reason you can figure it out.  Remember, it's an operating system internal call, so it <em>only </em>matters to people writing software to execute in the kernel.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Inside Windows, <strong>IoCreateFile</strong> is actually a rather large, complicated function: while the concept of <em>creating</em> a new file object is simple, the details are complicated because as much as we like to pretend files are nothing more than byte streams, there are so many special cases and exceptions to this that our illusion thin, at best.  UNIX suffers from this as well, with symbolic links and special files.  So, files are byte streams, except when they aren't.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Since I'm writing <em>this</em> article as a description of how file systems on Windows work, I'll stick with talking about Windows behavior and leave talking about other operating systems behavior to another time.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":690} -->
+<figure class="wp-block-image"><img src="https://fsgeek.ca/wp-content/uploads/2019/06/Windows-Create-2.gif" alt="Windows Flow of Control for Create" class="wp-image-690"/><figcaption>Windows Flow of Control for Create (Simplified)</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>The animation shows the basic flow of a request through the system:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list {"ordered":true} -->
+<ol><li>An application opens (or creates) a file.  Depending upon the implementation for the subsystem, it will call through the subsystem itself; often this is just implemented inside a shared library (dynamic link library or DLL).</li><li>Since this requires a system call, it will invoke the relevant system call interface inside ntdll.dll, which is mapped into every process in the system.  It will format the request <em>as appropriate</em> for the platform and then issue a system call (<strong>syscall</strong>/<strong>sysenter </strong>on Intel platforms, or <strong>swi</strong> on ARM platforms).</li><li>The Windows system call dispatcher will forward this to the I/O Manager, since it handles files.</li><li>The I/O Manager is presented with a <em>name</em> but it does not yet know which device and driver will handle this specific request.  Thus, the I/O Manager will ask the Object Manager (<strong>ObLookupObject</strong>) to parse the name until it finds a relevant device.  Assuming it does reference a specific device, the Object Manager will then invoke the I/O Manager, because <strong>DeviceObjects </strong>(and <strong>FileObjects</strong>) point to a function registered by the I/O Manager with the Object Manager.  For example, this will invoke <strong>IopParseDevice</strong>.  At this point the I/O Manager now has a <strong>DeviceObject</strong> and the balance of the name.  At this point it can allocate an I/O Request Packet (<strong>IRP</strong>) and set it up.  In the case of a physical file system, however, the I/O Manager must reference the<em> volume parameter block</em> (<strong>vpb)</strong>.  Thus, it retrieves the relevant file system's device object from the <strong>vpb</strong>.  It asks the Object Manager to create a new <strong>FileObject</strong>.  The I/O Manager will complete initialization of the <strong>FileObject</strong> and format the <strong>IRP </strong>with the relevant parameters. <strong>Create</strong> is a complex I/O request and the fields are scattered, unlike other I/O requests.  Once formatted, the I/O Manager will invoke the file system driver (via <strong>IoCallDriver</strong>).</li><li>The file system driver will receive the <strong>IRP</strong>.  It will process the request, which may involve creating a new file as a <em>side effect</em> of creating the file object.  It will parse the balance of the name. It may check security, sharing, allocate space for new files, validate options. It must handle symbolic links at this point as well (including reparse points) and format return information appropriately.  It might attach <strong>ExtraCreateParameters</strong> to the I/O request. It could perform the operation within the context of a kernel transaction if the <strong>FileObject</strong> is part of a transaction.  It may have special cases for volumes, directories, alternate data streams, or other file system specific behavior.  While the Windows I/O Model allows any <strong>IRP </strong>to be processed asynchronously, the I/O Manager will block and wait for completion of the request.  The file system may also need to perform additional operations for <em>oplocks</em>, which even have a case where the create is completed, even though the file is not yet usable.</li><li>Once the file system is done processing the request - successfully or not - it will complete the request by calling <strong>IoCompleteRequest</strong>.  The I/O Manager will unwind the I/O request stack (in case there are filters, which there almost always are now) and once done, it will copy results from the kernel to the user address space and return control to the system call dispatcher.</li><li>The system call dispatcher will restore state, set the return code in the return register, and complete the system call.</li><li>In user mode, ntdll will process the request, may raise exceptions if needed, and return to the application caller.</li></ol>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>For a Windows file system <strong>Create</strong> is often one of the most complex routines - I have seen file systems with almost 20% of their code in this path.  There are numerous edge conditions: open by file ID, for example, as well as oplocks, not to mention creating new files, creating in-memory data structures and managing the many-to-one relationship between file objects and the file system control structures.  <strong>Each open of a file creates a new FileObject</strong>.  I will discuss why this becomes complicated in a future post, because it leads to unexpected behavior for the unwary.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->

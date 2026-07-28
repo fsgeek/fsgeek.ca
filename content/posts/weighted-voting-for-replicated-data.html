@@ -1,0 +1,53 @@
+---
+title: "Weighted Voting for Replicated Data"
+date: "2018-03-07 04:00:12"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/03/07/weighted-voting-for-replicated-data/"
+post_id: 367
+categories: ["Database", "Distributed Systems", "File Systems"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=806583">Weighted Voting for Replicated Data
+</a>David K. Gifford, in <em>Proceedings of the seventh ACM symposium on Operating systems principles, pp. 150-162, 1979.</em>
+
+I return back to distributed systems.  Previously I discussed a companion paper at the same conference (<a href="https://fsgeek.ca/2018/03/04/polyvalues-a-tool-for-implementing-atomic-updates-to-distributed-data/">Polyvalues</a>) that was essentially ignored in the subsequent literature.  This paper, on the other hand, is well-cited and lays the groundwork for a quorum-based replicated data distribution scheme.  I can see echos of a more theoretical paper ("<a href="https://link.springer.com/article/10.1007/s004460050027">Crumbling Walls</a>") that I will review at <em>some</em> point in the future.
+
+This work was done while Dave Gifford was at Xerox Palo Alto Research Center (Xerox PARC).  At this point, the Xerox PARC team had been working to develop the personal computer.  I'm not reviewing it, but another interesting paper from this time period is the <a href="https://dl.acm.org/citation.cfm?id=358822"><em>Pilot</em> </a>paper (perhaps I should, I see it describes the file systems as large and flat).  Thus, the author of this paper is describing an actual working system, not a theoretical model for how one might implement such a system.
+
+The key to this algorithm is the concept of a <strong>quorum</strong> for replicated data:
+<blockquote><em>In a new algorithm for maintaining replicated data, every copy of a replicated file is assigned some number of votes. Every transaction collects a read quorum of r votes to read a file, and a write quorum of w votes to write a file, such that r+ w is greater than the total number of votes assigned to the file. This ensures that there is a non-null intersection between every read quorum and every write quorum. Version numbers make it possible to determine </em><em>which copies are current. The reliability and performance characteristics of a replicated file can be controlled by appropriately choosing r, w, and the file's voting configuration. The algorithm guarantees serial consistency, admits temporary copies in a natural way by the introduction of copies with no votes, and has been implemented in the context of an application system called Violet.</em></blockquote>
+The "votes" assigned to each copy of the file are its weight.  This model provides a good way of generalizing replicated data.  It could describe a primary/secondary model, or shift the emphasis on ensuring critical systems have copies of the data.  The model even permits caching nodes that have no weight.
+
+The key to this approach is that the read quorum is set up so that it is large enough that at least one copy within the read set will have the current data.  This is accomplished by ensuring that the combination of read quorum and write quorum represents a number (weight) that is larger than the total sum of all weights within the system.  The challenge in a system like this is that choosing these values will determine the reliability of the system in the face of failure.  The author doesn't go into great detail about the types of failures that can occur, but an obvious one is that one of the replicated copies becomes unavailable: a machine crashes.  A more interesting one is where the network <em>partitions</em> so that one group of replicas exist on one side of the partition and a different group exists in a separate partition.
+
+The strategy outlined in this paper would permit <strong>at most</strong> one partition to proceed.  The other partition (or partitions) could continue to make some level of progress if the read quorum limit is low enough, where "low enough" means there are at least that many readable copies available within the given partition.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/03/1979-Weighted-Voting-for-Replicated-Data_Page_12@05x.png"><img class="alignleft size-medium wp-image-372" src="https://fsgeek.ca/wp-content/uploads/2018/03/1979-Weighted-Voting-for-Replicated-Data_Page_12@05x-252x300.png" alt="Network Environment" width="252" height="300" /></a>
+
+For example, it may be sufficient for only a single replica to be available in order for the read quorum to be satisfied.  In that case, it is consistent because the sum of the read quorum plus write quorum is greater than the number of votes in the system.  In other words, it works because with the lowest possible read quorum a write requires recording the changes reliably on every (voting) replicated copy.  Such a system provides <strong>strong</strong> guarantees, but won't allow any progress when any of the nodes are down, since the write quorum requirement is so high.
+
+Similarly, the other extreme is one in which the read quorum is equal to the number of votes in the system, so that the write quorum is just a single node.  This does not seem like a very good option, given that it would cause all the data to become unavailable when any of the replicas became unavailable.
+
+Thus, the pragmatic option here would be to have a distribution of weights and quorum.  For example, if you have three replicas, each with the same weight (say <strong>1</strong> for this discussion) then a workable model is to insist on a read quorum of 2 and a write quorum of 2.  In that way, a single failure will not prevent you from making forward progress, but if two nodes go down then the system can no longer make progress.
+
+The author describes the typical environment he envisions for this system: a network of personal computers, connected via a network, file servers, and even wide area networking.  Xerox had the personal computers at that point, and had defined networking protocols (<a href="https://en.wikipedia.org/wiki/Xerox_Network_Systems">XNS</a>) and would, in cooperation with Digital and Intel issue <a href="https://gordonbell.azurewebsites.net/Ethernet_Blue_Book_1980.pdf">Version 1.0 of the Ethernet specification</a> the following year (1980).
+
+Much of the paper is in fact a fairly detailed description of the system that they had implemented (in Violet).  Section 4 does provide insight into a variety of interesting and useful features of the system:
+<ul>
+ 	<li>"Weak representatitves" - these are basically cached copies of the data; they do not have any voting rights. The author describes them as a performance optimization. It indicates a way of marking the copy as invalid so it will need to be re-fetched before it can be used.</li>
+ 	<li>Lock optimization - the author points out that they have an optimized lock scheme that permits updates which are compatible with read operations.  This is consistent with the observation that as long as ordering of write operations is preserved on persistent storage write back operations are permissible.</li>
+ 	<li>Weak consistency - the original model was serial consistency but the author points out that some problems can be addressed with weaker consistency models.  The author does not explore these weak models substantially, but merely mentioning them is indeed a useful insight.</li>
+ 	<li>Object size - the model permits locking on the file level, so the object stored within the file should be "of suitable size".</li>
+ 	<li>Read lock breaking - if the file system permits breaking read locks as part of conflict resolution (rather than transaction abort) then object version numbers can change during the transaction; the change is detectable since the version number shifts.</li>
+ 	<li>Dynamic reconfiguration - the author describes how additional replicas can be added (and presumably removed) or weights changed.  In essence, he uses the same rules for updating the voting configuration data as for the underlying data itself.  Thus, changes will be discovered by the time the read quorum has been satisfied.</li>
+ 	<li>Replicated containers - the author explains how replication can be used with (mostly) the same interface as non-replicated storage (just with the benefits of being replicated!)</li>
+ 	<li>Minimizing communications overhead - the author points out that releasing unneeded read locks prior to commit eliminates the need to communicate during commit processing.</li>
+ 	<li>Background update - postponing replication can allow smoothing network utilization over time.</li>
+</ul>
+The replication policy is, at its heart, an early consensus protocol.  While the author does not discuss this, the approach described does have some scalability challenges that will become apparent (and be addressed) in subsequent work.  Overall, this work really does an amazing job of describing so many aspects of modern computer systems: networks, file servers, personal computers, wide area networks, redundancy, consistency, etc.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;

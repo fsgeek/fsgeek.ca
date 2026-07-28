@@ -1,0 +1,79 @@
+---
+title: "CPSC 416 (Winter 22 Term 2)"
+date: "2022-12-23 13:30:26"
+status: "publish"
+original_url: "https://fsgeek.ca/teaching/cpsc-416-winter-22-term-2/"
+post_id: 907
+---
+
+<!-- wp:paragraph -->
+<p>Starting in January 2023 I will be teaching the Computer Science Department's course in <a rel="noreferrer noopener" href="https://courses.students.ubc.ca/cs/courseschedule?pname=subjarea&amp;tname=subj-course&amp;dept=CPSC&amp;course=416" data-type="URL" data-id="https://courses.students.ubc.ca/cs/courseschedule?pname=subjarea&amp;tname=subj-course&amp;dept=CPSC&amp;course=416" target="_blank">Distributed Systems (CPSC 416)</a>.  This course has been taught by <a rel="noreferrer noopener" href="https://www.cs.ubc.ca/~bestchai/" target="_blank">Ivan Bestchastnikh </a>and it means I have an interesting challenge ahead in filling his shoes.  The course I am teaching will be based upon his prior course, albeit with some modifications that I bring from my own experience as part of the instructional team for <a rel="noreferrer noopener" href="https://omscs.gatech.edu/cs-7210-distributed-computing" target="_blank">Georgia Tech's CS 7210 course</a>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>First: this course is challenging. It is not <em>gratuitously</em> challenging (e.g., I won't make you suffer because <em>I </em>suffered and think you somehow need to "pay your dues."  My goal is to help you build a mental model for understanding the field but the field is <em>difficult</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Distributed Systems are difficult because:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li>The <em>primary</em> concern for this field is <em>failure</em>.  Most of the courses you have taken teach you how to do things.  Frequently "failure" means killing the program, rebooting the computer, fixing the bug in the code.  In distributed systems we have to figure out how to make things work <em>in the presence of failure</em>.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>A major challenge is that, unlike programs running on a single computer, there is limited <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Fate-sharing" target="_blank"><em>fate sharing</em>.</a> In other words, parts of the system can keep running while other parts have failed. When different parts of the system do not have the same view of reality we lose the ability to know what the "correct" state of the system is.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>The most common technique we use is to construct <em>consensus</em> mechanisms - getting different independent parts of the system to agree on how to handle failures.  The benefit of this is that <em>if we do it right</em> we can project the aura of a single, coherent system capable of providing concrete guarantees to our "customers."</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>The dirty secret is that, in fact, we cannot guarantee the ability to handle <em>all possible failures</em>.  A concrete example of this is the <em><a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Two_Generals%27_Problem" target="_blank">Two Generals Problem</a></em>. Thus, what we do in distributed systems is provide specific guarantees <em>within some defined set of failures</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Why do distributed systems matter? Because, while they are not 100% proof against all possible failures they can achieve high - but not absolute - reliability.  Cloud compute vendors use the techniques we will discuss in this course to build "high availability systems."  Their failure model extends to protecting against regional level disasters.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Over the term I will be updating the materials I have provided here as necessary:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-syllabus/" data-type="page" data-id="910">Syllabus</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-projects/" data-type="page" data-id="916">Projects</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-extra-credit/" data-type="page" data-id="925">Extra Credit</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-exams/" data-type="page" data-id="934">Exams</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-rubric/" data-type="page" data-id="927">Rubric</a></li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-resources/" data-type="page" data-id="929">Resources </a>(Canvas, Discussion (TBD), Discord, Twitch, TAs, Office Hours)</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li><a href="https://fsgeek.ca/cpsc-416-winter-22-term-2/lectures/" data-type="page" data-id="978">Lectures </a>(Slides, Videos - if available)</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:navigation -->
+<!-- wp:page-list /-->
+<!-- /wp:navigation -->

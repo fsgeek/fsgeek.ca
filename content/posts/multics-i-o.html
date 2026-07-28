@@ -1,0 +1,32 @@
+---
+title: "MULTICS I/O"
+date: "2018-01-14 04:00:27"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/01/14/multics-i-o/"
+post_id: 273
+categories: ["File Systems", "MULTICS"]
+---
+
+Feiertag, Richard J., and Elliott I. Organick. "<a href="https://dl.acm.org/citation.cfm?id=806497">The Multics input/output system</a>." In <i>Proceedings of the third ACM symposium on Operating systems principles</i>, pp. 35-41. ACM, 1971.
+
+In this paper we return to <a href="https://fsgeek.ca/2018/01/02/multics/">MULTICS </a>but this time the focus is on the I/O system.  Much of the content is not <em>directly</em> related to the file system, but it certainly does touch on familiar concepts including the file system.
+
+By this time MULTICS had been released and Bell Labs had dropped out of the project (to build the "castrated" version of MULTICS that became UNICS and ultimately UNIX.)  Thus, this is more a reflection of the system that has been built (versus the earlier paper, where it is a prospective description of the system).
+
+So what is this I/O System?  The description is of a system with a flexible interface, from a highly general (and easy-to-use) interface, to a highly specific (and challenging-to-use) interface to devices.  The idea seems to be that devices have a common interface - the general level interface - but may have specific features that require device-specific knowledge to exploit - the specialized interface.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/01/Multics-IO-System-Figure-1.png"><img class="size-medium wp-image-281 alignleft" src="https://fsgeek.ca/wp-content/uploads/2018/01/Multics-IO-System-Figure-1-300x227.png" alt="" width="300" height="227" /></a>
+
+There are some interesting insights in this paper, again, that reflect the way we do things now rather closely.  For example, the MULTICS I/O Model puts the file systems as a separate service, but then shows they interact with an I/O system component.  Thus, applications can be seen to directly interact with the file system, via its own API, or they can do so through the more general Device I/O Module (DIM).
+
+This abstraction of devices is one we see in many subsequent operating systems (and all modern ones).  File systems gained their idiosyncratic behavior model fairly early, then, where they play closely, but not subserviently, to the I/O subsystem.
+
+Indeed, much of this paper relates to how I/O from files may be redirected for other purposes, such as for the input to an application instead of a more common interface device, such as a teletype (tty) machine.  Of course, MULTICS had already indicated that files were treated logically as memory and their contents could be pulled in "as needed" (demand paging).
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/01/Multics-IO-System-Figure-2.png"><img class="size-medium wp-image-280 alignright" src="https://fsgeek.ca/wp-content/uploads/2018/01/Multics-IO-System-Figure-2-300x207.png" alt="Multics IO System Figure 2" width="300" height="207" /></a>
+
+This paper also describes the interface to the file system, albeit in general terms.  It describes the idea that logical data flows (<strong>streams</strong> as they call it) can be separated from the actual data storage mechanism used beneath them.  It is this mechanism that permits them to redirect the tty.
+
+This paper thus introduces some surprising concepts around I/O: a semi-abstract interface, the idea that file systems were a consumer of that interface (and in theory a provider of the interface).  The ability to extend the OS for new device types <strong>because </strong>of this generalized interface.  After reading it, I can see its influence on both Linux (via UNIX) and Windows (presumably via RSX-11M).
+
+&nbsp;

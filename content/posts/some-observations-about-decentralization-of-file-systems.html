@@ -1,0 +1,46 @@
+---
+title: "Some Observations about Decentralization of File Systems"
+date: "2018-01-25 04:00:02"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/01/25/some-observations-about-decentralization-of-file-systems/"
+post_id: 295
+categories: ["File Systems", "Network File Systems"]
+---
+
+<a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.208.3411"><em>Some Observations about Decentralization of File Systems.
+</em></a>Jerome H. Saltzer, 1971.
+
+This paper caught my eye because it leads in a different direction than the other file systems papers I've been looking at.  Instead of talking about file systems on a single computer, it has the audacity of suggesting that maybe we want to have remotely accessible storage.
+
+The author frames this in the context of <em>networks</em>.  The first (of two) references in this paper are about networks and help frame the conversation about "decentralized" file systems:
+
+<a href="https://dl.acm.org/citation.cfm?id=1477020">Computer network development to achieve resource sharing</a>
+Lawrence G. Roberts and Barry D. Wessler, AFIPS '70 (Spring) Proceedings of the May 5-7, 1970, spring joint computer conference, pp 543-549.
+
+The authors' affiliation is the Advance Research Project Agency (<strong>ARPA</strong>) and what they describe in this paper is the <strong>ARPA Network</strong>. I don't want to get too far into this, but I did want to include this wonderful bandwidth/cost chart - something I have definitely seen in various guises since then.
+
+[caption id="attachment_297" align="alignleft" width="316"]<a href="https://fsgeek.ca/wp-content/uploads/2018/01/arpanet-1970-perf-table.png"><img class=" wp-image-297" src="https://fsgeek.ca/wp-content/uploads/2018/01/arpanet-1970-perf-table-210x300.png" alt="ARPANet Performance" width="316" height="451" /></a> ARPA Network 1970 Performance Cost Comparison[/caption]
+
+In this time frame, they are discussing the creation of a network for sharing data across geographically dispersed sites, including sites scattered around the United States.  Connection speeds in this time frame are 50Kb/s.  It estimates the <em>entire bandwidth consumption</em> of the network will be between 200-800Kb/s by mid-1971, with twenty nodes connected to the entire network.
+
+The point of this diagram is to discuss costs, where it points out that the least expensive way to move large quantities of data is to encode it on a magnetic tape and sent it in the mail (<em>air mail</em>, of course.)
+
+Why is this important?  Because it helps set the stage for the conversation about resource sharing.  This is before Ethernet exists (<a href="https://gordonbell.azurewebsites.net/Digital/Ethernet%20Blue%20Book.pdf">Version 1.0 of the Ethernet specification</a> appears in 1980).  Thus, the networks that do exist are hardware specific.  The amount of data being moved is remarkably small by modern standards.
+
+This is, however, where we start considering what is involved in supporting network file systems - decentralized systems of storage that can communicate with one another.
+
+The author's stake out their position in the abstract:
+<blockquote><em>This short note takes the position that the inherent complexity of a decentralized and a centralized information storage system are by nature essentially the same.</em></blockquote>
+This defines the starting point of what will be a decades long conversation on this fundamental issue.   The authors' argue that in fact the real issue is one of engineering, not models:
+<blockquote><em>The consequence of this claim, if substantiated, is that the technical choice between a centralized or decentralized organization is one of engineering tradeoffs pertaining to maintainability, economics, equipment available, and the problem being solved, rather than one of functional properties or fundamental differences in complexity.</em></blockquote>
+The discussion then points out that in some cases, such as adding a 20-40 millisecond delay on top of the usual 20-50 millisecond disk delay is not dramatically different.  They explore other areas where the timing might make a substantial difference.  Intriguingly, they discuss a form of disaggregation - where they envision compute being in one location, memory in another, storage in yet another.  They point out that this turns back into a computer (albeit one with long latency to access memory, for example.)
+
+They then discuss <em>caching</em> ("buffer memory") of information but point out the challenge is now that the system has multiple copies of what need to be the same data - it "has the problem of systematic management of multiple copies of information".  Surprisingly they make a leap here equating this situation between centralized and decentralized systems: this is a problem of modeling access patterns to shared information and then invent algorithms for "having the information on the right storage device at the right time"!
+
+With decades of hindsight, this looks surprisingly naive. Indeed, even the authors' construct a clear path for retreat here: "... this is not to say that there are no differences of significance".
+
+They conclude by opining that storage is challenging:
+<blockquote><em>The complexity is the inevitable consequence of the objectives of the information storage system: information protection, sharing, privacy, accessibility, reliability, capacity, and so on.  What is needed in both cases is a methodical engineering basis for designing an information storage system to specification.  On the other hand a decentralized organization offers the potential for both more administrative flexibility, and also more administrative chaos.</em></blockquote>
+What surprised me about this paper is that the issues around sharing data between computers was already being considered at this point.  The idea that network file systems and local file systems really should be "more or less" the same is thus planted early. I'm sure we will see divergence on this point as we continue moving forward.
+
+For now, we have a base upon which to build this new direction of "decentralized" file systems.

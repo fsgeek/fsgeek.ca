@@ -1,0 +1,43 @@
+---
+title: "The Cambridge File Server"
+date: "2018-03-20 05:00:31"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/03/20/the-cambridge-file-server/"
+post_id: 381
+categories: ["Conferences Journals and Workshops", "File Systems", "Network File Systems"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=850710">The Cambridge File Server</a>
+Jeremy Dixon, in ACM SIGOPS Operating Systems Review,  Volume 14, Number 4, pp 26-35, 1980, ACM.
+
+Cambridge was certainly a hotbed of systems work in the 1970s (not to say that it still is not).  They were looking at very different architectures and approaches to problems than we saw from the various Multics influenced systems.
+
+The introduction to this paper is a testament to the vibrant research work being done here.  They author points to the Cambridge ring, which was their mechanism for implementing a shared computer network and a precursor to the Token Ring networks that followed.  The CAP computer was part of this network, and the network included a separate computer that had a vast amount of storage for the time - 150MB.  That common storage was used for both "filing systems" as well as "virtual memory".   This computer ran the Cambridge File Server and implemented the functionality that was explored in the <a href="https://fsgeek.ca/2018/03/13/wfs-a-simple-shared-file-system-for-a-distributed-environment/">WFS</a> paper.
+
+They identify key characteristics of their file server:
+<ul>
+ 	<li>Substantial crash resistance.</li>
+ 	<li>Capabilities used to control access.</li>
+ 	<li>Atomic file updates.</li>
+ 	<li>Automatic "garbage collection" of storage space</li>
+ 	<li>Fast transfer to random accessed, word-addressable files.</li>
+</ul>
+The authors make a point of noting there are only two classes of objects in their system: <strong>files</strong> and <strong>indices</strong>.  I found this interesting because it echos the hierarchical file systems models that encouraged me to start this journey in the first place.
+
+They define a file: "... a random access sequence of 16-bit words whose contents can be read or written by client machines using the following operations".  The operations that follow are <strong>read</strong> and <strong>write</strong>.  They go on to define an index: "... a list of unique identifiers, and is analogous to a C-list in capability machines".  The three operations here are: <strong>preserve</strong>, <strong>retrieve</strong>, and <strong>delete</strong>. This permits entries to be added, found, and removed.
+<blockquote><em>The storage controlled by the file server thus appears to its clients as a directed graph whose nodes are files and indices.  Each file or index operation is authorised by quoting the object's unique identifier to the file server, and UIDs are 64 bits long with 32 random bits. Each client, therefore, can access only some of the nodes in the graph at any time, namely those whose UIDs he knows, an dthose whose UIDs can be retrieved from accessible indices.</em></blockquote>
+Thus, they actually have a graph file system that may in fact consist of nodes that are not connected - essentially a pool of disconnected trees that can be traversed if you know how to find the tree, but is effectively hidden otherwise.  They do point out that the sparse space may not be sufficient protection (though I suspect a small finite delay on an invalid lookup with discourage brute force browsing).
+
+Objects are deleted when they cannot be found from some distinguished root index; the paper describes that each client is given its own entry in the root index, pointing to the client specific index.  There is the implication that they will scan the storage looking for such unreferenced objects that can be cleaned up and indeed they refer to a companion paper for a detailed description of this garbage collector.
+
+Their argument for this omission is that it relieves the client of the burden of managing object lifetimes ("... removes from the clients the burden of deciding when to delete an object...")
+
+Storage space is segregated into "data" and "map" blocks.  The data blocks contain object contents.  The map blocks contain meta-data. New files are stored as a single data block. As the file grows in size, map blocks are inserted to create a tree of up to three levels deep.
+
+The paper then turns its attention to the atomic nature of the updates to the file server.  The author points out that moving from consistent state to consistent state may require multiple distinct changes. Since failures can interrupt you between any two operations, the discussion revolves around ways in which this can be robustly implemented in atomic and recoverable fashion.  The author points out that the overhead in protecting against this class of failures has substantial overhead.  Given that not all files require this level of robustness, he proposes that the file server provide two separate classes of service for data files.  Map blocks are maintained in consistent fashion because they have the file server's meta-data within them and the consistency of the file server's control information needs to be preserved.
+
+Much of the detail in the paper at that point involves describing the structure of the meta data and how it is used to implement atomic operations on the file server.  The paper provides a detailed description of how transactions are implemented within this system.  The fact they describe implementing a complete transactional file system, discuss the ramifications of providing user level transactional data storage, and come up with a hybrid model does make this an impressive piece of early work.  We will see journaling file systems more than once as we move forward.
+
+The balance of the paper discusses how this has worked within their systems at Cambridge.   It is interesting and they tie some of the implementation efficiency to the environment of the Cambridge Ring itself.  This is a production file server and the author notes that it is used by a variety of computers (including different operating systems) within their environment successfully.
+<blockquote><em>Its relatively quick response has allowed it to be used to record and play back digitised speech in real time.  The interface provided seems both simple and suitable for a variety of purposes.</em></blockquote>
+Impressive indeed.

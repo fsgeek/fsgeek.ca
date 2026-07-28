@@ -1,0 +1,43 @@
+---
+title: "File Structure"
+date: "2018-01-11 04:00:39"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/01/11/file-structure/"
+post_id: 261
+categories: ["File Systems"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=806036">Complex Information Processing: A File Structure for the Complex, The Changing, and the Indeterminate</a>
+ACM '65 Proceedings of the 1965 20th national conference, Pages 84-100
+Nelson, T. H.
+
+This paper has been a bit more challenging to incorporate.  I originally picked it from the intriguing title and lead-in.  It represents very early thought on how information should be organized.  In my final analysis, I concluded more that this relates to the <em>structure of information</em> than it does specific file systems work.
+
+There are some useful insights within this paper.  For me, the key one is that users desire complex structure for their information - they don't <em>really </em>want a pure hierarchical model.  Even the <a href="https://fsgeek.ca/2018/01/02/multics/">MULTICS</a> paper hints at this (where their name space is hierarchical but they have <em>links</em> that violate their hierarchy.)
+<blockquote><em>THE KINDS OF FILE structures required if we are to use the computer for personal files and as an adjunct to creativity are wholly different in character from those customary in business and scientific data processing. They need to provide the capacity for intricate and idiosyncratic arrangements, total modifiability, undecided alternatives, and thorough internal documentation.</em></blockquote>
+<img class="size-medium wp-image-269 alignright" src="https://fsgeek.ca/wp-content/uploads/2018/01/1965-A-File-Structure-for-the-Complex-The-Changing-and-the-Indeterminate_Figure1-300x251.png" alt="" width="300" height="251" />This is the opening paragraph for this paper. There is no abstract and the organization is even more casual than seems common for this time period. But the author's challenge is an interesting one: unstructured data is <i>different</i> than the structured data of the business world.  My initial reading of this was that this recognizes the distinction between <em>structured data</em> - the path that leads to databases, and <em>unstructured data</em> - the path that leads to file systems.
+
+But then what it goes on to describe is more like some sort of interactive editor environment, rather than a classic file system.  It focuses on the way in which the information itself would be managed in this environment:
+<blockquote><em>The original problem was to specify a computer system for personal information retrieval and documentation, able to do some rather complicated things in clear and simple ways. The investigation gathered generality, however, and has eventuated in a number of ideas. These are an information structure, a file structure, and a file language, each progressively more complicated.</em>
+
+<em><a href="https://fsgeek.ca/wp-content/uploads/2018/01/1965-A-File-Structure-for-the-Complex-The-Changing-and-the-Indeterminate_Figure2.png"><img class="size-medium wp-image-270 alignleft" src="https://fsgeek.ca/wp-content/uploads/2018/01/1965-A-File-Structure-for-the-Complex-The-Changing-and-the-Indeterminate_Figure2-300x215.png" alt="" width="300" height="215" /></a></em>Thus, the author gives us important data structures, such as the "zippered list".  I note it here more as a curiosity than anything else - it gives me a sense of why I struggled a bit with this particular paper.
+
+This paper reinforces the idea that human users want some concept of temporal relationship.  Much of the text of the paper relates to the way in which an author creates works of authorship, starting from the initial text, where ideas and information migrate around as the structure and organization of the document changes.
+
+Thus my observation that at some level this is a paper about how to build a word processor; yet it also provides insight into how users think about the organization of their data - and it is <strong>definitely</strong> not hierarchical in nature!<em> <a href="https://fsgeek.ca/wp-content/uploads/2018/01/1965-A-File-Structure-for-the-Complex-The-Changing-and-the-Indeterminate_Figure3.png"><img class="size-medium wp-image-268 alignright" src="https://fsgeek.ca/wp-content/uploads/2018/01/1965-A-File-Structure-for-the-Complex-The-Changing-and-the-Indeterminate_Figure3-300x215.png" alt="" width="300" height="215" /></a>
+</em> Figure three actually reminds me more of the record oriented structure that we saw for <a href="https://fsgeek.ca/2018/01/09/database-versus-file-system/">IDS</a>.  So while the author started off distinguishing his usage pattern from industrial patterns, his diagrams certainly do suggest this is remarkably similar to the relationship one sees in data within a database.
+
+Thus, it raises a question in my own mind: is this distinction between structured and unstructured data a fixed one, or is it more like one end of a complex design space?
+
+The paper describes three distinct components of this envisioned system: the zippered lists (data relationship maps), the structure of the files (ELF), and a proposed "file language" PRIDE.  In fact, much of the paper seems rather problem specific, despite the author's attempt to generalize this.
+
+To recap, here are the insights I obtained from this paper:
+<ul>
+ 	<li>The structure of real information is a graph of relationships;</li>
+ 	<li>Data relationships change over time - thus what we might view as a data <em>move</em> is often a change in the relationship of pieces of the information</li>
+ 	<li>Temporal information can be important.  A history of operations (for example) or versioning.</li>
+ 	<li>How information should be organized is often domain specific.</li>
+</ul>
+If I fall back to think about the current distinction - file systems store unstructured information, databases store structured information - it occurs to me that there is more of a continuum here.  File systems <em>do</em> store some structured information - file attributes, for example, or the file name.  Databases <em>do </em>store some unstructured information (albeit fixed size).  Thus, perhaps the distinction is more artificial than I first realized.
+
+Clearly we have more to read.</blockquote>

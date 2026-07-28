@@ -1,0 +1,69 @@
+---
+title: "Where has the time gone?"
+date: "2020-08-05 04:00:00"
+status: "publish"
+original_url: "https://fsgeek.ca/2020/08/05/where-has-the-time-gone/"
+post_id: 773
+categories: ["Conferences Journals and Workshops", "File Systems", "FUSE", "Non-Volatile Memory", "PhD", "Research Ideas", "Semantic File Systems"]
+tags: ["File Navigation", "File System", "Memex", "Persistent Memory"]
+---
+
+<!-- wp:paragraph -->
+<p>It's been more than a year since I last posted; it's not that I haven't been busy, but rather that I've been trying to do too many things and have been (more slowly than I'd like) cutting back on some of my activities. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Still, I miss using this as a (one way) discussion about my own work.   In the past year I've managed to publish <em>one</em> new (short) paper, though the amount of work that I put into it was substantial (it was just published in <em>Computer Architecture Letters</em>).  This short article (letter) journal normally provides at most one revise and resubmit opportunity, but they gave me <em>two</em> such opportunities, then accepted the paper, albeit begrudgingly over the objections of Reviewer # 2 (who agreed to accept it, but didn't change their comments).</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Despite the lack of clear publications to demonstrate forward progress, I've been working on a couple of projects to push them along.   Both were presented, in some form, at <a href="https://www.eurosys2020.org/poster-session/" target="_blank" rel="noreferrer noopener">Eurosys as posters</a>. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Since I got back from a three month stint at Microsoft Research (in the UK) I've been working on one of those, evolving the idea of kernel bypasses and really analyzing <em>why</em> we keep doing these things; this time through the lens of building user mode file systems.  I really should write more about it, since that's on the drawing board for submission this fall.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The second idea is one that stemmed from my attendance at <a rel="noreferrer noopener" href="https://sosp19.rcs.uwaterloo.ca/" target="_blank">SOSP 2019.</a>  There were three papers that spoke directly to file systems: </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li><a rel="noreferrer noopener" href="https://dl.acm.org/authorize?N695037" target="_blank">File Systems Unfit as Distributed Storage Backends</a></li><li><strong><a rel="noreferrer noopener" href="https://dl.acm.org/authorize?N695045" target="_blank">Performance </a><a href="https://dl.acm.org/authorize?N695045">and Protection in the ZoFS User-space NVM File System</a></strong></li><li><strong><a href="https://dl.acm.org/authorize?N695046">SplitFS: Reducing Software Overhead in File Systems for Persistent Memory</a></strong></li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>Each of these had important insights into the crossover between file systems and persistent memory.  One of the <em>struggles</em> I had with that short paper was explaining to people "why file systems are necessary for using persistent memory".   I was still able to capture some of what I'd learned, but a fair bit of it was sacrificed to adding background information.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One key observation was around the size of  memory pages and their impact on performance; it convinced me that we'd benefit from using ever larger page sizes for PMEM.  Some of this is because persistent memory is, well, <em>persistent</em> and thus we don't need to "load the contents from storage".  Instead, it <em>is</em> storage.  So, we're off testing out some ideas in this area to see if we can contribute some additional insight.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The other area - the one that I have been ignoring too long - is the thesis of this PhD work in the first place.  Part of the challenge is to reduce the problem down to something that is tractable and can be finished in a reasonable amount of time.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"sizeSlug":"large"} -->
+<figure class="wp-block-image size-large"><img src="https://fsgeek.ca/wp-content/uploads/2020/08/AdobeStock_335005616-scaled.jpeg" alt=""/><figcaption>Memex</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>One of the questions (and the one I wanted to explore when I started writing this) is a rather famous article from 1945 entitled <a rel="noreferrer noopener" href="https://www.theatlantic.com/magazine/archive/1945/07/as-we-may-think/303881/" target="_blank">As We May Think</a>. Vannevar Bush described something quite understandable, yet we have not achieve this, though we have been trying - one could argue that hypertext stems from these ideas, but I would argue that hypertext links are a pale imitation of the rich assistive model Bush lays out when he describes the Memex.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Thus, to the question, which I will reserve for another day: why have we not achieved this yet?  What prevents us from having this, or something better, and how can I move us towards this goal?</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I suspect, but am not certain, that one culprit may be the fact we decided to stick with an existing and well-understood model of organization:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":780,"sizeSlug":"large"} -->
+<figure class="wp-block-image size-large"><img src="https://fsgeek.ca/wp-content/uploads/2020/08/AdobeStock_340519156-1024x439.jpeg" alt="" class="wp-image-780"/><figcaption>Maybe the model is wrong when the data doesn't fit?</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->

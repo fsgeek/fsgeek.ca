@@ -1,0 +1,137 @@
+---
+title: "Storage Systems and I/O: Organizing, Storing, and Accessing Data for Scientific Discovery"
+date: "2019-06-25 04:00:30"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/06/25/storage-systems-and-i-o-organizing-storing-and-accessing-data-for-scientific-discovery/"
+post_id: 711
+categories: ["Conferences Journals and Workshops", "File Systems", "Name Spaces", "POSIX", "Questions", "Research Ideas"]
+tags: ["HPC", "metadata", "Namespace", "scientific computing"]
+---
+
+<!-- wp:paragraph -->
+<p><em><a href="https://www.osti.gov/biblio/1491994">Storage Systems and I/O: Organizing, Storing, and Accessing Data for Scientific Discovery</a>,</em> Robert Ross, Lee Ward, Philip Carns, Gary Grider, Scott Klasky, Quincey Koziol, Glenn K. Lockwood, Kahthryn Mohror, Bradley Settlemyer, and Matthew Wolf, United States: N. p., 2019. Web. doi:10.2172/1491994. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Google brought this to my attention recently because I've set triggers for people citing prior works that I've found interesting or useful.  There are a number of things that caught my eye with this technical report that apply to my own current research focus.  In addition, I received a suggestion that I pick a specific field or discipline and look at how to solve problems in that specific community as an aid to providing focus and motivation for my own work.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":714} -->
+<figure class="wp-block-image"><img src="https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/06/AdobeStock_118999654.jpeg?fit=600%2C296&amp;ssl=1" alt="Data center Image (supercomputer)." class="wp-image-714"/><figcaption>Supercomputer Cluster</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>This report is a wealth of interesting information and suggestions for areas in which additional work will be useful.  The report itself is quite long - 134 pages - so I am really only going to discuss the sections I found useful for framing my own research interests.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The report itself is essentially capturing the discussion at a US DOE workshop.  Based upon my reading of the report, it appears that the workshop was structured, with a presentation of information and seeded with topics expected to elicit discussion.  Much of the interesting information for me was in Section 4.2 "Metadata, Name Spaces, and Provenance".  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The report starts by defining what they mean by <em>metadata</em>:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p>Metadata, in this context, refers generally to the information about data. It may include traditional user-visible file system metadata (e.g., file names, permissions, and access times), internal storage system constructs (e.g., data layout information), and extended metadata in support of features such as provenance or user-defined attributes. Metadata access is often characterized by small, latency-bound operations that present a significant challenge for SSIO systems that are optimized for large, bandwidth-intensive transfers. Other challenging aspects of metadata management are the interdependencies among metadata items, consistency requirements of the information about the data, and volume and diversity of metadata workloads.</p><cite>4.2.1 Metadata (p. 39)</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>I was particularly interested in seeing their observation that <em>relationships</em> were one of the things that they found missing from existing systems.  While somewhat self-serving, this is the observation that has led me into my current research direction.  The observation about how meta-data I/O behavior is a mismatch for the bandwidth-intensive nature of accessing the data was a useful insight: there is a real mismatch between the needs of accessing meta-data versus accessing the data itself, particularly for HPC style workloads.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Not explicitly mentioned here is the challenge of constructing a system in which meta-data is an inherent part of the file itself, <em>despite</em> these very different characteristics.  The authors do point out other challenges, such as the difficulty in constructing efficient indexing, which suffers from scalability issues:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p>While most HPC file systems support some notion of extended attributes for files [Braam2002, Welch2008, Weil2006], this type of support is insufficient to capture the desired requirements to establish relationships between distributed datasets, files, and databases; attribute additional complex metadata based on provenance information; and support the mining and analysis of data. Some research systems provide explicit support for searching the file system name space based on attributes [Aviles-Gonzalez2014, Leung2009], but most of these systems rely on effective indexing, which has its own scalability and data-consistency challenges [Chou2011].</p><cite>4.2.1 Metadata - "State of the Art" (p. 39)</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>In other words: the performance requirements of accessing meta-data versus data are quite different; the obvious solution is to provide separate storage tiers or services for satisfying these needs.  The disadvantage to this is that when we start separating meta-data from data, we create consistency problems and classic solutions to these consistency problems in turn create challenges in scalability.  In other words, we are faced with classic distributed systems problems, in which we must trade off consistency versus performance.  That is the <a href="https://mwhittaker.github.io/blog/an_illustrated_proof_of_the_cap_theorem/">CAP Theorem</a> in a nutshell.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Another important point in looking at this technical report is that it emphasizes the vast size of datasets in the scientific and HPC communities.  These issues of scale are exacerbated in these environments because their needs are extraordinary, with vast data sets, large compute clusters, geographical diversity, and performance demands. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The <em>need</em> for solutions is an important one in this space, as these are definitely pain points.  Further, the needs of reproducibility in science are important - the report expressly mentions the DOE policy now requires a <em>data management plan</em>.  The emphasis is clearly on reproducibility and data sharing.  It seems fairly clear (to me, at least) that having better data sharing can only benefit scientific work.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The seeding discussion for the <em>Metadata</em> section of the report raises some excellent points that, again, help buttress my own arguments and hopefully will be useful in shaping the forward direction:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p>A number of nontraditional use cases for the metadata management system have emerged as key to DOE missions. These include multiple views of the metadata to support, for example, different views at different levels of the name space hierarchy and different views for different users’ purposes; user-defined metadata; provenance of the metadata; and the ability to define relationships between metadata from different experiments (e.g., to support the provenance use case).<br> As the collection of metadata expands, it is important to ensure that all metadata associated with a dataset remains with the data. Metadata storage at different storage tiers, storage and recovery of metadata from archive, and the transfer of datasets to different storage systems are all important use cases to consider.</p><cite>4.2.1 Metadata - "Seeding Workshop Discussion" (p. 40)</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>The idea of <strong>multiple views</strong> is important.  It is something we've been exploring recently as we consider how to look at data just using current information available to us, something I should describe in another post.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So what do I pick out here as being important considerations?  <em>Different views</em>, <em>user-defined metadata</em>, <em>provenance</em>, and <em>defining relationships</em>.  Their requirement that<em> metadata</em> be associated with the underlying dataset.  As I noted previously, this becomes more challenging when you consider that metadata operations have very different interface and performance characteristics than data access.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I have not really been looking at the issues related to metadata management in tiered storage systems, but clearly I have to do so if I want to address the concerns of the HPC community.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p> The attendees agreed that the added complexity in storage hierarchies presents challenges for locating users’ data. A primary reason is that the community does not yet have efficient mechanisms for representing and querying the metadata of users’ data in a storage hierarchy. Given the bottlenecks that already exist in metadata operations for simple parallel file systems, there is a strong research need to explore how to efficiently support metadata in hierarchical storage systems. A promising direction of research could be to allow users to tag and name their data to facilitate locating the data in the future. The appropriate tagging and naming schemes need investigation and could include information about the data contents to facilitate locating particular datasets, as well as to communicate I/O requirements for the data (e.g., data lifetime or resilience).</p><cite>Section 4.4.5 Hierarchy and Data Management</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p><em>How do we efficiently support medatadata in hierarchical <strong>storage</strong> systems?</em> Implicit in this question is the assumption that there are peculiar challenges for doing this.   The report does delve into some of the challenges:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li><em>Hashing</em> can be useful in sharding data for distribution and load balancing, but this does not capture <em>locality</em> - the fact that various files are actually <em>related</em> to one another.  We have been considering file clustering; I suspect that <em>cluster sharding</em> might be a useful mechanisms for providing load balancing.</li><li><em>Metadata generation</em> consists of both automatically collected information (e.g., timestamps, sizes, and name) as well as <em>manually</em> generated information (e.g., tags).  The report argues that manual generation is not a particularly effective approach and suggests automatically capturing workflow and provenance information is important.  As I was reading this, I was wondering if we might be able to apply inheritance to metadata, in a way that is similar to <em>taint tracking</em> systems.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>The report has a short, but useful discussion of <em>namespaces</em>.  This includes the traditional POSIX hierarchical name space as well as object oriented name spaces.  They point to views as a well-understood approach to the problem from the database community.  I would point out the hierarchical approach is <em>one</em> possible view.  The report is arguing that their needs would be best met by having multiple views.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p>The existing work generally is hierarchical and focused on file systems. A number of researchers, however, have argued that such hierarchical namespaces impose inherent limitations on concurrency and usability. Eliminating these limitations with object storage systems or higher-level systems could be the fundamental breakthrough needed to scale namespaces to million-way concurrency and to enable new and more productive interaction modalities.</p><cite>4.2.2 Namespaces "Seeding Workshop Discussion"</cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>There is a dynamic tension here, between <em>search</em> and <em>navigation</em>.  I find myself returning to this issue repeatedly lately and this section reminds me that this is, in fact, an important challenge.  Navigation becomes less useful when the namespace becomes large and poorly organized; humans then turn to search.   Views become alternative representations of the namespace that humans can use to navigate.  They can filter out data that is not useful, which simplifies the task of finding relevant data.  We apply views already: we hide "hidden files" or directories beginning with a special character (e.g., "." in UNIX derived systems).  The source code control<strong> </strong>system <strong>git</strong> will ignore files (filter them from its view) via a <strong>.gitignore</strong> file.  Thus, we are already applying a primitive, limited form of filtering to create the actual view we show.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This report goes on further.  It considers some really interesting issues within this area:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>Storage aware systems for maintaining provenance data.</li><li>The scaling issues inherent in collecting more provenance data; or what do we do when managing the <em>metadata</em> becomes a huge issue itself?</li><li>Cross-system considerations.  This doesn't require HPC data - I have commented more than once that when <em>humans</em> are looking for something, they don't want to restrict it to the current storage device.  Data flows across devices and storage systems; we need to be able to capture these relationships. "[T]here is no formal way to construct, capture, and manage this type of data in an interoperable manner."</li><li>External meta-data.  We need to remember that the <em>context</em> in which the data is collected or consumed is an important aspect of the data itself.   Thus, the tools used, the systems, etc. might be factors.  I would argue that a storage system can't reasonably be expected to capture these, but it certainly should be able to <em>store</em> this metadata.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>The discussion for this section is equally interesting, because it reflects the thoughts of practitioners and thus their own struggles with the current system:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p>Attendees mentioned that tracking provenance is a well-explored aspect of many other fields (art history, digital library science, etc.) and that effort should be made to apply the best practices from those fields to our challenges, rather than reinventing them. Attendees extensively discussed the high value of provenance in science reproducibility, error detection and correction in stored data, software fault detection, and I/O performance improvement of current and future systems.<br> Attendees also discussed the need for research into how much provenance information to store, for how long, in what level of detail, and how to ensure that the provenance information was immutable and trustworthy. The value of using provenance beyond strictly validating science data itself was brought up; attendees pointed out that provenance information can be used to train new staff as well as help to retain and propagate institutional knowledge of data gathering processes and procedures.</p><cite>4.2.4 Discussion Themes "Provenance"<br></cite></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>A generally useful observation: look to how other fields have approached common problems, to see if there are insights from those fields that we can use to address them here.  I found the vast reach of the discussion here interesting - the idea that such a system can be used to "... retain and propagate institutional knowledge..."</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Finally, I'm going to capture the areas in which the report indicates participants at the workshop reached consensus.  I'll paraphrase, rather than quote:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>Scalable metadata storage - a key point for me here was <em>decoupling meta-data from the data itself</em>.   That, despite the seeding suggestion that we keep meta-data associated with the file.</li><li>Improve namespace query and display capabilities - make them dynamic, programmable, and extensible.</li><li>Better provenance information - the emphasis was on reproducibility of results, but they wanted to ensure that this could embed domain specific features, so that such systems can be useful <em>beyond</em> just reproducibility.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>I've really only touched on a small part of this report's total content; there is quite a bit of other, useful, insight within the report.  I will be mulling over these issues </p>
+<!-- /wp:paragraph -->

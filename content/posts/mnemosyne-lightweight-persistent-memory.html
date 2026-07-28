@@ -1,0 +1,57 @@
+---
+title: "Mnemosyne: Lightweight Persistent Memory"
+date: "2018-04-17 04:00:48"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/04/17/mnemosyne-lightweight-persistent-memory/"
+post_id: 404
+categories: ["Memory", "Non-Volatile Memory"]
+tags: ["NVM"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=1950379"><em>Mnemosyne: Lightweight Persistent Memory
+</em></a>Haris Volos, Andres Jaan Tack, Michael M. Swift, <em>ASPLOS '11</em> March 5-11, 2011.
+
+The abstract starts us off in this brave new world:
+<blockquote><em>New storage-class memory (SCM) technologies, such as phase-change memory, STT-RAM, and memristors, promise user-levelvaccess to non-volatile storage through regular memory instructions. These memory devices enable fast user-mode access to persistence, allowing regular in-memory data structures to survive system crashes.</em></blockquote>
+So faster, doesn't require privilege, works like memory, <em>and </em>persistent.  Pretty fancy stuff.
+
+File systems aren't really constructed to have direct access to the disk from user applications.  Generally it is done via an I/O interface: open, close, read, and write.  But <em>memory</em> isn't accessed in that fashion at all.  So, how does this affect things?  What do the services look like?  What does it mean to take something everyone thinks of as <em>transient</em> and make it <em>persistent</em>?
+
+Let's start exploring!
+
+Mnemosyne provides an explicit mechanism for exposing persistent memory to applications.  This is done by extending the programming tools so they can declare something should be stored in persistent memory, or so that it can be dynamically allocated with the proviso that it be allocated from this persistent memory.
+
+Thus, the default is that an existing application retains the same behavior - it does not use persistent memory.  If an application wishes to use persistent memory it must be modified to do so.  Mnemosyne will provide a basic service level, but it won't change the behavior of existing applications (technical debt really <em>does</em> follow us around in this business).
+
+It's impressive: "... Mnemosyne can persist data as fast as 3 microseconds."  It makes existing applications modified to use it much faster. Figure 1 (from the paper) describes the architecture the authors created for Mnemosyne.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/04/Figure-1.jpg"><img class="size-medium wp-image-407 alignleft" src="https://fsgeek.ca/wp-content/uploads/2018/04/Figure-1-300x268.jpg" alt="Mnemosyne Architecture" width="300" height="268" /></a>This architecture envisions the persistent memory being exposed to the application through a persistence interface; the motivation for this is that merely <em>having</em> persistent memory is not enough.  It requires additional work to ensure that it is <em>crash resistant.</em>  In other words, the system can restore the state of the contents in memory to some well-defined consistent state.
+
+This is something file systems routinely handle - the issues of persistence and recoverability.  I often try to think about failure: how does failure manifest?  How do I know that I can recover the state to a consistent spot and then proceed?
+
+This is an uncommon concept for most application developers: they don't need to worry about the contents of memory being "consistent" in the face of crashes because when the application crashes, the memory is lost.
+
+Mnemosyne provides a model of consistency for applications by creating an explicit mechanism for providing crash consistence.  Note that Mnemosyne won't define those consistent states - the <strong>application</strong> must define what it means for its data structures to be consistent.  What Mnemosyne offers are certain guarantees about the contents of memory.
+
+The authors' decision to virtualize their SCM is an interesting one: "<em>[V]irtualization prevents a memory leak in one program from monopolizing a finite amount of SCM.</em>"  Thus, they <em>stage </em>SCM content to disk between processes.  Consistency of data is provided by "ordering writes".  The authors identify four consistency mechanisms:
+<ul>
+ 	<li>Atomic variable update - update the data <em>in place</em> as a single all-or-nothing operation.</li>
+ 	<li>Append updates - data is not written in place, but rather a new copy is written, such as it might be to the end of a log (such updates are ordered).</li>
+ 	<li>Shadow updates -  data is written to a new location and once done, the pointer to the old copy is updated to point to the new copy (e.g., via an atomic variable update).  The authors point out there is a potential leak here that must be handled properly.</li>
+ 	<li>In-place updates - used for data structures that can be modified in place; provided the operations are ordered.</li>
+</ul>
+Consistency guarantees for persistent memory are accomplished using processor semantics and mechanisms:
+<ol>
+ 	<li>A <em>write through</em> operation (e.g., a temporal move) that is written directly to memory.</li>
+ 	<li>Memory fences that ensure strict ordering of operations <em>before</em> the fence relative to operations <em>after </em>the fence.</li>
+ 	<li>Cache line flushes.  The CPU stores memory <em>inside</em> the processor while it is acting upon it.  In fact, a modern CPU has multiple levels of memory.  The most expensive (and smallest) will be the <strong>Level 1</strong> cache.  It's also the fastest.  L2 cache is larger and slower than L1 cache.  L3 cache is typically shared with all CPUs on the processor; it is the largest and slowest of the caches.</li>
+</ol>
+For <em>storage</em> people, some of this is familiar and some of it is different - instead of worrying about <em>storage stack</em> semantics we're now worrying about <em>processor cache </em>semantics.  One upside is that processor semantics are more rigidly enforced than storage semantics (e.g., disk drives that lie and say that the data has been written when it hasn't.)  One downside is that it's a new failure domain.  For anyone used to working with persistent storage, understanding the failure domain is <em>vital.  </em>I suspect it is also different for people used to thinking about the processor perspective, since persistence isn't usually something you have to reason about.
+
+Mnemosyne implemented a persistent heap allocator, a modified version of Intel's STM Compiler (we'll see later that others had to move that work to other compilers because it is now abandoned), a logging mechanism, a persistent region mechanism, a transactional system (based upon <a href="http://tmware.org/tinystm">TinySTM</a>).
+
+Their results are, of course, good.  After all, if they had <em>not</em> been good, they wouldn't have been published. They outperform <a href="https://en.wikipedia.org/wiki/Berkeley_DB">BerkeleyDB</a> (for some metrics). They demonstrated a fast and persistent red-black tree implementation.  They show the benefits of asynchronous truncation.
+
+Mnemosyne was a useful contribution because it was an early exploration into considering <em>how</em> we should use byte-addressable non-volatile memory.   The library they built is used in future work as well, and this is a heavily cited paper.
+
+&nbsp;

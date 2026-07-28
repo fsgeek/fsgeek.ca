@@ -1,0 +1,112 @@
+---
+title: "Relationships"
+date: "2019-05-28 04:00:44"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/05/28/relationships/"
+post_id: 662
+categories: ["File Systems", "Graph File Systems", "Semantic File Systems"]
+---
+
+<!-- wp:paragraph -->
+<p>I recently described two file systems (<a href="https://fsgeek.ca/2019/05/02/qmds-a-file-system-metadata-management-service-supporting-a-graph-data-model-based-query-language/">QMDS </a>and <a href="https://fsgeek.ca/2019/05/14/gfs-a-graph-based-file-system-enhanced-with-semantic-features/">GFS</a>) that attempted to capture additional context for files to improve their usability.  At <a href="https://fsgeek.ca/2019/04/25/eurosys-2019/">Eurosys</a>, I argued (somewhat successfully) that a distinguishing characteristic of my proposed work is to capture <em>relationships</em> between files, something that goes beyond mere isolated analysis of such files.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><em>Index servers</em>, which are now ubiquitous on mainstream platforms, attempt to solve this problem by focusing on the specific attributes of the given file.  This is useful, and indeed it seems to be consonant with the general approach of <a href="https://fsgeek.ca/my-research/semantic-file-systems/">semantic file systems</a>, which attempt to classify files based upon their semantic content.  For example, this is how modern Internet search engines work - they classify a document based upon its content.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I pointed out in my recent discussion of <a href="https://fsgeek.ca/2019/04/29/the-ubiquitous-digital-file-a-review-of-file-management-research/">personal information management (PIM)</a> that there is a difference between <em>navigation</em> and <em>search</em>.  Thinking about this further, I realize that this is more nuanced and reflects the way that we humans look for things: we go to where we <em>expect</em> something to be (navigation) and if it is not there we then go to other places where we think it <em>might</em> be.  For example, when I'm looking for my keys, I have a list of places I look first.  When I don't find them there I begin to systematically <em>search</em> for them.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Thus, the natural progression for finding the item of interest is <em>navigation</em> and <strong>then</strong> search.  Index servers are basically the <em>search</em> part of the equation and they do not tend to be where we start first.  Instead, it is the fall-back.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>As humans, we tend to create associations <em>between</em> events.  When I can't find my keys I start thinking about the last time I saw them ("I know I had them because I was able to get into the apartment.  After I got back I went and checked my e-mail...")   These are <em>temporal</em> clues but they are associations between other unrelated events and the object for which we are searching.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"align":"right","width":133,"height":129} -->
+<div class="wp-block-image"><figure class="alignright is-resized"><img src="https://www.seltzer.com/assets/margo_seltzer_profile_image.jpg" alt="" width="133" height="129"/><figcaption><a href="https://www.seltzer.com/margo/">Margo Seltzer</a></figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Another observation that <a href="https://www.seltzer.com/margo/">Margo Seltzer </a>made in our discussions on this topic is that when we use a web search engine, we are looking for <strong>an</strong> answer, but when we are searching for something <em>that we have</em> we are looking for <strong>the</strong> answer.  This is a subtle, but important, difference.  I don't want to find <em>any</em> set of keys, I want to find <em>a specific</em> set of keys.  Internet search is notoriously unreliable in this regard; how many times have you gone back a few days later to find some interesting article, only to realize the list of results coming back from your search engine <em>are different</em> than they were before?  This is how Internet search engines exploit the fact that you are (usually) just looking for <em>an</em> answer - they don't have to give you definitive, reproducible results.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"align":"left","width":123,"height":81} -->
+<div class="wp-block-image"><figure class="alignleft is-resized"><img src="https://www.ece.ubc.ca/~sasha/images/face-tom-full.jpg" alt="" width="123" height="81"/><figcaption><a href="https://www.ece.ubc.ca/~sasha/">Sasha Fedorova</a></figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Yesterday I had an interesting conversation with <a href="https://www.ece.ubc.ca/~sasha/">Sasha Fedorova</a> and towards the end of it she suggested that I might do better promoting this work by focusing on solving the needs of a particular community and she suggested the <a href="https://bssw.io/communities/software-engineering-community">software engineering community</a>, partially because she has worked with them before  and also because she could see the kinds of relationships that might be useful to that community.  Further, that community is used to testing out experimental approaches that promise to improve effectiveness and productivity.   In that same conversation she pointed out the <a href="https://stackoverflow.com/">Stack Overflow </a>community as being one of those places software engineers search for answers.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This morning, on the way to the gym, I realized that the Stack Overflow community is also an example of how we organically create relationships: people ask questions and get back specific answers of varying quality.  The community rates the responses <em>and preserves the answers</em>.  This has organically created a web of connections across topics and people.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Why is this important to understand?  Because the work I'm doing proposes going beyond simple semantic analysis of individual files, or even clustering them based upon specific characteristics, but also by establishing a set of interrelationships across files <em>and</em> across applications.  Focusing on solving this issue for a single application is much akin to focusing on just looking at the semantic content of a single file.  Moving beyond this to realize that us humans create associations in our brains means we need to find ways of capturing those associations <em>across applications</em> that help us better navigate the vast trove of information we accumulate.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>For example, Sasha suggested that it would be interesting for the software development community if there were an association between the <em>web pages we accessed</em> and the <em>code we were editing</em>.  This makes sense to me: I tend to look up documentation or explanations of specific things as I write code.  If we capture this relationship <em>across</em> applications, we can motivate why this is a systems problem and not an application problem - operating systems provide services that are common to applications (not necessarily <em>all</em> applications, but something that is of broader interest than a single or a few applications).   One benefit of focusing on the software engineering community is that permits us to identify relationship <em>of interest to the community</em> and then mine those relationships.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Another fascinating conversation (late last week) was when I was discussing my research direction with <a href="https://www.linkedin.com/in/ghita-berrada-70379a3b/">Ghita Berrada </a>(who is visiting us this month) and we ended up having a discussion of generalized <em>concept analysis</em>.  I was familiar with <a href="https://arxiv.org/pdf/1703.02819.pdf">Formal Concept Analysis</a> (FCA) because it was used by Benjamin Martin in his work more than a decade ago (his dissertation "<a href="https://ro.uow.edu.au/theses/260/">Formal Concept Analysis and Semantic File Systems</a>" is something I have found delightfully insightful and I think it is time for me to read it again) but she pointed me to Temporal Concept Analysis and Relational Concept Analysis.  <a href="https://pdfs.semanticscholar.org/5db8/8ae4dbf1c8dc6895beb016a857f7cb3c0d23.pdf">Temporal Concept Analysis</a> is fairly recent, having only been first formally described in 2000, and uses FCA as its basis, but it focuses on temporal events.  <a href="https://hal-lirmm.ccsd.cnrs.fr/file/index/docid/163364/filename/hacene-icfca-07.pdf">Relational Concept Analysis</a> is even more recent (2007) and is definitely germane to my research direction since it focuses on <em>relationships</em> and how to handle them within the context of FCA.  Given my own focus on relationships across files, it definitely seems pertinent.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"align":"right"} -->
+<div class="wp-block-image"><figure class="alignright"><img src="https://wol-prod-cdn.literatumonline.com/cms/attachment/5ff8b852-b37b-4932-bc82-24b6ef9dd856/9781119069706.cover.gif" alt=""/><figcaption><a href="https://smile.amazon.com/gp/product/B0104CCRW2/">Introduction to Lattice Theory with Computer Science Applications</a></figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>All of these are in turn based upon the mathematical model of <em>lattices</em> - partially ordered sets.  <a href="http://mathworld.wolfram.com/LatticeTheory.html">Lattice theory</a> has been around for quite some time and shows up in a broad range of areas, such as <a href="https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type">CRDT</a>s which are used in distributed systems.  For example, they are used in Anna, a key-value store I read about last year (surprisingly, I didn't write it up - I should have).  It in turn pointed to earlier work on <a href="https://fsgeek.ca/2018/04/24/logic-and-lattices-for-distributed-programming/">Lattices in distributed systems</a>, which I did describe previously. This has prompted me to go off and read about lattices; this definitely is challenging as my formal math skills are quite rusty, but I have been systematically working my way through <a href="https://smile.amazon.com/gp/product/B0104CCRW2/">the book on lattice theory I picked up</a>. It has been interesting trying to construct an intuitive understanding of the concepts from more formal language describing them; hopefully that knowledge will prove useful.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><em>This is turning into a long post and I still haven't reached the point I wanted (yet).</em></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>A challenge with this work is identifying relationships that we want to be able to support.  Of course, I don't want to <em>restrict</em> these relationships, but rather use a sample of such relationships to motivate the work (or "<em>Why would anyone care about my research?</em>")  One of the challenges of doing good research is motivating that research: there are numerous questions to answer, but which questions <em>deserve being answered</em>?</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>File systems presently support two basic relationships: </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li><strong>Contains</strong> - this is the directory metaphor.  A "directory" is a container of other directories or files.  It is the basis of the hierarchical relationship to which we have become accustomed.</li><li><strong>Points to</strong> - this is the function of a <em>symbolic link</em>, which is supported by most file systems.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>It is relatively easy to focus on <em>properties</em> as well.  In theory, the clustering of files based upon this characteristic is one (loose) form of relationship.  For example,<em> </em>we routinely associate specific file names with a corresponding application (e.g., via the <em>suffix</em> of the file).  Windows exhibits a strong relationship model here, in which applications register interest in particular types of files, based on suffix, and the operating system then uses that information to invoke the relevant application.  Apple's Mac <em>used to</em> use an embedded meta-data component ("<a href="https://en.wikipedia.org/wiki/Resource_fork">resource fork</a>") for associating the file with the application; it still exists but is not commonly used in order to support compatibility. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Other types of file properties include:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li><strong>Timestamp</strong> - these capture <em>temporal properties</em> of a file.  The most common are the creation time, last update time, and last access time.  Last access time is often omitted these days because constantly updating it turns out to be expensive.  For example, <a href="https://www.opentechguides.com/how-to/article/windows-10/129/enable-last-access-time.html">Windows NTFS does not update last access time</a> by default.  My recollection is that they did this because they found updating this field accounted for something like a 6% performance cost in NTFS.  Thus, there is a question as to how reliable these values are.</li><li><strong>Size</strong> - we know what the size of files are.</li><li><strong>Name</strong> - I've already mentioned using the suffix, which is an aspect of the name.  Is it possible to exploit this in other ways?</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:image {"align":"left","width":150,"height":150} -->
+<div class="wp-block-image"><figure class="alignleft is-resized"><img src="https://visualstudio.microsoft.com/wp-content/uploads/2019/02/BrandVisualStudioWin2019-2.svg" alt="" width="150" height="150"/><figcaption><a href="https://visualstudio.microsoft.com/">Microsoft Visual Studio</a></figcaption></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Then there are application relationships: what application <em>created</em> this file?  It occurs to me that it might be useful to distinguish registered names (suffixes) from <em>all </em>files created by an application.  For example, I don't usually want to see the build artifacts of my software development environment.  <a href="https://visualstudio.microsoft.com/">Microsoft Visual Studio</a> handles this by allowing artifacts to be separated from source files, for example.  Could we achieve something comparable within the file system by understanding these relationships? Would it be useful?</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Another suggestion from Sasha was that we might want to record what music was playing when we were doing something specific because our brains may create an association across these seemingly unrelated events. This suggests another potential relationship: <em>concurrent application execution</em>.  This is a sort of temporal relationship, but one that becomes more interesting when we consider it in a <a href="https://fsgeek.ca/2018/03/05/as-we-may-think/">Memex </a>style model of associations.  How can I capture these relationships across different applications.  Perhaps we can think of some sort of "current context" or "current activity" be associated with a given application that can then be queried and added to the files as we create them.  <em>These</em> types of dynamic relationships are certainly more intriguing or interesting.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>What kinds of relationships can <em>you</em> envision being useful when you are searching for that elusive file you know that you have but you don't know where it lives in the hierarchy?</p>
+<!-- /wp:paragraph -->

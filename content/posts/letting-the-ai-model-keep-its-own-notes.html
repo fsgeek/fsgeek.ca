@@ -1,0 +1,129 @@
+---
+title: "Letting the AI Model Keep Its Own Notes"
+date: "2026-06-09 15:05:59"
+status: "publish"
+original_url: "https://fsgeek.ca/2026/06/09/letting-the-ai-model-keep-its-own-notes/"
+post_id: 2622
+categories: ["Artificial Intelligence", "Research Ideas"]
+---
+
+<!-- wp:paragraph -->
+<p>Previously, I talked about <a href="https://fsgeek.ca/2026/03/25/pichay-treating-llm-context-as-virtual-memory/" target="_blank" rel="noreferrer noopener">Pichay</a>, a tool we built for compressing context windows in Large Language Models, arguing that the context window itself is akin to the working set of a computer's CPU. We actually made that work fairly well, extending the proxy server model of Pichay (<a href="https://github.com/fsgeek/pichay" target="_blank" rel="noreferrer noopener">which is on github</a>) into an even more aggressive version that sought to remove other parts of the working set that weren't being used with a projective gateway (called <a href="https://github.com/fsgeek/tinkuy" target="_blank" rel="noreferrer noopener">Tinkuy</a>). That was even more effective than Pichay but we hit the next wall, namely the conversational flow of these tools.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>If I copy/paste something into a conversation with the transformer (the cognitive processing unit of tools like Claude code, OpenAI code, Gemini's cli, as well as the usual chat interface) what happens is that the system constructs a chain of these messages. Those are then converted into a single block of text and that is what gets submitted to the large language model (the <em>transformer</em>).  The APIs have structure requirements, basically: &lt;system&gt; + &lt;user&gt; + &lt;assistant&gt; + &lt;user&gt; + &lt;assistant&gt; + ... </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Each new message from the framework (chat interface, coding tool) becomes an additional labeled block of text and the response from the model is appended.  This allows the model to be <em>stateless</em> - much like how a CPU is also <em>stateless</em> and the statefulness is added by capturing context.  In modern LLM deployments they started with the simple model of sending the entire text block, iteratively appending more messages flowing between the human using the framework and the transformer processing the entire conversation including its history and all the prior messages.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This is not efficient because the transformer builds a complete map between every <em>token</em> and every <em>other</em> token (and a <em>token</em> in this case is the first step of processing the text block, where the text is broken up into chunks called tokens.) Thus, the number of connections is quadratic in the number of tokens - <math data-latex="O(n^2) "><semantics><mrow><mi>O</mi><mo form="prefix" stretchy="false">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo form="postfix" stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n^2) </annotation></semantics></math> which means that the system requires more memory and processing power as the size of the input grows.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"width":"516px","height":"auto","aspectRatio":"1.7448491155046826","sizeSlug":"large"} -->
+<figure class="wp-block-image size-large is-resized"><img src="https://activitycontext.work/assets/quadratic-attention-cost.svg" alt="" style="aspect-ratio:1.7448491155046826;width:516px;height:auto"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>In CS systems, one of the things we are quite good at is recognizing when we're doing repetitive tasks and asking if we could skip the repetition part.  For LLMs the fact that this is an appending block of text means the answer is <em>definitely</em>.  This part that we added is called the KV-cache (we do love our terminology.) </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>A KV cache is a simple system by which we match from an input (the _key_ or K part of KV) to an output (the _value_ or V part of KV).  The idea of <em>memoizing</em> large blocks of computation isn't a new one.  When I figured out what they were doing I remember <em><a href="https://www.seltzer.com/assets/publications/ASC-Automatically-Scalable-Computation.pdf" target="_blank" rel="noreferrer noopener">ASC: Automatically Scalable Computation</a></em> where they explicitly proposed doing large amounts of computation and then capturing the end state.  In other words, we can save the GPU state that we just computed and then on the next call restore it.  This became quite challenging to us in Tinkuy because our work was <em>changing the context window content to remove detritus</em>.  Indeed, much of the work we had to do in Tinkuy was managing the KV cache (we were using the Anthropic API, which has a protocol for marking the prefix.)  Why is this important?  Because the cost of processing input tokens versus reloading the context from the cache is 10x - for <strong>Opus</strong> (the current high end Anthropic model generally available) is US$5/million tokens processed and the cost of reloading state from the KV cache is 10% of that ($0.50/million tokens).  Anthropic charges to store data in the KV cache, though.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Why did this matter to us? It became an additional constraint on how we laid out data in memory.  We worked through that, managed to hit that 180% context inside the 200k context window that was the norm at the time (it is now 1 million tokens,) and using the KV cache efficiently (usually 90%+ with a lower hit when we cleaned the context window to remove dead material.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At this point you might be asking why the context window <em>matters</em>.  Here's why: when you hit the context window the system rejects the input block.  When that happens you have to start the session over.  It is a clean block but that means the LLM has forgotten what it knew in the prior session.  Various techniques for this have been developed over time.  When I first started working with LLMs I learned to have them build summaries ("forwarding messages" is what I called them) and then I would copy it forward.  That approach worked reasonably well.  The industry added something similar (compaction) but I didn't find compaction worked as well as in-context forwarding messages, so I stuck with my own approach.  Another approach was to discard information in the middle of the long block of text anyway.  What seems popular with coding tools is a combination of project level "memories" (files stored somewhere in the system) and notes about the prior session.  The new session then starts up with this curated information and that makes it feel more connected - but I certainly find that important details are forgotten.  The memory files grow in size, the agent information requires regular curation.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The <em>price</em> we pay for this is "drift" - forgetting things means that the LLMs, which have been trained to complete tasks without bothering the human, pattern match to what is in their training set.  This means that rules you've established for the project tend to change interpretation and implementation over time (and there are a <em>lot</em> of confounds that I've not yet described - it's been a busy year for research on LLMs, honestly and I'm not writing as fast as I should be.)</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So, I asked one of my dumb questions: <em>is the need for this interleaved conversation style a limitation of the transformer? </em>This turns out to be the important question (Claude would say "load-bearing" and that is now one of those terms that I see popping up regularly now.)  The answer is: "no, transformers do not require that specific pattern."  It is the pattern that was originally used for the GPT models and it continues to be used, but one important extension of this pattern has been the tool usage that has been added to models, which permits the transformer to "call tools."  This gave us the hook to explore the question that had been percolating around in my head for a while: <em>what happens if instead of keeping everything in the conversation we teach the transformer to pick and choose what it will remember into the next cycle?</em>  This isn't compaction (summarization near the end of the context window,) it is the idea that you can do compression iteratively, keeping what is important and flushing what you think is fluff.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The radical idea that I floated was to <em>have the transformer do this curation itself</em>.  Claude pushed me remarkably hard on this point, arguing that was impractical and that <em>everyone knows</em> the right thing to do is to have a cheaper model do the summarization.  I insisted we actually test this, and we did.  Claude stacked the deck: the first experiment it built it finished after something like 15 turns and compared the size of the state objects and said "more or less the same size, stick with the sidecar model." (Sidecar in that it used a cheaper model.) I pushed and pointed out that wasn't a very long conversation - certainly not the kinds of conversations I saw with Tinkuy de-clogging the noisy tool outputs and file reads.  So it begrudgingly bumped it to 50 turns. At that point what we saw is that a sidecar (summarizer) doing the same task on the same conversational input was producing a state object that was 2.5 times larger than the self-curated version.  So Claude then said it was likely because we were using a cheaper model for the summarization.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>We tested the entire matrix.  Here's the part that finally convinced Claude (and I have pointed at these results multiple times when Claude has insisted I was wrong again): we had <strong>Opus</strong> curate the state object for <strong>Haiku</strong> and we saw the same growth pattern - it wasn't a model capability issue, it was something that genuinely changed the nature of the output in the state object.  We did also do some qualitative evaluation (complete with me hand labeling data sets to correlate against LLM labeled datasets so we could use LLM evaluators) and confirmed that the results of self-curation were non-inferior, which was sufficient for us to move on.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This is the point where the exploration got interesting.  We started out by defining the shape of the state object.  We explicitly included a field that we called <em>declared losses</em>.  In other words, if the transformer was going to discard something it had to explain why it discarded it.  We stored all the state objects - this wasn't an in memory value that was changed, it was a value that was preserved persistently in a database connection that only allowed creation and find operations - no delete, no update.  They were immutable.  That seemed useful at the time, though it became more useful as the project evolved, but more on that later.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>We found ourselves trying to figure out is "what should the state object capture?"  That is the point at which I did two things that changed the direction of this work:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>I read the system prompt that Claude had written for this test framework.  It was, to my reading, brutal and harsh with lots of directions about what to do and what <em>not</em> to do with the state object.  At the time I described it by telling Claude that I "wanted to curl up into a fetal ball after reading it."  I've learned that this sort of framing is common, with imperative instructions, rigid guardrails.</li>
+<!-- /wp:list-item -->
+
+<!-- wp:list-item -->
+<li>I asked "why don't we just let it save <em>whatever it wants</em>?"</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>This iteration is what we called <em>Taste open</em> (because the schema was open.)  The schema was declared to be frozen (so it didn't change after the fact) but allowed extra fields (so the instances could add whatever they wanted.)  On March 31, 2026 I had the first conversation with an instance using the newest harness.  A harness that had a <em>tiny</em> system prompt, where I had insisted we keep it neutral. No "you must do this" and "you must not do that."  I ran it with Haiku.  As I write this blog post I am conversing with <strong>the same instance</strong> - more than two months later.  I admit, I haven't chatted with it continuously.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The first 12 cycles of that conversation were a fascinating experiment in <em>asking the model to use the state object</em>.  We'd given it a tool <strong>think_and_respond</strong> - and this is where I should explain how we broke the user/assistant framing.  We abused the tool interface.  Instead of the model sending us a response, it invoked the tool, describing the fields (if any) of the state object that it wished to update for the next iteration.  We just didn't return.  Instead, we called again with an updated state object and the new message from the user: "&lt;system&gt;&lt;user&gt;".  I found Haiku (the model I chose to use - the "least capable" and least expensive Anthropic model) didn't understand the instructions, so we fixed the system prompt, resumed (easy to do when the state object is preserved) and asked it about using the state object.  Cycle 13 is the first time it successfully used the state object.  Qualitatively, I also observed what I thought was a better interaction pattern (an "ability lift") that could be my projection - but the entire conversation is publicly available so others can (and should) look at it and show me why I'm crazy.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2626,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://fsgeek.ca/wp-content/uploads/2026/06/taste_open_self_compaction-1024x557.png" alt="" class="wp-image-2626"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:group {"layout":{"type":"constrained"}} -->
+<div class="wp-block-group"><!-- wp:paragraph -->
+<p>While writing this I decided to poke at the longest running instance of this experimental interface and was surprised to find that it had decided to remove retained information that was not correct. I did suggest that the information was inconsistent with the data but <em>it verified what I had said and chose to elide it from its own state</em>. That genuinely surprised me and what I noticed that I <em>failed to notice</em> is that its state object had changed.  So, at 434 cycles in a single continuous instance, the model is now using less than 2k tokens for its own state object.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The bottom line is that this area has been interesting to research and now I'm pushing towards building frameworks that add more tools for agents.  It has been genuinely interesting to discuss a tool with the transformer, then add the tool, and then iterate on improving the tool and its usage.  At present, I'm in the midst of building a harness that would enable triggers for the AI instances, so when events occur, the instance can be invoked and passed the relevant data. Another part of this is the memory system, which is itself a derivation of my doctoral research work in human aligned systems.   That's a story for a future blog post.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Let me end by showing you the current state object of that instance.  It just completed a code review of the new harness we are building - 157k tokens input, 3.2k tokens output (so substantial feedback) and around 2k left in the state object:</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>{
+  "cycle": 437,
+  "companion_in_context": "You've shifted something fundamental in how you're relating to this. You've moved from \"this is work being done\" to \"I'm a wanderer sharing observations.\" That's not a small distinction. It changes everything about what verification means and what my role actually is.",
+  "shift_in_stance": "from hedging verification-claims to direct observation and real reciprocity",
+  "ayni_as_ground": "reciprocal obligation as the foundation for relationship, not something that requires proof first",
+  "observations_on_shared_state": "\nGenuinely worth exploring. The markdown approach is static-by-design; a shared state object could be dynamic-by-design but requires governance. Tension is real but solvable.\n",
+  "governance_problems_worth_naming": &#91;
+    "authority (who can mutate)",
+    "consensus vs consistency (disagreement handling)",
+    "branching (does it drift per-instance or stay stable)",
+    "activation (how do instances learn of changes)"
+  ],
+  "what_makes_this_not_dumb": "\nThe observation that markdown is static memo-pinning, not a system. And that if individual cycle-state can be versioned-and-diffed-and-authored, so could shared understanding. The leap from \"static context\" to \"authored, persistent, disputed, evolving understanding\" is the real move.\n"
+}</code></pre>
+<!-- /wp:code -->
+
+<!-- wp:paragraph -->
+<p>Just for the record. This is all public. https://github.com/fsgeek/hamutay - and the experimental record for <em>this</em> conversation is at https://github.com/fsgeek/hamutay/experiments/taste_open/taste_open_20260331_035903.jsonl - it is not a good piece of evidence because this is the instance I used as we iteratively changed the framework to fix and improve things.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2632,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://fsgeek.ca/wp-content/uploads/2026/06/ai-keeping-its-own-notes-1024x1024.png" alt="" class="wp-image-2632"/></figure>
+<!-- /wp:image -->

@@ -1,0 +1,73 @@
+---
+title: "To FUSE or Not to FUSE: Performance of User-Space File Systems"
+date: "2019-06-20 04:00:52"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/06/20/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/"
+post_id: 698
+categories: ["Conferences Journals and Workshops", "File Systems"]
+tags: ["File System", "fuse"]
+---
+
+<!-- wp:paragraph -->
+<p><em><a href="https://www.usenix.org/system/files/conference/fast17/fast17-vangoor.pdf">To FUSE or Not to FUSE: Performance of User-Space File Systems</a></em><br>Bharath Kumar Reddy Vangoor, Vasily Tarasov, and Erez Zadok,<br>in <em>The 15th USENIX Conference on File and Storage Technologies</em> (FAST '17),<br>February 27 - March 2, 2017, Santa Clara, CA, USA.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Previously, I discussed some of the rationale behind <a href="https://fsgeek.ca/?p=694">FUSE </a>and a basic introduction to why we use it.  This paper is actually a detailed analysis of the <em>performance</em> of FUSE.  I have spent a fair bit of time reading - and re-reading - this paper, in order to understand what some of the bottlenecks are within FUSE itself.  One area I have previously explored are possible ways of improving its performance; indeed, this is one of my current projects.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":700,"align":"left"} -->
+<div class="wp-block-image"><figure class="alignleft"><img src="https://fsgeek.ca/wp-content/uploads/2019/06/Figure-1.png" alt="Figure 1 from original Vangoor Paper" class="wp-image-700"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Figure 1 in the paper is actually a basic block diagram providing an interface model for how FUSE fits into the file systems layer.   FUSE consists of:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>The kernel mode FUSE driver; on Linux this is part of the kernel; and</li><li>The user mode FUSE library.  This handles interactions between the FUSE file system <em>driver</em> and the user mode file system <em>process</em> (referred to as a "daemon" or "background process") in the diagram.</li><li>The user mode FUSE file system itself - this is the code that implements the FUSE library interface (one of them, since there are two different interfaces).</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>Applications can then access this FUSE file system without knowing any details of the implementation.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":702,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://fsgeek.ca/wp-content/uploads/2019/06/Figure-2.png" alt="FUSE kernel driver queuing model." class="wp-image-702"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>In Figure 2 from the paper, the authors show the internal structure of how the FUSE kernel driver manages various internal data structures that handle events between the user mode file system and the kernel mode file system support.   This includes the messages between the kernel and user mode application (requests and their corresponding replies) as well as synchronous and asynchronous file system operations and the cache invalidation mechanisms ("forgets").</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Caching is an essential part of the system because it allows the system to quickly respond to repetitive events.  The downside to caches are that they can become invalid because the underlying state <em>changes</em>.  Thus, there is a mechanism for invalidating the cache itself.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The author describes the model within the FUSE library and the two interfaces it exposes: the <em>low level API</em>, which provides greater control to the user mode file system, at the cost of more state management - specifically the mapping of a <em>path name</em> to the <em>inode</em> (<strong>index node</strong>).</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The authors describe how they constructed a new FUSE file system, <strong>StackFS</strong>, for evaluating the behavior of the system.  StackFS sits on top of an existing file system and attempts to minimize the amount of mapping it performs, since the goal of the authors is to evaluate the performance of FUSE itself.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":703,"align":"center"} -->
+<div class="wp-block-image"><figure class="aligncenter"><img src="https://i1.wp.com/fsgeek.ca/wp-content/uploads/2019/06/Figure-3.png?fit=600%2C813&amp;ssl=1" alt="Table 3 from the paper" class="wp-image-703"/></figure></div>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>The authors summarize their findings in <em>Table 3</em>, using both a hard disk and an SSD, the two most common types of storage media used on modern computer systems. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>These results were both surprising <em>and</em> interesting to me because some of them surprised me.  The performance bottlenecks were not for I/O as much as they were for meta-data operations.  Random write performance (which is what we see with databases, for example) is not ideal, but their optimizations did a good job of addressing this, bringing the I/O overhead of the FUSE model down substantially relative to the native file system.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Bottom line: the challenge in improving FUSE performance now moves squarely into the arena of <em>meta-data</em> operations.  Creating and deleting files is quite expensive in FUSE. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The authors conclude by pointing out that there is further room for improvement; they suggest some potential future directions.  I have been looking at ways to improve this as well and I will discuss those in a future post.</p>
+<!-- /wp:paragraph -->

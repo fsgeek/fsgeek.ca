@@ -1,0 +1,188 @@
+---
+title: "USENIX ATC 2018 Feedback"
+date: "2018-04-26 12:37:13"
+status: "private"
+original_url: "https://fsgeek.ca/2018/04/26/usenix-atc-2018-feedback/"
+post_id: 492
+categories: ["Uncategorized"]
+---
+
+I wanted to capture this here for future reference.  Received April 18, 2018.
+
+&nbsp;
+
+<hr />
+
+Dear Tony Mason,
+
+&nbsp;
+
+The 2018 USENIX Annual Technical Conference (USENIX ATC '18) program committee is sorry to inform you that your paper #179 was rejected, and will not appear in the conference.
+
+&nbsp;
+
+Title: Finesse: Extensible FUSE File Systems
+
+Authors: Tony Mason (University of British Columbia)
+
+Jake Wires (University of British Columbia)
+
+Andrew Warfield (University of British Columbia)
+
+Paper site: <a href="https://atc18.usenix.hotcrp.com/paper/179?cap=0179a1QukyDKFQTo">https://atc18.usenix.hotcrp.com/paper/179?cap=0179a1QukyDKFQTo</a>
+
+&nbsp;
+
+76 papers were accepted out of 378 submissions.
+
+&nbsp;
+
+We realize this is a disappointment and we hope that the review comments can be helpful in getting the paper accepted later. We also know that sometimes decisions can be imperfect, but please be assured that the PC did a lot work to reach this conclusion.
+
+&nbsp;
+
+Reviews and comments on your paper are appended to this email. The submissions site also has the paper's reviews and comments, as well as more information about review scores.
+
+&nbsp;
+
+Contact <a href="mailto:atc18chairs@usenix.org">atc18chairs@usenix.org</a> with any questions or concerns.
+
+&nbsp;
+
+- USENIX ATC '18 Submissions
+
+&nbsp;
+
+Review #179A
+
+===========================================================================
+
+&nbsp;
+
+Overall merit
+
+-------------
+<ol>
+ 	<li>Reject</li>
+</ol>
+&nbsp;
+
+Reviewer expertise
+
+------------------
+<ol start="3">
+ 	<li>Knowledgeable</li>
+</ol>
+&nbsp;
+
+Paper summary
+
+-------------
+
+This paper proposes a simple extension to the FUSE library that can be used for optimizing metadata intensive operations. Performance evaluations based on simple microbenchmarks show that finesse improves certain calls such as open and file search.
+
+&nbsp;
+
+Comments for author
+
+-------------------
+
+FUSE is an important area of file system research and I'm certainly interested in seeing new developments in this area. I enjoyed reading through your detailed prior work secti\ on. However, I found the technical contributions of this paper to be thin, evaluations to be weak, and writing to be verbose.
+
+&nbsp;
+
+The technical contribution of this paper is to add an intermediate layer between the FUSE file system and FUSE library. Particularly, FUSE layer is extended to service messages\  via multiple channels (IPC and system calls). Applications can make calls through the finesse-app to talk to the finesse extension on FUSE. For example, an open call can take \ two different paths:
+
+&nbsp;
+
+1) directly from finesse-app to finesse-ext to FUSE file system, OR
+
+&nbsp;
+
+2) the usual path (system call to kernel, to FUSE-lib, to FUSE file system).
+
+&nbsp;
+
+One of the missing pieces of the paper is to distinguish the roles and responsibilities of finesse-app and finesse-ext. From the original description, it looked finesse-app doe\ s not maintain state, however, later I found that finesse-app keeps track of the file-descriptor to finesse-ext handle mapping. A section on the roles of these two layers and s\ tate maintained by each layer would be useful.
+
+&nbsp;
+
+While the paper's proposal is to use the extension to avoid the restrictions of POSIX  functionality, I found most of the extensions made (open, close, path search, ) are suppo\ rted by POSIX. The only new functionality (library search) is something like a "find dir -name pattern" application that's implemented by finesse-ext. Is this functionality suf\ ficiently motivating enough for this entire paper? -- I'm not sure.
+
+&nbsp;
+
+In terms of design, I find that this model forces finesse-app and finesse-ext to be involved in all calls (such as open/close/read/write/seek) -- otherwise the state managed by\  them (such as file offset position) would go out-of-sync with the file system/kernel. In fact, it's unclear whether finesse can be extended to handle IOs directly (without goi\ ng through the system call route).
+
+&nbsp;
+
+It's confusing to see statements like "As it turns out, there was a rational explanation for this, which we discuss in Section 4.2." Just state the reason there instead of dire\ cting the readers to a different section. Moreover, section 4.2 simply says "it was addition of unlink call" -- How does your unlink call improve the open performance?
+
+&nbsp;
+
+Nit: Section 2 missing reference  (see Section ??).
+
+&nbsp;
+
+&nbsp;
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+&nbsp;
+
+&nbsp;
+
+Review #179B
+
+===========================================================================
+
+&nbsp;
+
+Overall merit
+
+-------------
+<ol>
+ 	<li>Reject</li>
+</ol>
+&nbsp;
+
+Reviewer expertise
+
+------------------
+<ol start="3">
+ 	<li>Knowledgeable</li>
+</ol>
+&nbsp;
+
+Paper summary
+
+-------------
+
+The authors propose Finesse, an augmentation to FUSE to enable developers to explore new file-system functionality. I believe this is a premature submission: the work is not mature yet.
+
+&nbsp;
+
+Comments for author
+
+-------------------
+
+Finesse aims to use IPC to communicate between different components. Finesse intercepts all system calls to accurately maintain state about the file system.  I think this work can potentially be interesting, but it has a long way to go before it reaches there.
+
+&nbsp;
+
+The paper does not clearly lay out the motivation for Finesse. Why not take FUSE and add new library calls in a backwards-compatible manner? The old applications will simply use the old API, while new applications can use the new API. Why would this simple idea not work? You need to explain this before you move forward.
+
+&nbsp;
+
+Page 4 has a missing Section reference. Why are words oddly italicized? For example, on page 6, "similar" is italicized for no reason.
+
+&nbsp;
+
+The paper could do with editing to make it much more succinct. Right now, it is extremely verbose.
+
+&nbsp;
+
+Please don't write such a verbose and extended related work section. This is not a thesis: the related work must be short and concise and get to the point fairly quickly. I am interested in knowing quickly how your work compares to prior work and what makes your approach unique.
+
+&nbsp;
+
+Finally, I request the authors not to submit work that is so obviously premature. You consume a significant portion of the PC's time in reviewing immature work. If you just wanted feedback, please send the draft informally to other researchers.

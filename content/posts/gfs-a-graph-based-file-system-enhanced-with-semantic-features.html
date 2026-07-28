@@ -1,0 +1,64 @@
+---
+title: "GFS: a Graph-based File System Enhanced with Semantic Features"
+date: "2019-05-14 04:00:05"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/05/14/gfs-a-graph-based-file-system-enhanced-with-semantic-features/"
+post_id: 636
+categories: ["Conferences Journals and Workshops", "Graph File Systems", "Uncategorized"]
+---
+
+<!-- wp:paragraph -->
+<p><a href="https://www.iit.cnr.it/sites/default/files/gfs.pdf">GFS: a Graph-based File System Enhanced with Semantic Features</a><br>Daniele Di Sarli and Filippo Geraci,  Proceedings of the 2017 International Conference on Information System and Data Mining, pp. 51-55, Charleston, SC, US.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:quote -->
+<blockquote class="wp-block-quote"><p><em>In  this  paper  we  describe  GFS  (graph-based  file  system)  a  new hybrid   file   system   that   extends   the   standard   hierarchical organization  of  files  with  semantic  features.  GFS  allows  the  user to  nest  semantic  spaces  inside  the  directory  hierarchy  leaving unaltered  system  folders.  Semantic  spaces  allow  customized  file tagging and leverage on browsing to guide file searching.</em></p></blockquote>
+<!-- /wp:quote -->
+
+<!-- wp:paragraph -->
+<p>I found this paper shortly after it was published and was intrigued by its name.  I <a href="https://fsgeek.ca/?p=620">described our HotOS 2019 paper previously</a>, which was rejected and one reviewer specifically cited to this paper (as well as the <a href="https://fsgeek.ca/?p=603">QDMS paper</a>).  I thought I had cited this paper and explained why it really wasn't the same thing we were proposing, but apparently I did not do a good enough job of distinguishing this from our work.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The abstract does a good job of explaining how this work is different than what we proposed and <a href="https://fsgeek.ca/?p=620">what I'm trying to construct</a>: a relationship graph file system that captures a richer set of relationships between files rather than just characteristics of the files themselves.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The authors do a good job of establishing the <em>status quo</em>: "Handmade directory hierarchies still remain the only method to classify documents for most computer users. Surprisingly, even public administrations as well as small and medium enterprises rely on manual classification."</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Indeed, one of the challenges in this space is that what we have has been "good enough" for a surprisingly long time, despite the fact that we know that it is rudimentary and shifts much of the cognitive burden to users. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>"In this paper we try to address the question whether it is possible to  extend  standard  file  systems  adding  extra  semantic  features without altering the API or not."</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>In my own way, I have been looking at this question for quite some time.  Over a year ago I was working on finding a way in which I could support both classic file system interfaces as well as augmenting them with new features without requiring invasive operating systems level changes.  While I expect that ultimately a successful demonstration of new interfaces <em>will</em> lead to OS level changes, it makes more sense to explore <em>what</em> interface changes are useful before actually making those changes.  In that work (which I haven't written about yet) I looked at constructing a hybrid <a href="https://github.com/libfuse/libfuse">FUSE </a>file systems model where FUSE requests could be delivered via multiple paths: one is the classic kernel reflector model (e.g., <a href="https://github.com/torvalds/linux/tree/master/fs/fuse">FUSE for Linux</a> as well as <a href="http://www.secfs.net/winfsp/">FUSE for Windows</a>, and quite a few other OS platforms too) and the other is a message passing mechanism that directly routes requests from the application to the user mode FUSE library implementation.  I am still working on that, so I expect to write more about it in the coming months!</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So this paper explores the question of "what can we do <em>without</em> changing the existing APIs?"  I had someone in my lab question why I cared about backwards compatibility with existing file systems APIs at one point; my position on this then (and now) is that insisting all applications change to support a new API is unrealistic <em>if</em> I want to make an impact.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One of the strengths of this paper is the emphasis on <em>navigation</em> versus <em>search</em>.  This is the important distinction that I extracted from my recent review of the <a href="https://fsgeek.ca/?p=597">personal information manager survey paper</a>.  Trying to argue that <strong>search</strong> is the solution doesn't fit with the way that users look for data; perhaps there are better search solutions, but ultimately the goal is to provide better services to the <em>user</em> which means helping them <em>in the way they use the system now</em>.   I suspect the ideal will be to enhance both the current way, as well as provide better search tools; in other words <strong>navigation</strong> and <strong>search</strong> are not mutually exclusive approaches to the problem.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The authors are focused on navigation, not search.  They use tags as an additional way to navigate the file system; they separate the semantic spaces from the hierarchical spaces, though.  My concern is that this creates the semantic spaces as second class citizens (though, this system pushes them to the <em>front</em> of the bus).  One thing that surprised me is their comment about how they returned semantic information before regular directory information.  In my experience, application programs sort the results of directory enumerations and do not rely upon the order in which entries are returned.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The authors do identify complications for ordinary operations, notably copy, which in a graph can be complex because of the potential for cycles.  They also identify the desirability of pushing multiple tags at once, which avoids repeated calls into the file systems interface.  Copy needs to be optimized as well to deal with the inherent non-atomic nature of the beast.  Rename and unlink also have complications given traditional <strong>POSIX semantics.</strong> The authors identify potential concerns about security that I have been considering as well, though I can point to Windows as being a real-world counter-example to the idea that you <em>need</em> path based security to work properly; while NTFS supports path-based security, the OS default is to grant traverse right to all users on the system.  <strong>POSIX</strong> compatible applications disable that and force traverse checking, which has a noticeable impact on performance.  Indeed, it seems one of the complications of extending the file system interface is <em>defining the behavior between POSIX and the extension</em>.  That's certainly a useful lesson.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>In the end, this paper focuses on using tags for their files and creating namespace extensions that identify the files.  It is a short (4 page) paper, and there is no evaluation of what they constructed or how effective it was. It presents one point in the design space and it is certainly a useful paper to consider as I design my <em>own</em> point in the design space.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p><br></p>
+<!-- /wp:paragraph -->

@@ -1,0 +1,97 @@
+---
+title: "Windows Filesystems: File Object Relationships"
+date: "2019-06-27 04:00:16"
+status: "publish"
+original_url: "https://fsgeek.ca/2019/06/27/windows-filesystems-file-object-relationships/"
+post_id: 718
+categories: ["File Systems", "Windows"]
+tags: ["Cache Manager", "Memory Manager", "Windows File Systems"]
+---
+
+<!-- wp:image {"id":719} -->
+<figure class="wp-block-image"><img src="https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/06/AdobeStock_114538290.jpeg?fit=600%2C400&amp;ssl=1" alt="A complex intersection in Shanghai" class="wp-image-719"/><figcaption>A complex intersection (Shanghai)</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>One of the challenges of developing file systems in Windows is related to the complex relationships that exist between various data structures in the operating system that are part of the file systems domain.  In this post I want to discuss one aspect of this complex relationship because it leads to behavior that makes sense when you understand it, but leads to very counter-intuitive behavior if you do not.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Each time a user opens a file the I/O Manager creates a new file object (I described this in <a href="https://fsgeek.ca/2019/06/13/file-system-driver-create/">Create</a> previously.)  A Windows File system is responsible for initializing specific fields of the File Object including the <strong>SectionObjectPointers</strong> field.   This is a peculiar field - the file system <em>allocates</em> the space, but does not set the fields within it.  There is a many-to-one relationship between File Objects and this field.  The information here is used by two <em>other</em> parts of the operating system: the <strong>Memory Manager</strong> and the <strong>Cache Manager</strong>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The <strong>Memory Manager</strong> is responsible for managing virtual memory.  Each process has its own unique <em>address space</em>.  An address space defines what code executing within that process will see.  Code running within the address space works using <em>virtual addresses</em>.  The CPU and operating system work together to use and manage this data. The details of how this labor is divided is a function of the CPU architecture and the details do vary across different architectures.  The operating system must be modified to support new CPU architectures and this is one of the areas that can require additional programming effort.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>There are quite a few distinct parts to the virtual memory system.  For example, the CPU typically contains a special cache of recently used virtual to physical addresses (a <em>translation lookaside buffer</em> or <strong>TLB</strong>).  When a virtual address needs to be interpreted by the processor it first looks in the TLB to see if it knows the correct mapping for the given virtual address.  If it does, it uses that without accessing memory.  This is quite important because when the processor does not find the entry in the TLB (a TLB "miss") it must then convert the virtual to physical address using the data in memory.  Memory, while fast, is <strong>much</strong> slower than the TLB.  Modern TLBs can be accessed within about 0.5 nanoseconds (<strong>ns</strong>) while accessing memory can often require 75 ns.  Plus, converting a virtual to physical address can require access to multiple physical memory pages, which further drives up the time required.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One reason for having a virtual memory system is that the operating system can set up a range of virtual addresses <em>without</em> assigning physical memory to those addresses.  As necessary, the hardware will invoke the operating system to allocate physical memory and then assign it to the relevant virtual memory location.  This process is typically called a <em>page fault</em> because memory is managed in small units called <em>pages</em>.  In order to fill in the newly allocated physical page properly, the virtual memory system needs to keep track, for every virtual address, where its corresponding data is presently stored.  This is why File Systems are closely involved: they manage <em>data</em>.   Thus, there is a symbiotic relationship between the Windows Memory Manager and the File System.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>File Systems in Windows also offer a non-block oriented interface for storing and retrieving content: a <em>read/write</em> interface.  Such byte oriented interfaces are a mismatch with the block oriented interfaces of most storage devices and the File System converts between the two of them.  In Windows, file systems typically do so by <em>memory mapping</em> a region of the file into memory.  Windows provides another component - the <strong>Cache Manager</strong> - to assist in managing these mapped regions. Thus, we have a tight collaboration between the three components: <strong>Memory Manager</strong>, <strong>Cache Manager</strong>, and <strong>File System</strong>.  Each has a distinct role to play, but relies upon the other to accomplish its task.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>The following diagram attempts to capture the interesting subset of relationships that I am describing here:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":722} -->
+<figure class="wp-block-image"><img src="https://fsgeek.ca/wp-content/uploads/2019/06/Windows-File-Systems-Object-Relationships.png" alt="Object Relationships in Windows File Systems" class="wp-image-722"/><figcaption>Object Relationships in Windows File Systems</figcaption></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p>Let's start by describing the individual components:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li><strong>File Handle</strong> - this is an abstract value that Windows gives to an application to represent a file.  Any time we use a file handle in the kernel, it must be validated since we do not trust applications not to have bugs or nefarious intent.</li><li><strong>Section Handle</strong> - this is similar to the file handle, in that it is an abstract value that Windows gives to an application.  In this case it represents a <em>section</em>, which is used to permit <em>memory mapping</em> of some or all of a file into the address space of an application.</li><li><strong>File Object</strong> - this is the internal Windows kernel data structure that is used to represent an open file; we use <em>file</em> in its broadest sense here because it could be a file, a directory, a device interface, a communications endpoint, or pretty much anything else that "behaves like a file".</li><li><strong>Section Object</strong> - this is the internal Windows kernel data structure that is used to represent anything that can be mapped into memory.  Note that this is <em>distinct</em> from the actual mapping.  There are two kinds of section objects with which a File System is concerned: the <em>image</em> section object and the <em>data</em> section object.  One key difference here is that something mapped using an image section object will be <em>copy-on-write</em>, so changes are not written back to disk, while something mapped using a data section object will permit reading and writing and changes to it are normally written back to storage.  Both support the concept of <em>sharing memory</em> - in which two or more processes using the same section will also use the same physical memory.</li><li><strong>Shared Cache Map</strong> - this is a control structure used by the Windows Cache Manager to track regions of files mapped into memory for use by the file systems to handle read and write calls (though file systems <em>may</em> choose to not use the cache).   This structure belongs to the Cache Manager and shouldn't be used by any other component (though it is useful to us, as file systems developers, to look at it _in the kernel debugger).</li><li><strong>Section Object Pointers</strong> - this structure is <strong>allocated by the file system</strong> from non-pageable memory.  It is large enough to store three pointer values: a pointer to the <strong>ImageSectionObject</strong>, a pointer to the <strong>DataSectionObject</strong>, and a pointer to the <strong>SharedCacheMap</strong>.  These map to, as you might expect, section objects and the shared cache map.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>With this background, I can now describe my diagram.  When a File System is initializing a new File Object, one of its responsibilities is to set up storage for the Section Object Pointers structure.  Typically, this is the same for each new open instance of the <strong>same</strong> file.  One reason to set them up to be different is if you want to construct a <em>separate view</em> of a given file.  For example, I have used distinct views in the past to manage encrypted files: one view is the <strong>clear</strong> view of the file, while another view is the <strong>encrypted</strong> view of the file.  Similarly, I could do this if I were supporting file versioning.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>If an application opens a file that has not been previously opened, the section object pointers value will point to cleared memory (all values are set to zero).  If the File System then invokes the Cache Manager to set up caching (<a href="https://msdn.microsoft.com/en-us/library/windows/hardware/ff539135(v=vs.85).aspx">CcInitializeCacheMap</a>), upon return, the<strong> </strong>DataSectionObject and SharedCacheMap fields will have been initialized.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>It turns out that the Cache Manager needs to have a File Object to implement some of its functionality.  Given that the only File Object it has to use is the one that is passed into the cache map initialization function, it bumps the reference count on this object and stores a pointer to it. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>It is rather common for a File System to defer initializing the cache until the first read, since many files are opened but never used for read or write.  If an application <em>memory maps</em> a file, it does this in two steps: first, it opens the file, then it opens the section.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Since the Memory Manager "owns" sections, the call to open a section is sent to it, along with the file handle for the file to be mapped.  The Memory Manager converts the file handle to a File Object.  Then it looks inside the section object pointers value to see if there is an existing <strong>DataSectionObject</strong> value.  If there is, it uses that section object to complete the call.  There is no interaction with the file system required.  If there is <em>no</em>t an existing Data SectionObject, it will create a new one.  This turns out to require some level of interaction with the File System because the Memory Manager needs to know how big the file is - after all, the size of the section and file need to be the same.  Once the new section object is created, a pointer to it is stored in the <strong>SectionObjectPointers</strong> block associated with the file.  Since the Memory Manager may need to retrieve data from the given file, it maintains a reference to the File Object<strong>.</strong></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At this point it is worth noting that if a file is memory mapped <strong>there is no shared cache map</strong>.  Recall that when the File System calls the Cache Manager it passes a File Object, which the Cache Manager will use.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Thus, if a file is first <strong>memory mapped</strong> and then subsequently opened again and used for cached read/write operations, we find a situation where the Memory Manager is using one File Object, and the Cache Manager a second File Object.  If we do this in the reverse order, the Cache Manager and Memory Manager use the same File Object for their references because the Cache Manager creates a section object using the same File Object that was passed to it by the File System.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>So, when might we have a third distinct File Object?  When the file is an executable image.  Suppose you copy an executable program.  The copy program opens the target file for data access; it then writes the contents into the file.  Unless this is done without memory mapping or caching, there is now a Data Section Object backed by this file (and thus a File Object). Next you decide to execute it: this time when the file is loaded for execution the Memory Manager will need an Image Section Object.  If one does not exist, it creates one.  <em>This</em> is one way how you end up with two section objects for a single file.  If you combine that with the memory mapping versus read/write usage described earlier, you can end up with <strong>three distinct File Objects</strong> for a single file that is only in use by one application.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>But for a File System there are some more interesting effects as a result of this shuffling around:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>A <em>paging write</em> operation may be performed against a File Object that was opened for read.  This is because the Memory Manager uses the File Object stored in the section object; it does not know how the original file was opened.  A subsequent open of the file for write <em>continues to use the File Object that was opened for read and passed to the Memory Manager when the section was created</em>.  I will note there is now an API for switching this file object out, as this behavior can be challenging for some file systems to handle.</li><li>Paging I/O Request Packets (IRPs) can be sent to the file system with any of the three File Objects; it will depend upon the reason the paging request is being sent.</li><li>The lifetime of these three File Objects is now decoupled from the user file handle.  What this means is that when the user application closes the file, the File Object's reference count will not drop to zero.  So the <strong>IRP_MJ_CLEANUP</strong> will not be immediately followed by an <strong>IRP_MJ_CLOSE</strong>.   It also leads to a peculiar situation where the <strong>IRP_MJ_CLOSE</strong> is sent <em>inside</em> the cleanup handler, but I'll talk about that another time.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>These relationships, while complex, make sense in the context of the interactions between these components.  Hopefully this basic description will help those writing Windows File Systems better understand the interaction patterns.</p>
+<!-- /wp:paragraph -->

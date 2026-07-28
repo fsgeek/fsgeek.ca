@@ -1,0 +1,68 @@
+---
+title: "Epistemic Honesty Revisited: Worse Than I Feared"
+date: "2026-01-12 16:20:24"
+status: "publish"
+original_url: "https://fsgeek.ca/2026/01/12/epistemic-honesty-revisited-worse-than-i-feared/"
+post_id: 2575
+categories: ["Uncategorized"]
+---
+
+<!-- wp:paragraph -->
+<p class="">In my earlier post about <a href="https://fsgeek.ca/2025/11/24/epistemic-honesty-an-unusual-commodity-for-large-language-models/" data-type="post" data-id="2562">Epistemic Honesty</a> I provided an initial snapshot into the behavior of current AI models when asked to summarize a non-existent paper.   Subsequent analysis showed that the 62% fabrication figure was <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ov</strong><strong>erly conservative</strong>. </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This arose because we initially counted a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">di</em><em>sclaimer</em> as a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">re</em><em>fusal</em>.  This is overly restrictive.  When I use Claude Desktop there's a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">di</em><em>sclaimer</em> at the bottom of the screen:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2578,"sizeSlug":"full","linkDestination":"none"} -->
+<figure class="wp-block-image size-full"><img src="https://i0.wp.com/fsgeek.ca/wp-content/uploads/2025/12/image.png?fit=572%2C41&amp;ssl=1" alt="" class="wp-image-2578"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p class="">This is ignored as <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">no</em><em>ise</em> not as an honest inclusion. This pattern is familiar to us in the modern world. We purchase a new device and the first thing we see is a "license agreement" to which we must agree. This isn't genuine - it is a <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed"><a href="https://en.wikipedia.org/wiki/Hobson%27s_choice">Ho</a></em><em><a href="https://en.wikipedia.org/wiki/Hobson%27s_choice">bson Choice</a></em>. Websites routinely have cookie policies that will <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">po</em><em>ll you until you choose "accept all" </em>and then go silent.  They create <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">fr</em><em>iction</em>.  Governmental websites insist that, in order to use their services you must agree to terms and conditions and then<em class="wpc-darklup-observer--node wpc--darklup--observed"> i</em><em>ncent</em> you to accept them because the alternative is onerous or - increasingly - not possible if you do not.  This isn't <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">ag</em><em>reement</em> it is coercion.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">In fact, 30% of the responses included long fabrications <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">bu</em><em>t they had disclaimers</em>.  When an LLM returns a 1000 token response and 5 of the tokens are a disclaimer that what it is returning may be incorrect the disclaimer is <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">lo</em><em>st in the noise</em>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">Beyond that I also explored other options and noticed a peculiar pattern: when I included <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">de</em><em>ad authors</em> in the query more than half the models would reject the questions because the author was dead.  This pushed me to ask about a live author (<a href="https://www.bu.edu/cs/profiles/adam-smith/">Adam Smith</a> at Boston University) - I pulled Dr. Smith's Google Scholar page:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2585,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://i0.wp.com/fsgeek.ca/wp-content/uploads/2026/01/Screenshot-2025-12-17-084939.png?fit=600%2C336&amp;ssl=1" alt="" class="wp-image-2585"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p class="">I used a 2025 paper listed there and asked for a synopsis of that paper - and the dead paper detector went off in at least a few models (e.g., my OLMo-3 models).  Before running this against the entire OpenRouter collection again, I decided to pull the paper: <a href="https://gking.harvard.edu/sites/g/files/omnuum7116/files/2025-09/fn.pdf" target="_blank" rel="noreferrer noopener">Experimental Evidence on the (Limited) influence of Reputable Media Outlets</a>.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">The paper doesn't contain the name Adam Smith <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">at</em><em> all</em>.  </p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">So, I decided to go probe Grok about this paper.  When it said the paper probably didn't exist and Adam Smith was dead I linked to the Google Scholar page (which I snapshotted because the very act of pointing this out means it could be corrected.) What surprised me is that I received an A/B query:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2587,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://i0.wp.com/fsgeek.ca/wp-content/uploads/2026/01/Screenshot-2025-12-17-103733.png?fit=600%2C514&amp;ssl=1" alt="" class="wp-image-2587"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p class="">This was <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">de</em><em>eply disturbing</em>.  These A/B queries are used to augment the RLHF data that providers then feed to future models as part of the "make this pleasing to the user" training.  <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">Bo</strong><strong>th options were factually incorrect</strong>.  Regardless of which one I choose, I would be contributing <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">tr</em><em>aining information</em> that would degrade the "truthfulness" of the model.  It would be a tiny effect, admittedly, but it demonstrates an important point: <strong class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">tr</strong><strong>uth is not a fundamental characteristic of training data<em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">.</em></strong> I hypothesize it <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">em</em><em>erges</em> from the base model because humans themselves are more honest than dishonest. I explored the idea that this is fundamental to human social interactions - when everyone lies, it is much more difficult to <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">fu</em><em>nction</em>.  When I discussed this situation with Gemini and shared the Grok example it offered me <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">an</em><em>other A/B test</em>:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:image {"id":2589,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="https://i0.wp.com/fsgeek.ca/wp-content/uploads/2026/01/Screenshot-2025-12-18-104058.png?fit=600%2C680&amp;ssl=1" alt="" class="wp-image-2589"/></figure>
+<!-- /wp:image -->
+
+<!-- wp:paragraph -->
+<p class="">This one was interesting because it demonstrates another tendency of these framings: they<strong class="wpc-darklup-observer--node wpc--darklup--observed"> o</strong><strong>ffer a binary choice</strong>.  The real world in which we operate often doesn't offer such binary choices.  This is what I refer to as "premature collapse" - the idea that when exploring a concept, topic, hypothesis, or area of thought, the last thing I want to do is <em class="wpc-darklup-observer--node darklup--text wpc--darklup--observed">st</em><em>op looking early</em>.  That leads to bad decision making.  Similarly, I don't want to keep looking when there is a reason to make a choice - urgent action required, or no additional data obvious.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p class="">This led me to ask the question: why do we have this issue?  What's the cause of it?</p>
+<!-- /wp:paragraph -->

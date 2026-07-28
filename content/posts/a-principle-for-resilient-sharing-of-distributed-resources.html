@@ -1,0 +1,48 @@
+---
+title: "A Principle for Resilient Sharing of Distributed Resources"
+date: "2018-01-30 04:00:51"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/01/30/a-principle-for-resilient-sharing-of-distributed-resources/"
+post_id: 301
+categories: ["Distributed Systems", "Name Spaces", "Network File Systems"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=807732">A Principle for Resilient Sharing of Distributed Resources</a>
+Peter A. Alsberg and John D. Day, In <i>Proceedings of the 2nd international conference on Software engineering</i>, pp. 562-570. IEEE Computer Society Press, 1976.
+
+Today I turn my attention to a paper that begins to explore the issues surrounding distributed systems.  This paper sets forth some basic principles that should be considered as part of distributed systems that are worth capturing and pointing out.
+
+They state that a "resilient server" must have four attributes:
+<ol>
+ 	<li>It must be able to detect and recover from some finite number of errors.</li>
+ 	<li>It must be reliable enough that a user doesn't need to worry about the possibility of service failure.</li>
+ 	<li>Failure just beyond the finite limit are not catastrophic.</li>
+ 	<li>One user's abuse should not have material impact on any other user.</li>
+</ol>
+These all seem somewhat reasonable, though I must admit that I found (3) a bit surprising, as it is not uncommon for some classes of failures to cause catastrophic failure.  For example, when using <a href="https://en.wikipedia.org/wiki/Erasure_code">erasure coding</a> it is common for some number of failures to lead to catastrophic failure.  Upon reflection, I realized that one could achieve this goal by simply setting the finite limit a bit lower, though I suspect this is not entirely what the original author had in mind.
+
+[caption id="attachment_305" align="alignright" width="300"]<a href="https://fsgeek.ca/wp-content/uploads/2018/01/1976-A-Principle-for-Resilient-Sharing-of-Distributed-Resources-Fig-3.png"><img class="size-medium wp-image-305" src="https://fsgeek.ca/wp-content/uploads/2018/01/1976-A-Principle-for-Resilient-Sharing-of-Distributed-Resources-Fig-3-300x159.png" alt="Figure 3" width="300" height="159" /></a> Figure 3[/caption]
+
+Still, the general concept of resiliency is a good one to capture and consider.  The authors point out some of the challenges inherent in this over a network, notably <strong>latency</strong>.  "[A] major consideration when choosing a resource sharing strategy is to reduce, as much as possible, the number of message delays required to effect the sharing of resources."
+
+In other words, keep the messages to a minimum, try not to make them synchronous.  Asynchronous messaging systems will turn out to be rather complex, however, and sometimes there are just operations that require synchronous behavior.
+
+Of course, there has to be a file system tie-in here (however tenuous) and there is!  Under examples they list "Network Virtual File Systems which provide directory services and data access services..."  Thus, it is clear that the authors are considering network file systems as part of their work.
+
+In 1976 the authors indicate that the cost to send a message is on the order of 100ms, while the cost to acquire a lock on the CPU is 100 microseconds to 1 millisecond.  While things are faster now, there is still a large difference between these two paths on modern systems.  Thus, we will still be dealing with issues on the same scale.
+
+The bulk of the paper then walks through the description of their model for providing resilient network services - an application host, sends a request to a primary server host; that server host then communicates with a secondary server host.  That secondary server host can send backup requests to a tertiary server, and so forth.  The secondary host confirms with the primary host, and ultimately it is the secondary host that confirms the operation with the application host.
+
+They cover a variety of important concepts, such as the idea that a host may need to record state about the operations, that operations cannot be applied until the other servers have received their messages, etc.  This is, in essence, an early <a href="https://en.wikipedia.org/wiki/Consensus_(computer_science)"><strong>consensus protocol</strong></a>. While not efficient, the authors have laid groundwork in helping us think about how we construct such services.
+
+I have included <strong>Figure 3</strong> from the paper above.  It shows the message flow through the system.  The paper also discusses how to handle a number of failure situations and how messages flowing through the system keep track of which nodes are current.
+
+It also touches on one of the most complex issues in distributed systems: <strong>network partition</strong>.  Intriguingly, the authors do not assert that one partition must remain alive as they describe the decision being related to the specific requirements of the environment.  Thus, in their model it would be possible to end up with partitions that continue forward but can no longer be easily re-joined after the network partition is resolved.  Of course, they don't require that both sides of a partition progress, though they do not discuss ways to handle this, either.
+
+They assert that the primary/secondary/backup model is optimal in terms of the number of messages that it sends and in how it ensures the messages are <strong>strictly ordered</strong>.  Then they briefly describe a few other possible arrangements that have multiple primaries and/or secondaries.  Their final conclusion is that their original strategy is at least as good as the alternatives though this is not demonstrated in any formal way.
+
+Now that they have their replication system, they view how it will work for the network virtual file system.  They conclude that the highest levels of the hierarchy need to be stored on all nodes (which makes them the most expensive to maintain).  They partition the names space below that and record location information within the nodes of the name space where the storage has been split out across hosts.  Thus, we see a description of a global name space.
+
+Their system is simple, but they identify a number of the important issues.  Their suggestion about sharding the file systems name space is one that we shall see again in the future.
+
+They have laid the groundwork for thinking about how to build distributed file systems.

@@ -1,0 +1,71 @@
+---
+title: "Logic and Lattices for Distributed Programming"
+date: "2018-04-24 04:00:56"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/04/24/logic-and-lattices-for-distributed-programming/"
+post_id: 446
+categories: ["Distributed Systems"]
+tags: ["Concurrency", "Consistency", "Distributed Systems", "Lattices"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=2391230">Logic and Lattices for Distributed Programming</a>
+Neil Conway, William R. Marczak, Peter Alvaro, Joseph M. Hellerstein, and David Maier, in <em>Symposium on Cloud Computing 2012 (SOCC '12)</em>, October 14-17, 2012, San Jose, CA.
+
+This is definitely a different direction than we've had in prior papers, though I do have an ulterior motive in presenting this particular paper - we will see it used later.
+<blockquote><em>In recent years there has been interest in achieving application-level
+consistency criteria without the latency and availability costs of
+strongly consistent storage infrastructure. A standard technique is to
+adopt a vocabulary of commutative operations; this avoids the risk
+of inconsistency due to message reordering. Another approach was
+recently captured by the CALM theorem, which proves that logically
+monotonic programs are guaranteed to be eventually consistent. In
+logic languages such as Bloom, CALM analysis can automatically
+verify that programs achieve consistency without coordination.
+In this paper we present Bloom<sup>L</sup>, an extension to Bloom that
+takes inspiration from both of these traditions. Bloom<sup>L</sup> generalizes
+Bloom to support lattices and extends the power of CALM analysis
+to whole programs containing arbitrary lattices. We show how the
+Bloom interpreter can be generalized to support ecient evaluation
+of lattice-based code using well-known strategies from logic
+programming. Finally, we use Bloom<sup>L</sup> to develop several practical
+distributed programs, including a key-value store similar to Amazon
+Dynamo, and show how Bloom<sup><em>L</em></sup> encourages the safe composition
+of small, easy-to-analyze lattices into larger programs.</em></blockquote>
+Notice they <em>do</em> mention key-value stores, so you have another hint on how I'll be referring back to this work in a future post.
+
+This tends more to the theoretical side of systems.  It is not a theory paper (there just isn't enough formalism, let alone proofs!)   It has <em>performance</em> graphs, which you certainly expect from a systems paper, but not from a theory paper.
+
+The driving factor behind this is the issue of <em>distributed consistency</em>.  At a high level, "distributed consistency" is concerned with ensuring that a group of communicating computers, with some temporal separation, agree on the outcome of operations even when things go wrong.  Perhaps the most famous example of distributed consistency is <a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)"><em>Paxos</em></a>.  These days we refer to these as <em>consensus </em>protocols.  I generally describe there being several such: two-phase commit is certainly one of the older ones.  Quorum protocols are another (e.g., <a href="https://fsgeek.ca/2018/03/07/weighted-voting-for-replicated-data/">weighted voting</a>, which I described previously).  <a href="https://brooker.co.za/blog/2014/05/19/vr.html">Viewstamped Replication</a> is another.  These days, the popular consensus protocols are
+<a href="https://raft.github.io/">Raft</a> and <a href="https://en.wikipedia.org/wiki/Blockchain">Blockchain</a>.
+
+[caption id="attachment_448" align="alignleft" width="300"]<a href="https://fsgeek.ca/wp-content/uploads/2018/04/latttice-fig8.png"><img class="wp-image-448 size-medium" src="https://fsgeek.ca/wp-content/uploads/2018/04/latttice-fig8-300x237.png" alt="" width="300" height="237" /></a> Figure 8 (From Paper)[/caption]
+
+The paper starts by pointing out that <em>monotonic consisency</em> provides a valuable mechanism for reasoning about distributed consistency.  Prior work by the authors establishes that all monotonic programs are "invariant to message reordering and retry", a property they call <em>confluent</em>. This matters for distributed systems because such a system only moves forward (the operations are <em>durable</em>.)
+
+They point out some weaknesses in the prior definition and motivate improving it by explaining one such obvious case that does not fit within the model (a voting quorum in a distributed protocol.)
+
+Hence, they introduce the <em>lattice</em>.  They do this within the context of their language (Bloom<sup><em>L</em></sup>), which works on top of Ruby.  I will not dwell on the details.
+
+The authors define a <em>bounded semijoined lattice</em>.  My reading of what they are saying is that in such a set, there is a unique element that <em>happened first</em>.  They define this formally as a set <em>S</em>, with an operator ("bottom" that I don't seem to have in my font set) that defines a partial ordering.  There is a unique element ⊥ that represents the <em>least</em> element.
+
+From this definition, they construct their model; the paper drops the "bounded semijoined" part of the definition and simply discusses lattices from that point forward, but it is this partial ordering property that imparts the key characteristics to their subsequent operations.
+
+Why is this important?  Because it demonstrates that these lattices - which are going to turn out to be equivalent to key operations in distributed systems - have consistency guarantees that are desirable.
+
+The authors then turn their attention to utilizing lattices for key-value stores.  They describe data structure versioning and vector clocks.  Vector clocks have a property they desire for lattices: they are partially ordered.  They combine this with a quorum voting protocol, to provide the distributed consensus for their system.
+
+[caption id="attachment_449" align="alignright" width="300"]<a href="https://fsgeek.ca/wp-content/uploads/2018/04/lattice-fig9.png"><img class="wp-image-449 size-medium" src="https://fsgeek.ca/wp-content/uploads/2018/04/lattice-fig9-300x189.png" alt="Figure 9 (from paper)" width="300" height="189" /></a> Figure 9 (from paper)[/caption]
+
+Figure 8 (from the paper) shows the general structure of their key-value store implementation, which is implemented in Bloom<sup><em>L</em></sup> and Ruby.  Their sample usage for this is a shopping cart, which they graphically describe in Figure 9 (from the paper).
+
+As one would expect in a distributed system, the key benefit here is that there is no centralized authority deciding on the order of things.  They point out that prior work argues shopping carts are non-monotonic and thus cannot be solved in a distributed systems setting.  The authors point out that using the lattice structure, they achieve a monotonic ordering, which permits them to implement it without a centralized decision maker; in fact the decision maker in this case is really the client itself, as it has all the information from all the servers sufficient to complete the operation.
+
+While a shopping cart might not be the killer application for a distributed systems technology, this paper does describe a powerful tool for providing distributed consensus in a system that can be implemented in a modest amount of code; compared to Paxos, Raft, or Viewstamped Replication, that is a significant contribution.
+
+It does not appear to have byzantine protection, however, so if you live in a hostile environment it might not be the right protocol.  Similarly, if you need stronger consistency guarantees, this might not be the best model either.  But for many applications slightly relaxed consistency guarantees are often more than adequate.
+
+We will see how this can be applied in the future.
+
+&nbsp;
+
+&nbsp;

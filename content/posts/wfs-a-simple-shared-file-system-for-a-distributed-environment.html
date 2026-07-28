@@ -1,0 +1,78 @@
+---
+title: "WFS: A Simple Shared File System for a Distributed Environment"
+date: "2018-03-13 04:00:42"
+status: "publish"
+original_url: "https://fsgeek.ca/2018/03/13/wfs-a-simple-shared-file-system-for-a-distributed-environment/"
+post_id: 379
+categories: ["Conferences Journals and Workshops", "File Systems", "Network File Systems"]
+---
+
+<a href="https://dl.acm.org/citation.cfm?id=806564">WFS: A Simple Shared File System for a Distributed Environment</a>
+Daniel Swinehart, Gene McDaniel, and David Boggs, in <em>Proceedings of the Seventh ACM Symposium on Operating Systems Principles, pp. 9-17, 1979, ACM.</em>
+
+This file system was developed at Xerox's Palo Alto Research Center (<a href="https://en.wikipedia.org/wiki/PARC_(company)">PARC</a>), which produced a string of amazing advances in the nascent computer technology area in the 1970s.
+
+<em>Woodstock</em> was "an early office system prototype".  The authors' description of<em> Woodstock</em> sound much like early word processing systems, such as those pioneered by <a href="https://en.wikipedia.org/wiki/Wang_Laboratories#Word_processors">Wang Laboratories</a> in the same time frame.  The ability to share data between these systems turns out to be surprisingly important.  Local storage space was used to track the current work, but then centralized storage provides an efficient way to store them <em>and</em> make the work available to others.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-1-1.png"><img class="alignleft size-medium wp-image-389" src="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-1-1-300x273.png" alt="" width="300" height="273" /></a>
+This is the environment that gave rise to WFS.  Because <em>Woostock</em> already existed and provided its own hierarchical document directory structure, WFS did not need to provide such a mechanism.  In fact, WFS only provided four classes of operations:
+<ul>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">I/O operations to read and write blocks of data within files</span></li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">Creating/Destroying resources: file identifiers (FIDs) and storage blocks (pages)</span></li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">Managing file properties, including page allocation data</span></li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">Providing maintenance functions</span></li>
+</ul>
+The actual implementation is surprisingly simple.  Indeed the authors' state that it took two months to build it.
+
+Figure 1 (from the original paper) describes the format of a request/response packet, showing the basic information exchange model. It is interesting to note that the entire message fits within a small amount of memory and includes an end-to-end checksum.<a href="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-2.png"><img class="size-medium wp-image-390 alignright" src="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-2-300x295.png" alt="" width="300" height="295" /></a>
+
+There are a number of simplifying options with WFS:
+<ul>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">The namespace for files is flat; there is no hierarchical structure.</span></li>
+ 	<li>The file structure is simple (Figure 2).</li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">The protocol is <em>stateless</em> and each operation is <em>idempotent</em>.  This simplifies error handling since a lost message can be re-transmitted safely, with no fear that  repeating it will cause problems.</span></li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">Operations are <em>client initiated</em>.  The server never initiates an operation.</span></li>
+ 	<li><span style="font-family: Consolas, Monaco, monospace;">Clients have limited mutable state.  The server does not permit changing its own state directly from the client.</span></li>
+</ul>
+This simiplicity does limit the generality of WFS, but it also demonstrates an important abstraction that we will see used (and re-used) in subsequent systems: a <em>file</em> can be treated as a block structured device (a "disk") in an interesting and transparent fashion.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-3.png"><img class="size-medium wp-image-391 alignleft" src="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-3-300x285.png" alt="" width="300" height="285" /></a>
+
+Figure 3 describes the layout of the (stateless) data exchange format used by WFS.
+
+Figure 4 shows the layout of the <em>file directory table</em> which is a <strong>contiguous</strong> and <strong>fixed-size</strong> region on disk at a known disk location.  This is a fairly common characteristic of on-disk file system formats, having a known location where meta-data is to be found.
+
+Note that Figure 4 also shows how the file's allocated storage is described via direct and indirect block references organized into a tree structure.  Again, this will be a recurring model that occurs in file systems; it combines the flexibility of supporting efficient space utilization, ability to describe variable sized files, and efficient utilization of block-addressable storage.
+
+This simple mechanism permits their clients to utilize a flexible storage mechanism without forcing the file server to support any of the mechanisms the client <em>already</em> provides, such as  the hierarchical document name space, management of documents and their structure, etc.  This separation of concerns yields an elegant and simple implementation model for their file server.
+
+<a href="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-4.png"><img class="size-medium wp-image-392 alignright" src="https://fsgeek.ca/wp-content/uploads/2018/03/Figure-4-130x300.png" alt="" width="130" height="300" /></a>
+
+There are some interesting implementation details described in the paper:
+<ul>
+ 	<li>Write operations are <em>validated</em> by reading the data page.  Thus, writes become <a href="https://en.wikipedia.org/wiki/Compare-and-swap"><em>compare and swap</em></a> operations that prevents concurrent access from inadvertently overwriting changes made by another client.  It would be rather inefficient to rely upon this mechanism, but it helps prevent out-of-order packet processing in an unreliable network.  The downside to this is they must read the data before they can write it.</li>
+ 	<li>They use a <em>write-through</em> cache.  Thus, the cache is really for read efficiency, not write efficiency.  This should help mitigate the write inefficiency.</li>
+ 	<li>Most of their caching is done against meta-data pages ("auxiliary disk pages") because they are more frequently accessed than client data pages.</li>
+</ul>
+Here's one of the interesting performance results: "In the single-user (lightly loaded) case, WFS improved Woodstock's average input response time over the local disk's time for several reasons: WFS's disks were faster than Woodstock's local disks, requested pages were sometimes still in the WFS main memory cache, and the amount of arm motion on the local disk was reduced because it no longer had to seek between a code swap-area and the user data area."
+
+<em>Accessing data over the network was faster than the local disk drive!</em>  Whether this is a statement of how slow disks were versus networks I leave as an exercise to the reader.  One thing we can take away from this: the network often does not impose a significant bottleneck to utilizing remote storage (except, of course, when it does.)
+
+The authors' follow up their implementation description with an explanation of their design philosophy.  They emphasize the <strong>atomic</strong> nature of the operations they support, as well as the following properties:
+<ul>
+ 	<li>Client initiated operations can only access one data page and "a few" auxiliary disk pages.</li>
+ 	<li>Operations are persistent before WFS returns status to the client.</li>
+ 	<li>WFS commands are a single internet packet.</li>
+ 	<li>The WFS protocol is stateless.</li>
+</ul>
+They then explain the rationale for these decisions, which relate to simplifying the protocol and server side implementation.
+
+They delve into how clients might use WFS in Section 4.  One explicit take-away here is that they view these "files" as acting like "virtual disks" and this permits the WFS clients to implement their own abstraction on top of the WFS-provided services.  Because WFS doesn't assume any specific structure for the client data, there is no burden placed upon those client implementations - though they admit at one point that this complicates the client.
+
+The authors are able to point to other systems that utlize WFS besides <em>Woodstock</em>.  They cite to Paxton's system (<a href="https://fsgeek.ca/2018/02/15/a-client-based-transaction-system-to-maintain-data-integrity/">A Client-Based Transaction System to Maintain Data Integrity</a>) as being based upon WFS.
+
+The paper discusses security and privacy considerations, admitting their system does not address these issues and suggests various techniques to addressing security using encryption and capabilities.  They round out this section of the paper by discussing other possible enhancements to WFS.
+
+In the end, they provided a simple model for a network file server that permitted a client to implement a range of solutions. As we begin looking at more network file systems, we will see this model extended in various way.
+
+&nbsp;

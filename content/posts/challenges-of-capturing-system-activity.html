@@ -1,0 +1,57 @@
+---
+title: "Challenges of Capturing System Activity"
+date: "2022-02-16 03:36:00"
+status: "publish"
+original_url: "https://fsgeek.ca/2022/02/16/challenges-of-capturing-system-activity/"
+post_id: 874
+categories: ["File Systems", "Semantic File Systems"]
+tags: ["C#", "File System", "Indaleko"]
+---
+
+<!-- wp:paragraph -->
+<p>A key aspect of the work I am doing for <a href="https://fsgeek.ca/2022/01/11/better-finding-combine-semantic-and-associative-context-with-indaleko/" data-type="post" data-id="839">Indaleko</a> is to "capture system activity" so that it can be used to form "activity contexts" that can then be used to inform the process of finding relevant information.  As part of that, I have been working through the work of <a rel="noreferrer noopener" href="https://fsgeek.ca/wp-content/uploads/2022/02/2019-Searching-Heterogenous-Personal-Digital-Traces.pdf" target="_blank">Daniela Vianna</a>.  While I have high-level descriptions of the information she collected and used, I need to reconstruct this.  She collects data from a variety of sources.  The most common source of information comes from web APIs to services such as Google and Facebook.  In addition, she also uses file system activity information.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Since my background is file systems, I decided to start on the file system activity front first.  Given that I've been working with Windows for three decades now, I decided to leverage my understanding of Windows file systems to collect such information.   One nice feature of the NTFS file system on Windows is its support for a form of activity log known as the "<a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/USN_Journal" target="_blank">USN Journal</a>."  Of course, one of <em>my </em>handicaps is that I am used to using the native operating system API, not the libraries that are implemented on top of it.  This is because when building file systems on Windows I have always been interested in testing the full kernel file systems interface.  While there are a few specific features that cannot be exercised with just applications, there are still a number of interfaces that cannot be tested using the typical Win32 API that <em>can</em> be tested using the native API.  In recent years the number of features that have been hidden from the Win32 API has continued to decrease, which has diminished the need to use the native API.  I just haven't had any strong need to learn the Win32 API - why start now?</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>I decided the model I want to use is a service that pulls data from the USN journal and converts it into a format suitable for storing in a <a rel="noreferrer noopener" href="https://www.mongodb.com/" target="_blank">MongoDB</a> database.  I decided to go with Mongo because that is what Vianna used for her work.  The choice at this point is somewhat arbitrary but MongoDB makes sense because it tends to work well with semi-structured data, which is what I will be handling.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Similarly, I decided that I'd write my service for pulling USN Journal data from the NTFS file system(s) in C# since I have written some C# in the past, it makes doing some of the higher level tasks I have much easier, and is well-supported on Windows.   I have made my repository public though I may restructure and/or rename it at some point (currently I call it <a rel="noreferrer noopener" href="https://github.com/fsgeek/CSharpToNativeTest" target="_blank">CSharpToNativeTest</a> because I was trying to invoke the native API as unmanaged code from C#).  The most common approach to this is to utilize a specific mechanism (the "PInvoke" mechanism) but after a bit of trial-and-error I decided I wanted something that would be easier for me to debug, so instead of pulling the native routine directly from ntdll.dll I load it from my own DLL (written in C) and that then invokes the real native call.  This allows me to see how data is being marshaled and delivered to the C language wrapper.  I also tried to make the native API "more C# friendly."  I am sure it could be more efficient, but I wanted to support a <em>model</em> that I could extend and hopefully it will be easier to make it more efficient should that prove necessary.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>One thing I did was to script the conversion of all the status values in ntstatus.h into a big C# enum type.  The benefit of this is that when debugging I can automatically see the mnemonic name of the status code as well as its numeric value.  I then decided to provide the layer needed to map the various volume names used on Windows around, with device names, device IDs, and symbolic links (drive letters) that can be mapped.  While I have not yet added it, I wrote things so that it should be fairly straight-forward to add a background thread which wakes up when devices arrive or disappear.   As I have noted before "naming is hard."  This is just one more example of the flexibility and challenges with aliasing and naming.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Finally, I turned my attention to the USN journal.  I found some packages for decoding USN journal entries; most were written to parse the data from the drive, while a few managed dynamic access.  Since I want this to be a service that monitors the USN journal and keeps adding information into the database, I decided to write C# code to use the API for retrieving that information.  At this point, what I have is the ability to scan all the volumes on the machine - even if they do not have drive letters - and query them to see if they support a USN journal.  I do this properly - I query the file system attributes (using the <a rel="noreferrer noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntqueryvolumeinformationfile" data-type="URL" data-id="https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntqueryvolumeinformationfile" target="_blank">NtQueryVolumeInformationFile</a> native API) and check if the bit showing USN journal support is marked.  I <strong>do not</strong> use the file system name, an approach I've always considered to be a hack, especially since I have been in the habit of writing file systems that support NTFS features, including named data streams, extended attributes, and object IDs.  In fact, the <a rel="noreferrer noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntqueryvolumeinformationfile" target="_blank">ReFS</a> file system on Windows also supports USN journals, so I'm not just being my usual pedantic developer self in this instance.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At this point, I am able to identify volumes that support USN journals, open them and find out if USN is turned on (it is by default on the system volume, which is almost always the "C:" drive, though I enjoy watching things break when I configure a system to use some other drive letter.)  I then extract the information and convert it to in-memory records.  At the moment I just have it wait a few seconds and pull the newest records, but my plan is to evolve this into a service that I can run and it can keep pulling data and pushing it into my MongoDB instance.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>At this point, I realized I do not really know that much about MongoDB so I have decided to start learning a bit more about it.  Of course, I don't want to be a MongoDB expert, so I also have been looking more carefully at Daniela Vianna's work, trying to figure out what her data might have looked like and think about how I'm going to merge what she did into what I am doing.   This is actually exciting because it means I'm starting to think of what we can do with this additional information.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>This afternoon I had a great conversation with one of my PhD supervisors about this and she was making a couple of suggestions about ways to consume this data.  That she was suggesting things I'd also added to my list was encouraging.  What are we thinking:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul><li>We  can consider using "<a rel="noreferrer noopener" href="https://research.google/pubs/pub46518/" target="_blank">learned index structures</a>" as we begin to build up data sets.</li><li>We can use techniques such as <a rel="noreferrer noopener" href="https://ai.googleblog.com/2018/11/open-sourcing-bert-state-of-art-pre.html" target="_blank">Google BERT</a> to facilitate dealing with the API data that Vianna's work used.  I pointed out that the challenges of APIs that Vianna pointed out are similar to languages: they have meaning and those meanings can be expressed in multiple ways.</li><li>The <em>need</em> for being able to efficiently find things is growing rapidly.  She was explaining some work that indicates our rate of data growth is outstripping our silicon capabilities.  In other words, there is a point at which "brute force search" becomes impractical.  I liked this because it suggests what we are seeing with our own personal data is a leading indicator of the larger problem.  This idea of storing the meta-data independent of the data is a natural one in a world where the raw information is too abundant for us to just go looking for an item of interest.</li></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p>So, my work continues, mostly mundane and boring, but there are some useful observations even at this early stage.  Now to figure out what I want the data in my database to look like and start storing information there.  Then I can go figure out what I did right, what I did wrong, and how to improve things.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Aside: one interesting aspect of the BERT work was their discussion of "transducers."  This reminded me of <a href="http://web.mit.edu/6.826/www/notes/HO13.pdf" target="_blank" rel="noreferrer noopener">Gifford's Semantic File System</a> work, where he used transducers to suck out semantic information from existing files. </p>
+<!-- /wp:paragraph -->
