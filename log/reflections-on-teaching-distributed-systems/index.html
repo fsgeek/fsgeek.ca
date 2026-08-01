@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reflections on Teaching Distributed Systems &middot; fsgeek.ca</title>
+  <meta name="description" content="Reflections on Teaching Distributed Systems">
+  <link rel="canonical" href="https://fsgeek.ca/log/reflections-on-teaching-distributed-systems/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / reflections-on-teaching-distributed-systems</div>
+    <article class="entry">
+      <h1>Reflections on Teaching Distributed Systems</h1>
+      <div class="entry-meta"><span>2023-06-10</span>
+        <span class="log-tag teaching">teaching</span></div>
+      <div class="entry-body">
+<p>During January through April 2023 I taught <a rel="noreferrer noopener" href="https://fsgeek.ca/cpsc-416-winter-22-term-2/" data-type="page" data-id="907" target="_blank">CPSC 416 </a>at UBC. It was the first time I had taught this course and it would not have been possible without the assistance I received from others, notably <a rel="noreferrer noopener" href="https://omscs.gatech.edu/cs-7210-distributed-computing" target="_blank">Ada Gavrilovska</a> and <a rel="noreferrer noopener" href="https://www.cs.ubc.ca/~bestchai/teaching/cs416_2021w2/index.html" target="_blank">Ivan Bestchastnikh</a> both of whom allowed me to use their materials in creating my own course.  Of course, I reordered things, and adapted them to fit the class.</p>
+
+<p>Teaching a course for the first time is always an illuminating experience.  I've designed and taught classes on systems topics, including elements of <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/DCE_Distributed_File_System" target="_blank">DCE/DFS</a>, the distributed file system on which I worked back when I was a twenty-something software developer, classes on Windows driver development (device drivers<em>, </em>file systems, and file system filter drivers,) and Windows kernel debugging.  I even explored utilizing online mechanisms for providing a <a rel="noreferrer noopener" href="https://fsgeek-test-oppia.appspot.com/gallery" target="_blank">non-linear educational approach to core OS concepts </a>(processes, threads, scheduling, and synchronization) as part of my MSCS work at Georgia Tech.  Thus, I have enjoyed engaging in education and looking for ways to <em>do bette</em><em>r</em> for much of my life.  I have always found insights each time I teach a new course.  CPSC 416 was no exception to this.</p>
+
+<p>I have never <em>take</em><em>n</em> a distributed systems class. I learned about distributed systems organically.  In my senior year at the <a rel="noreferrer noopener" href="https://www.uchicago.edu/en" target="_blank">University of Chicago</a> I worked for the nascent Computer Science department as part of the facilities team and part of that work included networking. I remember soldering connectors together for Ethernet connections of the time - vastly different than the RJ-45 connections we use now, but the same technology we use today.  After graduation I took a job at Stanford working with David Cheriton, who ran the "Distributed Systems Group."  The <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/V_(operating_system)" target="_blank">V operating system</a>, which his group developed, is what I used on my desktop, and I built a number of network components as part of my work for him, including a network protocol (<a rel="noreferrer noopener" href="https://www.rfc-editor.org/info/rfc1045" target="_blank">VMTP</a>) which I implemented on a BSD 4.2 UNIX based system, diskless bootstrap drivers, and even an <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/IP_multicast" target="_blank">IP-multicast</a> version of a multi-player <a rel="noreferrer noopener" class="wpc-darklup-observer--node darklup--link" href="https://www.giantbomb.com/maze-war/3030-23137/" target="_blank">Mazewar</a> variant. </p>
+
+<p>From Stanford I went to Transarc, a CMU-research inspired start-up company that had two very different product directions: one was an online transaction processing system, and the other was a commercialization of the <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Andrew_File_System" target="_blank">AFS distributed file system</a>. I also worked on the successor (the DCE/DFS project I mentioned earlier.) </p>
+
+<p>Thus, my background in distributed systems was <em>buildin</em><em>g</em> distributed systems, often from the perspective of not knowing what I was doing but being surrounded by smart people that helped me figure it out.  In some ways, that was my objective in teaching CPSC 416: paying that hard work forward. </p>
+
+<p>One observation now: things that you learn in your twenties become "assumed knowledge" quite easily in your fifties. Thus, I just assumed that everyone knew about how databases maintain consistency in the face of failures.  <strong>This turns out not to be true</strong><strong>.</strong>  So, one of my first lessons here was that I need to explain this up front in order for many of the things I say afterwards make sense.  What is the point about replicating a <em>lo</em><em>g</em> (what database people usually refer to as a journal) if you don't understand that a <em>lo</em><em>g</em> is the basic mechanism we use to restore consistency in a database. <strong>Lesson 1:</strong><strong> </strong>teach people about databases and recoverability.</p>
+
+<p>The second observation stems from my first oversight: <em>building transactionally safe recoverable systems is har</em><em>d</em>.  You'd think I'd know that, since I built a transactionally safe recoverable system back in the late 1980s and early 1990s as part of my work on <a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Episode_filesystem" target="_blank">Episode</a>, the local physical file system that we used to support some of the nifty features of DCE/DFS.  Episode, in some form, continues to be used in production today (file systems have unnaturally long lives if they get any serious adoption.)  I would be quite surprised if the underlying transactional system were significantly different than it was thirty years ago when I worked on it.  <strong>Lesson 2:</strong> teach people about building transactionally safe databases.  Related to this is explaining key-value stores explicitly. They are a key part of the programming assignments and understanding why we use them helps.  They typically form the basis of databases and file systems.  Indeed, file systems are typically key-value stores with a name space built on top of them.  The keys are limited (integers representing an entry in a potentially sparse table of objects) and the values are mutable (which complicates implementation and correctness). </p>
+
+<p>The third observation is not an original one, as I have learned in conversations with other educators.  There is a fundamental mis-alignment between the objectives of students (which is essentially grade maximization) and <em>m</em><em>y</em> objectives (which is "learn useful stuff that will help you throughout your career.") This isn't a big surprise - after all, I have published work in plagiarism reduction - but trying to find ways to fix it is challenging.  I had not expected the insane amount of pressure students seem to feel to maximize their grades.  I did try to mitigate this somewhat by offering extra credit opportunities, though in the end that seemed to create stress for many to exploit those.  Why people who are getting grades in the 90%+ range are "afraid of failing" is beyond me.  <strong>Lesson 3:</strong> extra credit creates more stress than it alleviates.  I don't think this is entirely the case but I'll be more cautious about using it in the future.  Still, I don't want people to worry that they are going to <em>fai</em><em>l</em> so my thought is to provide an incentive to participate that mitigates the likelihood of them failing.</p>
+
+<p>My fourth observation is that I had never read the various papers about distributed consensus side by side before.  Doing so was an eye-opening experience.  What I learned is that in many cases the complications in those papers relate to: (1) optimizations; and (2) recovery.  Thus, next time I teach this class I want to spend more time walking through the <strong>baseline protoco</strong><strong>l</strong> and then pointing out optimizations and handling recovery.  One example of this was when I had a student point out that the Paxos Made Moderately Complex paper (PMMC) states that during the leader election phase the voting party sends along a list of their accepted but not committed proposals (from the previous leadership).  <strong>This is not part of the protoco</strong><strong>l</strong>.  It is an optimization that makes recovery faster and more efficient, but you can't rely upon it to maintain correctness. Now that I understand this point of confusions better, I think I can walk people through it and distinguish this.  Doing so will help people understand the underlying protocol better <em>an</em><em>d</em> then the optimizations we use to ensure it works correctly. <strong>Lesson 4:</strong><strong> </strong> walk through the papers more carefully, explaining the base protocol and then pointing out that the primary difference is in optimizations and recovery mechanisms.</p>
+
+<p>My fifth observation is that students focus <em>too muc</em><em>h</em> on code and not enough on understanding.  Distributed systems is an area in which one must <em>think throug</em><em>h</em> failure cases, identify how you will handle them, and what you assume is going to be true (your "invariants") throughout your code base.  I did introduce some tools for doing this (modeling and TLA+ specifically) but I did not incorporate them into the actual assignments.  I <em>did</em><em> </em>have them write reports, but those were <em>post-ho</em><em>c</em> reports.  I would like to try making the design cycle a more prominent portion of this work, encouraging people to <em>think </em>about what they are building rather than trying to hack their way through it.  One piece of feedback from several students was that my advice to "walk away and think through the project" was quite helpful.  I'd like to make the structure of the course make that happen more naturally.  I also think that by having explicit design milestones it would reduce stress by encouraging students to work on the projects <em>befor</em><em>e</em> the deadline. <strong>Lesson 5:</strong><strong> </strong>design is more important than code, but code helps students verify their design reflects good understanding.  The challenge will be in finding the right balance between the two.</p>
+
+<p>I have other, smaller observations as well that I won't break out but I'll capture here:</p>
+
+<ul><li>Extensions don't really help.</li>
+
+<li>Providing a flexible late policy <em>ca</em><em>n</em> be helpful, but it often creates quite a lot of stress.</li>
+
+<li>Some students abhor teams, some like them.  I need to find a way to accommodate both learning styles in a way that is equitable.</li>
+
+<li>Do as much as possible to simplify grading exams.</li>
+
+<li>Make a conscious effort after each lesson to create questions for the exam.  I provided individualized exams (drawn from a pool of questions) and I wish I'd had more questions from which to draw.  What was particularly nice was being able to provide people with their own personalized exam's answers right at the end of the exam.  It also helped me identify some issues. </li>
+</ul>
+
+<p>I do think a number of steps that I took in this course worked well.  People (generally) liked the failure examples, they liked the responsiveness, they liked the material.  It is easy to focus on just the negatives, but I want to make sure and acknowledge the positives because it is important to preserve those elements.</p>
+
+<p>Finally, I have agreed to teach this course again in the fall (which for UBC means "Winter Term 1") so I will have an opportunity to incorporate what I have learned into the next course offering. I'm sure I'll have more insights after that class.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

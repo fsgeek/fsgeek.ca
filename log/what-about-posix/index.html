@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What About POSIX? &middot; fsgeek.ca</title>
+  <meta name="description" content="What About POSIX?">
+  <link rel="canonical" href="https://fsgeek.ca/log/what-about-posix/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / what-about-posix</div>
+    <article class="entry">
+      <h1>What About POSIX?</h1>
+      <div class="entry-meta"><span>2019-06-11</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<div class="wp-block-image"><figure class="alignleft"><img src="/media/2019/05/AdobeStock_138561039-300x200.jpeg" alt="Geriatric Care Sign" class="wp-image-680"/><figcaption>Has POSIX ceased to be relevant?</figcaption></figure></div>
+
+<p>The POSIX specification was originally written to codify <em>existing practice</em> in UNIX.  While it was called the PORTABLE Operating Systems Interface, it really set out to create that interface by <em>documenting existing UNIX practice</em>.  While POSIX has certainly evolved, it has done so slowly.</p>
+
+<p>But I'm not trying to dive into another polemic on the weaknesses of POSIX.  That's been done before.  </p>
+
+<p>Similarly, more tempered discussions of this subject have <em>also</em> been done before.  For example, in USENIX login; Vaggelis Atlidakis <em>et. al.,</em> explored this very issue in the article <em><a href="http://www.cs.columbia.edu/~vatlidak/resources/POSIXmagazine.pdf">Posix Has Become Outdated</a></em>.  The authors make some useful points:</p>
+
+<ul><li>High-level frameworks now drive the use of POSIX.  Since portability was a strong, motivating factor, the fact that applications now work against a different set (or <em>sets</em>) of APIs dilutes this motivation.</li><li>POSIX is missing abstractions.  This is observed because the use of <strong>ioctl</strong> is high and that usage is precisely to provide functionality that isn't present in POSIX.</li><li>The new abstractions are not converging.  In other words, the three operating systems they studied are introducing new abstractions but <em>they aren't coalescing to a common set of abstractions</em>.  Of the three key points the authors' make, this one is likely the most damning since it undermines the original intent of POSIX, namely <em>portability</em>.</li></ul>
+
+<p>Note: the underlying paper was presented at Eurosys 2013 (<a href="https://roxanageambasu.github.io/publications/eurosys2016posix.pdf">POSIX Abstractions in Modern OperatingSystems: The Old, the New, and the Missing</a>).</p>
+
+<p>I find it interesting that they didn't even evaluate Windows, which I am sure would even further strengthen their findings of missing abstractions and divergence.  While people might not realize it, Microsoft has had some level of POSIX compatibility throughout the lifetime of Windows (<a href="http://www.opengroup.org/austin/papers/posix_faq.html">POSIX.1 </a>specifically, which is the basic OS functionality level.)  I often see people claim Windows isn't "POSIX compliant" but I know that this isn't strictly true.  Back in 1992 when I first started looking at Windows NT, I was quite surprised at how closely the security model they had implemented mapped to what we had done in DCE/DFS for security as well - and our work was based on the draft POSIX security specification at the time.</p>
+
+<p>Yet, I would also note that people continue to look at building new POSIX operating systems.  For example, last year at OSDI, Cutler, <em>et. al.</em>, presented a paper on building an operating system in the Go languages:  <em> <a href="https://www.usenix.org/system/files/osdi18-cutler.pdf">The benefits and costs of writing a  POSIX kernel in a high-level language</a></em>. </p>
+
+<p>One reason I care about this is because my own work in considering alternative file systems structures, e.g., the idea of having rich name spaces, has led me into this exact area multiple times.  The existing interfaces aren't adequate to the task.  FUSE, which is a popular tool for file systems prototyping, has added support for <strong>ioctl</strong>, which provides a popular generic mechanism for adding such functionality.  But of course the <em>need</em> to use a generic extension mechanism just underscores the weaknesses of the interface.</p>
+
+<p>Jeff Darcy wrote an insightful piece back in 2016 entitled <em><a href="http://pl.atyp.us/2016-05-updating-posix.html">Updating POSIX</a></em><a href="http://pl.atyp.us/2016-05-updating-posix.html">, </a>in which he looked at file systems specific portions of POSIX, described weaknesses, and made insightful observations about how POSIX doesn't match what we <em>need</em> these days:</p>
+
+<ul><li><strong>Rename</strong>: I certainly understand this morass since it is something with which I've been wrestling for most of my career.  When we were designing the <a href="https://pdfs.semanticscholar.org/acca/916dcf29e548a8f3bd53b05acd18380b0f03.pdf">Episode</a> file system (1989/1990) one reason we ultimately agreed on using a transaction log was because there was no correct order of operations that would yield a consistent file system.  Given that I'm the one who designed and implemented the transaction log, I'm glad we did because our decision to use a log and the way we ultimately implemented it was certainly a strength of the final product.</li><li><strong>Fsync</strong>: This is how application programs ensure their data is committed to disk and thus presumably <em>durable</em>.  Very few applications worry about durability; one reason is that the cost is so high for ensuring it.  One thing I really liked about Jeff's discussion here is his observation that POSIX focuses on <em>consistency</em> but not on <em>durability</em>.  Of course, I just mentioned that durability was one of the reasons applications used this API.  The cost to check file system consistency was a serious pain point in the 1980s.  At Transarc, when a file system would crash it could take <em>hours</em> before a file server could restart because the entire file system was scanned to ensure it was consistent.  Durability wasn't so much a file systems concern.</li><li><strong>Readdir</strong>: This is interesting to me because one of my pain points when I first started working with Windows NT file systems is their decision to shift filtering directory enumeration into the kernel.  Yet, his perspective is a good one: applications often are only interested in looking for a subset of files.  If you have a directory of 35,000 files and you are looking for just two of them, that's a <em>lot</em> of overhead moving data between the kernel and the user application.  So, perhaps the pain of filtering in the kernel is worth it.  There are plenty of other issues with respect to readdir as well.  There's quite a bit of impedence mismatch between the POSIX approach and the Windows NT approach.  For example, NTFS actually maintains duplicate copies of file meta-data (timestamps and sizes) between the directory and the file itself.  When I taught file systems classes I would sometimes show people the impact of the implementation, where directory enumerations could provide <em>stale results</em> under certain situations.  Of course, readdir is of interest to me because as I look at converting the file system to a graph I think quite a lot about what "readdir" looks like when it comes to such a system.</li><li><strong>Chmod</strong>: In fact, Jeff's discussion here is broader than just chmod, it really deals with the complexity of modern security.  There's no simple mechanism for dealing with multiple security domains - try implementing NFS on Windows some time and find out what a pain point it is.  His argument of using capabilities is an interesting one, and resonates with some of my own observations in this area.  For example, in a <em>graph</em> I can easily conceptualize of disjoint clusters of the graph, where nobody else can find the stuff I've created until I give them a magic cookie for it (a <em>capability</em>).  There's no concept of capabilities in POSIX file systems.</li></ul>
+
+<p>I can point to other aspects of the file systems APIs in POSIX that cause grief as well.  For example, the fact that the <em>file handle</em> embeds a <em>current offset</em> is definitely a pain point.  I see this <em>every semester</em> as students in CS 6200 struggle to add multi-threading support and then have to learn that the <strong>read</strong> and <strong>write</strong> calls are not thread safe.  What amazes me is that this mistake was carried over into Windows NT: the <strong>CurrentByteOffset</strong> is an attribute of the kernel <strong>FILE_OBJECT</strong>.  When I write a Windows file system, I'm responsible for <em>updating</em> this field correctly (where "correctly" itself is related to the particular operation being performed) even though I don't <em>use</em> that field.  I suspect that it is there because it was needed for POSIX compatibility.</p>
+
+<p>So my take-aways: supporting POSIX is useful because it preserves existing applications, but it is definitely in need of revision and/or rethinking.  More ideas in that direction are best saved for a future conversation, though. </p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

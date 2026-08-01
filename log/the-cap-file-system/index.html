@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Cap File System &middot; fsgeek.ca</title>
+  <meta name="description" content="The Cap File System">
+  <link rel="canonical" href="https://fsgeek.ca/log/the-cap-file-system/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / the-cap-file-system</div>
+    <article class="entry">
+      <h1>The Cap File System</h1>
+      <div class="entry-meta"><span>2018-02-12</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=806542">The Cap Filing System</a>
+R. M. Needham and A.D. Birrell, Symposium on Operating Systems Principles, 1977, Association for Computing Machinery.
+
+I've fallen behind this past ten days, working towards a deadline.  My own conference paper is now submitted and I'm working on recovering.  What that means is this week is going to be a busy one as I work on catching up.  Adding to the fun, FAST is going on this week (February 13-16, 2008).  I hope to add some bonus discussions on the current work being presented there.
+
+Let's get to discussing this paper.
+
+CAP is a <strong>capabilities based system</strong>.  The capability systems are a parallel idea that has been explored from time to time versus the access control system for Multics/UNIX inspired operating systems.  The latest contender in this space would be <a href="https://github.com/fuchsia-mirror">Fuschia</a>, an experimental operating system that Google is developing (though it is an open source project under a mixture of licenses).  Interestingly, there are <a href="https://arstechnica.com/gadgets/2018/01/googles-fuchsia-os-on-the-pixelbook-it-works-it-actually-works/">reports it runs on the Pixelbook</a> in addition to the previous hardware it had supported.
+
+At any rate, the idea behind a <strong>capability</strong> is to use identifiers that encapsulate the access rights within the capability itself.  Thus, it is a <strong>name</strong> and the virtue of having the name is that it means you have the access inherent in that name.
+<blockquote><em>These capabilities all represent to a program the right to have or do something: the preservation of information from one run of a program to another (a universal operating system requirement) is thus seen by the CAP programmer as the preservation of a capability rather than of an object itself.</em></blockquote>
+The paper describes how capabilities are managed, which interacts with the "filing system" of course, since it has to store persistent information.  They describe the "system internal name" (SIN), which is combined with a disk address to map memory segments to actual storage.  The capability (in a "directory") then becomes a repository of these persistent objects.  This also creates a reference to the disk block that is in use, ensuring those storage regions are not reused.
+
+One interesting characteristic of their system is that they do not guarantee free disk space will be recycled quickly ("[T]here is no guarantee that inaccessible disk space will be relinquished at the earliest possible moment.")  Indeed they note that space reclamation is only done when the system reboots and "[T]he filing system is not designed to run forever."
+
+They discuss how CAP differs from prior work (e.g., OS/360) where only the name matters; there is no concept of a directory for use as part of the capability system.  The directory actually provides them an additional level of control as well, and they use directory capabilities as well as segment capabilities.  Directories may be persistent (so they have a SIN and disk block location) or ephemeral (so they disappear when the program exits) - a sort of "built in" temporary storage concept for ephemeral memory management.
+
+Sharing objects is now trivial - you simply tell someone the correct name; that embeds the capability within it.  They do not describe the mechanisms used for transfer ("[B]y mechanisms which do not concern us in detail here.")
+
+They also describe how this name space is similar to other systems (UNIX and <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.9653&amp;rep=rep1&amp;type=pdf">CAL-TSS</a>) but different:
+<ul>
+ 	<li>Access is associated with the <em>name</em> which in turn references information in the <em>directory</em>.  It is not an attribute of the file itself.</li>
+ 	<li>The name space need not be a "strict hierarchy".  This means that portions could become disconnected, or even be private to a single application.</li>
+ 	<li>Their use of directories behaves similar to the model of "current directory" (presumably in UNIX) even though CAP expressly does not have a concept of current directory.</li>
+ 	<li>Directories are not even <strong>directed acyclic graphs</strong>!</li>
+</ul>
+The paper describes how capabilities work, since they are a fine-grained control mechanism.  They explain that the holder of an existing capability (a program) may generate a more restrictive capability to provide to another program.  Since capabilities apply to both individual files as well as directories, it is possible for a program to transfer a set of capabilities by creating a new directory and storing the relevant capabilities to the target program.
+
+The names themselves can be quite ugly, as they incorporate capabilities within them.  They describe some conventions they employ in terms of name management and directory placement, but point out these are <em>conventions</em> and not a hard requirement of the system.
+
+CAP certainly presents a rather different model of a file system than we see in other systems.  The idea of disconnected name spaces that are only visible to particular programs is an intriguing one.  They use the example of the password database, which requires the program have the password file capability.
+
+They discuss security.  The directory manager is a separate module that programs use to interact with the directories to which they have access.  To invoke the directory manager, the caller must have the <strong>ENTER</strong> capability.
+
+I find this to be exactly the type of thought provoking paper I had hoped to find as I comb through these old papers.  The idea that a file system name space need not be connected, that it could be private to a particular program or set of programs, and embedding access rights ("capabilities") into the <em>name</em> will give me plenty to think about.
+
+If you would like to know more about CAP there is a paper about it in the prior Symposium on Operating Systems Principles: <a href="https://www.microsoft.com/en-us/research/publication/the-cambridge-cap-computer-and-its-operating-system/">The Cambridge CAP Computer and its Operating System</a>.  It is not too surprising that this is available from Microsoft Research, as they also built a capability based operating system (or two): <a href="https://www.microsoft.com/en-us/research/project/singularity/">Singularity</a> and <a href="http://joeduffyblog.com/2015/11/03/blogging-about-midori/">Midori</a>.
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

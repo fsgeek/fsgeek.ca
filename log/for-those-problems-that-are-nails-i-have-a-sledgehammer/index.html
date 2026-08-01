@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>For those problems that are nails, I have a sledgehammer &middot; fsgeek.ca</title>
+  <meta name="description" content="For those problems that are nails, I have a sledgehammer">
+  <link rel="canonical" href="https://fsgeek.ca/log/for-those-problems-that-are-nails-i-have-a-sledgehammer/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / for-those-problems-that-are-nails-i-have-a-sledgehammer</div>
+    <article class="entry">
+      <h1>For those problems that are nails, I have a sledgehammer</h1>
+      <div class="entry-meta"><span>2017-10-24</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+I've been involved in a project that requires I learn more about blockchain than I ever really wanted to know.
+
+I had a basic appreciation of it from reading the Nakamoto paper many years ago.  It provides an insightful solution to a challenging problem - the problem of distributed consensus in an untrusted network.  There is an agreed mechanism (the protocol) and an incentive to participate (the fee).
+
+Why is an untrusted network the problem?  Because this came from the world of digital cash, and the concern in that environment was that someone could "double spend" money.  The blockchain model makes that effectively impossible.  It does so in an interesting way - by combining a consensus protocol (getting multiple systems to agree on a given outcome) along with an incentive to behave (participants get <em>paid</em> to behave).  It's an intriguing way of reaching common consensus.
+
+But it has limitations.  Like <em>any</em> consensus protocol, it takes time to send messages back and forth and reach an agreement.  Further, blockchain requires that nodes attempt to solve a cryptographically hard problem.  The node that is successful gets the reward.  The algorithm is designed so that it takes about 10 minutes for someone to reach a valid solution.  These solutions are easy to verify, so once someone has figured out a solution - which indicates real work - they present their answer and it is echoed throughout the network.   By chaining the answer for the current block into the prior block it essentially creates chain that is not realistically mutable (e.g., it cannot easily change).
+
+There are more technical details (Merkle Trees and cryptographic hashes and so forth) but the final solution is a "public ledger" that shows who owns what in the world.
+
+Here's the rub: this is interesting technology, but it is not the solution to every problem.  As is so often the case in computing, though, we pick "the shiny new tool" and insist it <em>must</em> be the right tool to chose for our problem at hand.  The challenge then for those of us who have been through this before is to actually analyze a problem and figure out a good solution.  Of course, sometimes we're called upon to utilize a particular tool, like blockchain, regardless of whether or not it is the right tool for the job.  When that happens there's an unenviable task of trying to explain why it is not the right solution.  Doing so is tough, as it is often <strong>not</strong> what a customer wants to hear.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

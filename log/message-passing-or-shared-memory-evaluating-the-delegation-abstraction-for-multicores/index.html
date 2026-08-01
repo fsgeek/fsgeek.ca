@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Message Passing or Shared Memory: Evaluating the Delegation Abstraction for Multicores &middot; fsgeek.ca</title>
+  <meta name="description" content="Message Passing or Shared Memory: Evaluating the Delegation Abstraction for Multicores">
+  <link rel="canonical" href="https://fsgeek.ca/log/message-passing-or-shared-memory-evaluating-the-delegation-abstraction-for-multicores/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / message-passing-or-shared-memory-evaluating-the-delegation-abstraction-for-multicores</div>
+    <article class="entry">
+      <h1>Message Passing or Shared Memory: Evaluating the Delegation Abstraction for Multicores</h1>
+      <div class="entry-meta"><span>2018-05-01</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://link.springer.com/chapter/10.1007%2F978-3-319-03850-6_7">Message Passing or Shared Memory: Evaluating the Delegation Abstraction for Multicores</a>
+Irina Calciu, Dave Dice, Tim Harris, Maurice Herlihy, Alex Kogan, Virendra Marathe, and Mark Moir, in <em>International Conference on Principles of Distributed Systems</em>, pp. 83-97, 2013, Springer.
+
+The issue of isolation versus sharing is one that permeates systems design for the past 50 plus years. Isolation makes things clean and easy to reason about, but suffers from some disadvantages, such as increased resource utilization and increased latency costs for communications. Shared memory is actually much more difficult to program due to the need to coordinate activity to a shared resource (the memory) potentially across processors. In this paper the authors explore this space. Their rationale is simple: shared memory with lots of processors is
+<em>hard</em>.
+<blockquote><em>Even for small multi-core systems, it has become harder and harder to support a simple shared memory abstraction: processors access some memory regions more quickly than others, a phenomenon called non-uniform memory access (NUMA). These trends have prompted researchers to investigate alternative programming abstractions based on message passing rather than cache-coherent shared memory. To advance a pragmatic understanding of these models’ strengths and weaknesses, we have explored a range of different message passing and shared memory designs, for a variety of concurrent data structures, running on different multicore architectures. Our goal was to evaluate which combinations perform best, and where simple software or hardware optimizations might have the most impact. We observe that different approaches per-form best in different circumstances, and that the communication over-head of message passing can often outweigh its benefits. Nonetheless, we discuss ways in which this balance may shift in the future. Overall, we conclude that, by emphasizing high-level shared data abstractions, software should be designed to be largely independent of the choice of low-level communication mechanism.
+</em></blockquote>
+Non-uniform memory access (NUMA) was originally constructed as a scaling mechanism for "large scale systems".  Today, it is generally present on any multi-processor system.  What this means is that memory is divided between the processors.  Some of the memory is bound to the processor and then the rest of the memory is bound to other processors.  Thus, memory is either <em>local</em> or <em>remote</em>, with a corresponding cost differential to access it.
+
+Each <em>processor </em>usually has multiple <em>cores</em>, with each of those cores making up one element of the <em>node</em>.  Some computers may have multiple sockets within a single NUMA node.  No doubt there are other models for managing physical memory beyond is basic model, but the idea is the same.
+
+The authors are thus observing that this configuration has become so common that it is now commonly observed on real world systems.  This in turn means that programmers must deal with this.  One way to achieve this is to change the tools so they hide this complexity from the typical programmer; for some this works fine.  For operating systems and high performance systems, such as key-value stores (KVS), it is important to understand these issues in order to optimize their performance.
+
+So these authors look at performance across a "range of message passing and shared-memory designs".  This sounds like a laudable goal to me.
+
+They set out to define things.  <strong>Delegation</strong> is where access to a data structure is only performed by a specific set of threads.  If another thread wishes to make a modification to the data structure, it must request that one of the controlling threads do so by sending a request.  A controlling thread for the data structure validated the operation, performs it, and then returns the results to the original requester.  Simple.  In addition, it can be used to simplify the locking model - after all, if a single thread controls the data structure then there cannot be any contention for the data structure and thus there is no locking required.  In addition, if that controlling thread is running on one core and the requester thread is running on a <em>different</em> processor, you can end up with better resource utilization, notably the processor caches.
+
+But the downside to delegation is that you introduce a message passing delay.  If the data structure is <em>hot</em> - because it has a high volume of usage - then the delegation mechanism can become a bottleneck, involving queuing delays.
+
+The authors then turn their attention to <em>message passing overhead</em>.  They evaluate different queuing mechanisms, though their message format remains fairly uniform.  Their queues are the <em>multiple producer, single consumer</em> (<strong>MPSCChannel</strong>), a per-NUMA node message queue (<strong>InletQueue</strong>), and a direct access without using compare-and-swap queue (<strong>DNCInletQueue</strong>).   They carefully describe how each is implemented.  Then they turn to shared memory, where the issue is synchronizing access to the shared memory.  They use several different locking mechanisms: a spin lock, an <a href="https://dl.acm.org/citation.cfm?id=103729">MCS lock</a> ("ticket lock"), and two variations of a NUMA optimized MCS lock, one that attempts some level of fairness and the other that does not.
+
+Then given these simple mechanisms they evaluate against a concurrent hash map and a concurrent linked list.  They describe their memory allocation strategy (since they are storing key/value data).  The use a two key workloads ("small" and "large") and then use three operations mixes: a get-only mix, an insert/delete only mix, and a 50/50 mix of read and write operations.
+
+Then they describe their results: small hash maps just don't benefit from more threads.  Delegation is slower than shared memory.  Simple MCS locks do best under minimal contention.  Interestingly, <em>unfair</em> NUMA aware MCS locks perform best under high contention of the four lock types.  Linked lists is where delegation wins.  The authors argue this is due to better cache locality.  They point out considerable variance in the ticket locks depending upon the workload.
+
+The also evaluated a mixed workload - trying to see the "hot spot" problem in their evaluation. Once again their unfair NUMA aware ticket lock has the best performance, but the authors point out that it introduces substantial delay for some threads.  If you are concerned about bounded latencies, this is <em>not</em> the lock to use.
+
+They had an interesting observation about the impact of hyper-threading on performance ("sibling rivalry") and end up ensuring that they do not compete for resources on the same core between clients and servers for the delegation case.
+
+They point out that reducing contention for locking is important because it helps minimize the impact on the <em>overall</em> memory bus; thus minimizing cache contention is helpful to the overall system performance, not just the specific applications in question.
+
+Their conclusion?  "[D]elegation can sometimes outperform direct shared-memory approaches".
+
+We're going to see some strong arguments for this position in later papers.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

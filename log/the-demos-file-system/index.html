@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The DEMOS File System &middot; fsgeek.ca</title>
+  <meta name="description" content="The DEMOS File System">
+  <link rel="canonical" href="https://fsgeek.ca/log/the-demos-file-system/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / the-demos-file-system</div>
+    <article class="entry">
+      <h1>The DEMOS File System</h1>
+      <div class="entry-meta"><span>2018-02-13</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=806545">The DEMOS File System</a>
+Michael L. Powell, In <em>Proceedings of the sixth ACM symposium on Operating systems principles</em>, pp. 33-42.
+
+This paper delves into the nitty gritty details of constructing physical file systems.  I was surprised that it had relatively few citations (61 according to <a href="https://scholar.google.com">Google Scholar</a> when I checked) because, having read it, I would hand this paper to someone asking me "what are file systems?"  I suspect that the more frequently cited paper in this area will be "A Fast File System for UNIX," which cites to <em>this</em> paper.
+
+The target for DEMOS is the CRAY-1 supercomputer, at the time the fastest computer in the world.  <a href="https://www.theclever.com/15-huge-supercomputers-that-were-less-powerful-than-your-smartphone/">As a matter of comparison, modern mobile devices have more computational power (and often more I/O bandwidth) than the CRAY-1 did.</a>
+
+<a href="/media/2018/02/Figures-1-and-2.png"><img class="alignleft size-medium wp-image-321" src="/media/2018/02/Figures-1-and-2-300x138.png" alt="DEMOS Figures 1 and 2" width="300" height="138" /></a>The author discusses the design of a new file system for use with a custom operating system for the Los Alamos National Laboratory's CRAY-1 computer system.  A key for this project was that it seeks to improve <strong>performance</strong> as much as possible.  After all, why build a super-computer if you then cripple it with features that <em>don't</em> enhance its performance?
+
+What I find delightful about this paper is that it describes the basic constituent parts of a file system, as well as strategies for optimizing performance.  It does so in a clear and understandable fashion.<a href="/media/2018/02/Figures-3-and-4.png"><img class="alignright size-medium wp-image-322" src="/media/2018/02/Figures-3-and-4-300x145.png" alt="DEMOS Figures 3 and 4" width="300" height="145" /></a>
+
+DEMOS utilizes a UNIX-like hierarchical file system model.  It has directories and files. It does not have the link model from <a href="/log/multics/">Multics</a> so paths to files are unique in DEMOS.  Files are managed in units of blocks (4096 bytes) but I/O is specified as bytes (interestingly, they specify <strong>eight bit</strong> bytes as nine bit machines were still in use.)
+
+The authors discuss file sizes.  To the best of my knowledge this is one of the earliest papers covering this common subject  (which is revisited periodically because workloads change and file sizes also change).  One of the common themes I have seen in other work is mirrored here: <strong>most files are small</strong>.  Figure 1 shows a <a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function">CDF</a> for file sizes.  We note that the majority of files in their system are small, with approximately 75% being less than 1KB; this is consistent with later work as well.  Their second figure (Figure 2) describes the proportion of transfer sizes and their source.   We see a spike in the 100, perhaps 256 or 512 being "natural block sizes" that applications would use.
+
+<a href="/media/2018/02/Figure-5.png"><img class="alignleft size-medium wp-image-320" src="/media/2018/02/Figure-5-300x269.png" alt="demos figure 5" width="300" height="269" /></a>They establish lofty performance requirements: "[T]he file system will have to support a bandwidth of 20-60 megabits/second or higher". Our performance requirements today would be much higher, but this recognizes the reality that then (as now) the I/O bandwidth of storage is often the rate limiting factor.
+
+DEMOS is paired with a centralized storage facility ("Common File System" or CFS) that is to provide the function of what we would now think of as a centralized file server.  While not yet implemented by the time of the paper, their plan was to introduce automatic file migration and staging.
+
+The central bit of the paper then describes the constituent parts of the file system.  This maps rather well onto what I have seen in the typical file system: a "request interpreter" that handles requests from applications.  Even their description is appropriate: "parameter validation and request translation"; a "buffer manager" that handles the allocation of buffer cache space (often virtual cache these days); and a "disk driver" that handles low level data operations, such as filling or storing the contents of buffers.
+
+Figures 3 and 4 capture their insight into the disk manager.  This dovetails with their discussion about efficiency of I/O, including observations about queue management ("shortest seek time first" order for requests, and then sub-sorted by "shortest latency time first").  This is a clear "hat tip" to the impact that rotational latency and track seek time has on performance.
+
+Speaking of performance, the authors discuss this.  It leads to their observations on improving I/O performance: "I/O operations out to proceed in parallel with computation".  Their point is that serializing these things decreases overall performance.  Their second observation: "[T]he length of time an I/O operation takes should be reduced as much as possible."  This seems logical and is one reason why they use their optimized strategy.
+
+There is a section on "file system buffering" that touches on the tradeoffs between using memory for buffer caching versus other possible uses.  Thus, the authors evaluate how increased buffering impacts their CPU utilization - this is in keeping with their goal of parallelizing I/O and computation.  Their observation?  The greatest benefit comes from a small number of buffers, in their analysis <strong>eight</strong> buffers provides most of the benefit. Building on that Figures 6 and 7, they observe there is a clear limit to the benefit of further buffering.  These days we do not think too much about this because we tend to use virtual caches, so the amount of physical memory is really managed by the virtual memory management code, yet the observation would likely still apply.  There is a limit to the benefit of buffering.
+
+The authors also point out that disk allocation is a challenging.  They employ allocation bit maps, cluster allocations, over-allocate, and even use simplistic predictive read-ahead.  They refer to these as "strategy" routines.
+
+In general, this is a great introduction to the basic structure of a media file system.  There are plenty of details that will be refined in later work.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

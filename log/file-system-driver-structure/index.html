@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File System Driver: Structure &middot; fsgeek.ca</title>
+  <meta name="description" content="File System Driver: Structure">
+  <link rel="canonical" href="https://fsgeek.ca/log/file-system-driver-structure/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / file-system-driver-structure</div>
+    <article class="entry">
+      <h1>File System Driver: Structure</h1>
+      <div class="entry-meta"><span>2019-06-04</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<p>I thought I would discuss the structure of my driver and why I chose to structure it the way that I have done.  Of course, I could change the structure of the driver again, but I will need to see a compelling reason to do so.</p>
+
+<p>First, I will note that the driver has changed since I last wrote about it.  I was not entirely happy with what I saw as a bit too much complexity, some of which is just me fighting with the vagaries of C++ versus C.  So of course, I have refactored it (though honestly, my first post has not yet appeared as I write this, so you can probably ignore the refactoring).</p>
+
+<p>I chose to structure my driver so that <em>each </em>device object can have its own request handlers.  My rationale for this was fairly straight-forward: it is quite common in these drivers to have a <em>control</em> driver and then a <em>file system</em> driver.  Usually these get conflated together, so I thought I would try to set up my driver so that I could more easily split out that functionality.</p>
+
+<p>As of this writing, I now have a control object.  The driver creates a control instance as part of DriverEntry.  I've also moved the project over to the larger project of which it is a part (ergo, the <em>reason</em> I decided to build a new file system driver in the first place).   You can find that project on GitHub - <a href="https://github.com/fsgeek/Araneae">Project Araneae</a>, a name that relates to spiders because the goal of the project is to create a relational <em>web</em> across files.  Much of that project won't have anything to do with Windows file systems, but I'm going to keep working on my file system because parts of it <em>will</em> eventually need just such a file system.</p>
+
+<p>Fortunately, as soon as I started up Visual Studio 2019 it told me that  had an update - so I'm using the time while that installs to write more about my work.</p>
+
+<p>Since this is now the Tarantula project (a spider name), I have renamed things somewhat.  The base device object extension class that I use is <strong>TNativeDevice</strong>.  I've also started to try using the <a href="https://github.com/microsoft/wil">Windows Implementation Library (WIL)</a> which has a nominal amount of Windows kernel support.  I poked at this a bit and it is tantalizing to try using it, but rather than spend too much time on meta-programming (templates) for now, I'll curb my enthusiasm and keep poking at it when I have more time to do so.</p>
+
+<p>Trying to get C++ to use an array of function pointers to methods for each major function code turned into quite a bit of hassle so I decided to just encode the functions as a virtual interface; each one is set up to take the <strong>IRP</strong> as its input parameter, the default implementation does the right thing, and I moved the new operator into the class itself (I was getting ugly conflicts with WIL and truthfully, I prefer specializing new because I <em>like having unique tags</em>.  The last time I did this (several years ago) I used a template technique for the operator overrides and constant tag values.  This time I've just manually coded them and moved the tags into a common file (which has advantages later when I want to find all the tags that I'm using).</p>
+
+<p>I created a specialization of the <strong>TNativeDevice</strong> for the control object and aptly named it <strong>TNControlDevice</strong>.  It has support for <strong>Create</strong>, <strong>Cleanup</strong>, <strong>Close</strong>, and <strong>DeviceIoControl</strong>.  The other functions are handled appropriately.  I have kept things simple - I am not auto-creating the control device in the constructor, for example, and instead create it explicitly in <strong>DriverEntry</strong>.   I still use the <strong>DeviceExtension</strong> for storing my control object (the class instance).  When I load the driver, I see the control object appear in the object manager namespace.  When I unload the driver, I see the control object <em>disappear</em>.  I did notice that somehow I broke the <strong>inf</strong> script, so I'll have to debug that at some point (though that is never fun).</p>
+
+<p>I turned my attention to constructing code I've written previously.  One is to load the registry parameters.  I've tried a couple of approaches to this over the years and my favorite is to load all the values and then support a query interface.  In the past I've even spawned a thread to monitor changes and reload things, but at this point I have not done so.  This allows me to add things, such as the registry-controlled initial driver breakpoint (a <strong>BreakOnEntry</strong> value) as that's proven useful over the years.  It isn't something that would be enabled in production.  I expect to also add information about what pseudo file system volumes to add - but that's really the point here, I can use that registry information however I see fit.</p>
+
+<p>I have also added a library to wrap the <strong>ERESOURCE</strong> objects that are the lifeblood of the file systems locking mechanisms.  I have not gone so far as to reconstruct the lock ranking package that I previously built, but I suspect I will do so at some point; the last version of that was quite good at validating the ranking of locks within the hierarchy and enforcing proper ordering, which in turn avoided deadlocks.  It also allowed invocation of an optional function for computing a hash value of the protected object, which permitted me to detect when a data structure was modified <strong>without</strong> the lock being held.  It would not tell me <em>where</em> that happened, but at least it would alert me to the need to do a code review (or set an access breakpoint and find where it was happening).</p>
+
+<p>Doesn't sound like a lot of file systems code yet, does it?  So far, it isn't.  I will need another specialization of <strong>TNDeviceObject</strong> for my pseudo file system, which means I want to know what drive letter to use when creating it and the logical place to get <em>that</em> is from the registry - hence why I was working on the registry package in the first place.</p>
+
+<p>Thinking through that point, I realized I need to construct a <strong>TNFileObject</strong> class as well.  I suspect at some point I will want to have specializations of this, but I am fine with waiting until I <em>need</em> it to create one.  The <strong>TNFileObject</strong> will contain at least two separate memory allocations: one is for the <strong>non-paged</strong> objects that must live in kernel memory, such as the <strong>SectionObjectPointers</strong> structure.  There is always a fair bit of state that is safe to page out, and thus there will be a second memory allocation for the blocks of memory that can be safely paged out.    Indeed, I suspect most of the state for my driver will be safely pageable.</p>
+
+<p>One final note for those of you who might be reading and just getting started writing drivers for Windows: <strong>make sure you turn on driver verifier</strong>.  This is done using the <strong>verifier</strong> application, which is installed on Windows.  Make sure you enable verification for your drivers at least.  Then learn how the <strong>!verifier</strong> command works inside WinDBG, because you will need it.</p>
+
+<p>I'll keep posting about this periodically as well.  Feel free to also check out the code online.  Let me know if you have questions or suggestions.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

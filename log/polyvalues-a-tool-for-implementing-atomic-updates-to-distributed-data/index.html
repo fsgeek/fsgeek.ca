@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Polyvalues: A Tool for Implementing Atomic Updates to Distributed Data &middot; fsgeek.ca</title>
+  <meta name="description" content="Polyvalues: A Tool for Implementing Atomic Updates to Distributed Data">
+  <link rel="canonical" href="https://fsgeek.ca/log/polyvalues-a-tool-for-implementing-atomic-updates-to-distributed-data/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / polyvalues-a-tool-for-implementing-atomic-updates-to-distributed-data</div>
+    <article class="entry">
+      <h1>Polyvalues: A Tool for Implementing Atomic Updates to Distributed Data</h1>
+      <div class="entry-meta"><span>2018-03-04</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=806582">Polyvalues: A Tool for Implementing Atomic Updates to Distributed Data</a>
+Warren A. Montgomery, in <i>Proceedings of the seventh ACM symposium on Operating systems principles</i>, pp. 143-149. ACM, 1979.
+
+I found this paper to be surprisingly interesting <em>despite</em> the fact it may be one of the least cited SOSP papers I've ever seen (ACM lists one citation to it, and Google Scholar lists two.)
+<blockquote><em>The solution presented is based on the notion of maintaining several potential current values (a polyvalue) for each database item whose exact value is not known, due to failures interrupting atomic updates.  A polyvalue represents the possible set of values that an item could have, depending on the outcome of transactions that have been delayed by failures.  Transactions may operate on polyvalues, and in many cases a polyvalue may provide sufficient information to allow the results of a transaction to be computed, even though the polyvalue does not specify an exact value.  An analysis and simulation of the polyvalue mechanism shows that the mechanism is suitable for databases with reasonable failure rates and recovery times. The polyvalue mechanism is most useful where prompt processing is essential, but the results that must be produced promptly depend only loosely on the database state.  Many applications, such as electronic funds transfer, reservations, and process control, have these characteristics.</em></blockquote>
+To me, this seems like a useful insight: sometimes, the correct outcome of a transactions does not depend upon the <strong>specific</strong> value of some object.  For example, if a transaction is checking to see if there are sufficient seats to sell for an airline, the fact that the range of possible seat counts is 37, 39, 40, or 41 doesn't impact the ability of the system to sell one more seat.  There is no hard requirement that we must have an <strong>exact</strong> value.
+
+In its own way, this is an intriguing manifestation of <a href="https://www.allthingsdistributed.com/2008/12/eventually_consistent.html"><strong>eventual consistency</strong></a>.  Eventually, the system will be able to figure out the correct number of seats available, once the unknown outcomes have been computed.  Today, we understand consistency models well because relaxing consistency in distributed systems helps improve performance.
+
+The traditional, lock-based system approach (such as we discussed in <a href="/log/implementing-atomic-actions-on-decentralized-data/">Implementing Atomic Actions on Decentralized Data</a>) provides strong consistency guarantees.  This was in keeping with the original requirements that transactions lead to a consistent set of state changes.  But transactions are there to ensure we move from one consistent state to another consistent state.  This concept of being able to proceed even in the face of some level of uncertainty points out that we just need to end up in <strong>a</strong> consistent state, not <strong>the</strong> consistent state.  We trade off strict determinism for performance and flexibility.
+
+"[T]he failure of a site should not indefinitely delay any transaction that does not access data stored at that site."  This likely seems blindingly obvious, yet in my own experience with distributed systems achieving this is harder than one might think.  Leslie Lamport is credited with defining a distributed system: "<a href="https://amturing.acm.org/award_winners/lamport_1205376.cfm">A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.</a>"
+
+Polyvalues work by maintaining a vector of possible outcome values.  If the existing possible outcome values are all consistent with allowing a new transaction to proceed, it seems reasonable to permit the new transaction to proceed, versus having it block and wait for a single definitive outcome.  After all, <strong>regardless of the outcome</strong> this transaction can proceed.
+
+The author defines a polyvalue: <em>"a set of pairs &lt;v,c&gt; where v is a simple value and c is a condition which is a predicate." </em> This introduces the idea of a logical operation that determines the outcome, rather than just a simple record of the data value, and the value of an object as being a range of possible values that have not yet been determined.  "<em>A polyvalue is assigned to an item if a failure delays a transaction that is updating that item, or a polyvalue may be produced as one of the results of a transaction that accesses an item that has a polyvalue."</em>
+
+The author then goes on to explain the logic of polyvalues, and how their inclusion into a transaction converts it to a <em>polytransaction</em>.  The implementation here is one in which multiple possible outcomes are described.  This approach would certainly seem to limit the use of this technique as otherwise there could be a state space explosion.  He describes a mechanism of collapsing these states - the precise number of seats on the plane is a polyvalue, but the decision to <em>sell the ticket</em> for one seat need not be blocked at that point since all the polyvalues lead to the same outcome.
+
+A polytransaction that has possible paths which fail will have to block and pend if the outcome is dependent upon the values of the polyvalues, but if all possible polyvalues yield the same result, the polytransaction can be sold.
+
+The insight here is that in highly distributed databases <strong>most transactions</strong> can achieve a valid outcome regardless of the intermediate state values.  If you look at their example of the bank account withdrawal model, it is clear that this makes sense.  The operation of withdrawing funds from your account can complete in any order as long as none of them lead to a negative balance (they use this example in the paper). Thus, it makes no sense to block one in favor of the other.
+
+To evaluate this model, the author defines various terms:
+<ul>
+ 	<li><strong>I</strong> - the number of items in the database</li>
+ 	<li><strong>U </strong>- the number of updates per second</li>
+ 	<li><strong>F</strong> - the failure probability of an update</li>
+ 	<li><strong>R</strong> - the recovery rate (per second) from failed operations</li>
+ 	<li><strong>D</strong> - the dependency count (average) for new values</li>
+ 	<li><strong>Y</strong> - the probability the new value the update does not depend upon the previous value</li>
+</ul>
+He then predicts the number of polyvalues that will exist in the database (Table 1 from the paper):
+
+<a href="/media/2018/03/table1.png"><img class="size-medium wp-image-358 aligncenter" src="/media/2018/03/table1-300x134.png" alt="Table 1" width="300" height="134" /></a>
+
+Thus, even with somewhat pessimal error and recovery rates, he does not expect more than 51 polyvalues within the database. 
+
+Finally, he reports the results of his simulation of the system having 10,000 database entries:
+
+<a href="/media/2018/03/table2.png"><img class="alignleft size-medium wp-image-359" src="/media/2018/03/table2-300x140.png" alt="Table 2" width="300" height="140" /></a>
+
+Now with 1% failure rates, very slow (1 per 10 second) recovery rates, high dependency rates (D=5) and 10 transactions per second, he still only ends up with 20 polyvalues.  Thus, this approach seems to help in scaling without a dramatic increase in complexity.
+
+My take-away: strict consistency is not necessary to construct a viable system.  Even allowing for some variance in outcomes it is possible to optimize the performance of the overall system at a nominal increase in potential size and complexity.
+
+Useful insights, indeed.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -17,7 +17,7 @@ categories: ["File Systems", "Linux"]
 <!-- /wp:image -->
 
 <!-- wp:paragraph {"dropCap":true} -->
-<p class="has-drop-cap">There are quite a few papers that discuss the performance of the <a href="https://fsgeek.ca/2019/06/18/fuse-file-systems-in-user-space/">FUSE model.</a>  I already discussed a recent paper that explored the <a href="https://fsgeek.ca/2019/06/20/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">performance of FUSE on Linux</a> and that paper observed that I/O performance for FUSE is reasonably good due to the optimization work that has been done to minimize the data copy overhead that can occur with a naive implementation.</p>
+<p class="has-drop-cap">There are quite a few papers that discuss the performance of the <a href="/log/fuse-file-systems-in-user-space/">FUSE model.</a>  I already discussed a recent paper that explored the <a href="/log/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">performance of FUSE on Linux</a> and that paper observed that I/O performance for FUSE is reasonably good due to the optimization work that has been done to minimize the data copy overhead that can occur with a naive implementation.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
@@ -41,7 +41,7 @@ categories: ["File Systems", "Linux"]
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p>They start off by evaluating the cost overhead of using FUSE.  Because their emphasis is on I/O, that is what they evaluate.  Thus, unlike the <a href="https://fsgeek.ca/2019/06/20/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">earlier FUSE analysis</a>, which indicated that meta-data operations were the most significant bottleneck, this work concludes there is still substantial impact on I/O performance as well.</p>
+<p>They start off by evaluating the cost overhead of using FUSE.  Because their emphasis is on I/O, that is what they evaluate.  Thus, unlike the <a href="/log/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">earlier FUSE analysis</a>, which indicated that meta-data operations were the most significant bottleneck, this work concludes there is still substantial impact on I/O performance as well.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->

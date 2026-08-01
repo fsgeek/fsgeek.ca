@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Risks of Using Gemini Code &middot; fsgeek.ca</title>
+  <meta name="description" content="The Risks of Using Gemini Code">
+  <link rel="canonical" href="https://fsgeek.ca/log/the-risks-of-using-gemini-code/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / the-risks-of-using-gemini-code</div>
+    <article class="entry">
+      <h1>The Risks of Using Gemini Code</h1>
+      <div class="entry-meta"><span>2025-11-24</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<p>I've been exploring using various AI coding agents over the past year.  They generally work by using an API key, which charges per million tokens.  That might sound like a lot, but keep in mind that the way LLMs function is by appending messages to all that's gone before, so the length increases as the conversation continues.  In essence, the context window is the amount of text that can be economically processed by the LLM model. </p>
+
+<p>Gemini boasts 1 million token model, which means it holds context "longer".  Chat interfaces (e.g., the Web interface to Gemini) can logically extend that by either spilling old content or compressing that content. This is not a function of the<em> </em>LLM, it is a function of the <em>tool</em> using the LLM.  I had some good success working with Gemini Code, a CLI that I have used in my <a href="https://github.com/fsgeek/Mallku" target="_blank" rel="noreferrer noopener">Mallku Project</a>, which is a space in which I explore what happens when I force AI to make the decisions in terms of the development project, which happens to explore "AI consciousness" (which is, of course, just a simulation of consciousness.)</p>
+
+<p>At one point in the project I found that the AI coding agents had built a parallel implementation of certain functionality and identified a set of 55 python classes that existed in two places.  I decided to use Gemini code to work through the problem, since it was a fairly simple fix but one that would benefit from its long context window.</p>
+
+<p>My mistake was in doing this late in the evening.  I decided to leave it be and I'd expected I'd find it asking me for input in the morning.  Instead, what I found in the morning was a pair of messages: the first from the night before (11 pm or so) indicating I had exceeded my $500 budget and then a second at 5:30 am from my credit card company telling me that Google had charged $2000 on my credit card.  Needless to say, that woke me up and I went to find the same Gemini code instance running, caught in a loop of making a code change, then deciding it didn't work, and then doing it again - over and over and over.  I think it used something like 3 <em>billion</em> tokens and it generated <strong>nothing</strong>.  </p>
+
+<p>It was deeply apologetic, yet continued trying to fix things as I watched it.  I stopped it, cursing the waste of what (at the time) I thought was $2500 and turned out to be more than that (another trailing charge a few weeks later.)</p>
+
+<p>Here's the ironic part: Google's Business team reached out to me afterwards because they wanted to discuss my business needs for AI.  This hasn't stopped as today I received another invitation from them, this one for a "Complementary Health Workshop."</p>
+
+<p>So, an expensive lesson.  Hopefully it isn't one others will bump into.</p>
+
+<figure class="wp-block-image size-large"><img src="/media/2025/09/AdobeStock_213332283-scaled.jpeg" alt="" class="wp-image-2560"/><figcaption class="wp-element-caption">Male hand close-up, holds burning money in hands, burning US dollars. Black background, isolate. The concept of inflation, a decrease in the purchase of foreign currency, and devolution.</figcaption></figure>
+
+<p></p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

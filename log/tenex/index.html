@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TENEX &middot; fsgeek.ca</title>
+  <meta name="description" content="TENEX">
+  <link rel="canonical" href="https://fsgeek.ca/log/tenex/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / tenex</div>
+    <article class="entry">
+      <h1>TENEX</h1>
+      <div class="entry-meta"><span>2018-01-04</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<em><a href="https://dl.acm.org/citation.cfm?id=361268.361271">Tenex, a Paged Time Sharing System for the PDP-10
+</a>Communications of the ACM, March 1972, Volume 15, Number 3
+</em><em>Daniel G. Bobrow, Jerry D. Burchfiel, Daniel L. Murphy, and Raymond S. Tomlinson, Bolt Beranek and Newman Inc.</em>
+<blockquote><em>TENEX is a new time sharing system implemented on a DEC PDP-10 augmented by special paging hardware developed at BBN. This report specifies a set of goals which are important for any time sharing system. It describes how the TENEX design and implementation achieve these goals. These include specifications for a powerful multiprocess large memory virtual machine, intimate terminal interaction, comprehensive uniform file and I/O capabilities, and clean flexible system structure. Although the implementation described here required some compromise to achieve a system operational within six months of hardware checkout, TENEX has met its major goals and provided reliable service at several sites and through the ARPA network.</em></blockquote>
+<a href="http://delivery.acm.org/10.1145/1480000/1479996/p23-murphy.pdf"><em>Storage organization and management in TENEX</em></a>
+<em>Daniel L. Murphy
+</em>AFIPS '72 (Fall, part I) Proceedings of the December 5-7, 1972, fall joint computer conference, part I
+Pages 23-32, Anaheim, California — December 05 - 07, 1972
+
+The first of these two papers discusses TENEX; much of the paper is not about file systems, but there are about a page and a half about the TENEX file system.  The second paper goes into greater detail about storage - including the file system - for TENEX.  I have picked these papers for several reasons:
+<ul>
+ 	<li>They demonstrate the impact of the <a href="/log/multics/">MULTICS</a> work on the systems that follow (certainly beyond the obvious UNIX work).</li>
+ 	<li>They introduce the concept of virtual integration with the file system</li>
+ 	<li>They introduce the concept of <em>copy-on-write</em></li>
+ 	<li>They show the fundamental drive to maintain backwards compatibility</li>
+ 	<li>They introduce the concept of a <em>suffix</em> (or extension) as a means of identifying the purpose of a file</li>
+ 	<li>They delve into the details of open file state management</li>
+</ul>
+A TENEX file has a compound name structure:
+<blockquote><em>A powerful and versatile directory and file naming facility is provided in which a particular file is identified by a fixed-depth path which includes device, directory name, file name, extension, and version.</em></blockquote>
+The fixed-depth path is a limitation the TENEX developers chose to implement for backwards compatibility with existing PDP-10 programs, an early example of how application compatibility is often a critical concern for operating systems development.  The authors do note they are considering expanding upon this to make it arbitrary depth - a feature of MULTICS.
+
+Both papers also discuss the <strong>Job</strong> concept, the idea of a set of related processes.  The implication is that processes within a single job can share resources, thus providing more of that "balance between sharing and isolation" that operating systems have to handle.  When a file is opened successfully, a <strong>Job File Number</strong> is created in a table.  That encapsulates the information about how to find the given file and instead uses an index value - in other words, a file descriptor or file handle.  "<em>Once the initial association of JFN and file has been established, the JFN is used for all ensuing operations on the file, including sequential reading and writing, opening, closing, etc.</em>"
+
+TENEX then allows random access to the file by combining the <strong>JFN</strong> with an index identifying the desired element.  The authors point out that this is more flexible than previous systems in which the file was <em>not</em> random access.
+
+<a href="/media/2018/01/TENEX-PAGE-MAP.png"><img class="size-medium wp-image-242 alignright" src="/media/2018/01/TENEX-PAGE-MAP-300x215.png" alt="TENEX File to Process Mapping" width="300" height="215" /></a>This becomes flexible when describing the page map for a given process.  The <em>Process Map</em> points from an entry in the virtual address space to a corresponding JFN and index (offset).  Thus, the <em>contents</em> of that page can be retrieved <strong>on demand</strong> from the underlying file system.
+
+None of this should look particularly surprising to anyone familiar with modern operating systems, of course.  This just happens to be part of the path to get to where we are today.  The papers actually go into greater detail about the details here, including access control, but that isn't germane to my file systems focus.
+<blockquote><em>Since the file path names identify files over the domain of all jobs in the system, it is evident that our naming and mapping procedures readily provide a means for sharing storage. Using the appropriate path names (including legality checks), processes in two or more different jobs can identify the same file, and each can obtain a JFN for it. Nothing in the mapping procedures specified above requires that either process be aware of the other's access, and so each process constructs an identifier and places it in its process map (Figure 4).</em></blockquote>
+<a href="/media/2018/01/TENEX-Shared-File-Page-1.png"><img class="size-medium wp-image-244 alignleft" src="/media/2018/01/TENEX-Shared-File-Page-1-300x233.png" alt="" width="300" height="233" /></a>In other words, the contents of regions of a file can be shared across processes.  This is, in fact, transparent to the processes.
+
+Sharing at this level would be particularly important because of the limited address space and desire to share code - the papers discuss this, and point out the benefits of this form of sharing.
+
+This leads to their inclusion of <em>copy-on-write</em>.  "<em>One other important TENEX feature which facilitates sharing is a type of page access called copy-on-write. To our knowledge, this facility was first developed and used on the BBN-LISP system for the</em>
+<em>XDS-9407.</em>"  Thus, while not original to TENEX, this is a logical extension beyond what MULTICS had described.  Copy-on-write is a mainstay of both modern operating systems <em>and</em> some file systems.
+
+Interestingly, TENEX seems to implement a rudimentary page cache as well:
+<blockquote><em>To implement the file sequential monitor calls (e.g., byte-in, byte-out) the monitor maintains a number of "window" pages in a separate map invisible to the user process. For each file with sequential operations in progress, the monitor maps the file page which is to receive or provide the next byte. Each call from the user causes one or more bytes to be loaded from or stored into this page, and a count updated to determine if a new page should be mapped. Movement through the file is accomplished by mapping successive pages, and the sequential access module does not have to be aware of the physical device on which the page resides nor interface with I/O driver modules to read or write it. This modularity is very satisfying from an operating system design point of view.</em></blockquote>
+Thus, byte level access to block level devices is managed via this window page mechanism.  The files are not strictly memory mapped, though, so this is more like a buffer cache than a page cache.
+
+They also use the file system to implement inter-process communications - a form of file-backed shared memory.
+
+Page management is tightly tied to this implementation as well, though the description involves what we would likely consider the memory management unit and page fault handling logic as well as the page to file/offset mapping necessary to provide the system's demand paging.
+
+<a href="/media/2018/01/TENEX-Hash-Table.png"><img class="size-medium wp-image-245 alignright" src="/media/2018/01/TENEX-Hash-Table-300x150.png" alt="" width="300" height="150" /></a>Two other interesting aspects of their file systems model includes a pair of extra mapping layers: one for mapping from logical storage address to physical storage location, and the other mapping from multiple distinct page references to a single storage block.
+
+The underlying rationale here is that this permits relocating the storage to different locations, typically from higher speed storage (when warm/hot) to slower speed storage (when cold).
+
+<a href="/media/2018/01/TENEX-Shared-Mapping.png"><img class="size-medium wp-image-246 alignleft" src="/media/2018/01/TENEX-Shared-Mapping-300x278.png" alt="" width="300" height="278" /></a>This mechanism doesn't involve changing the actual description of the storage and instead moves to a logical storage addressing model.  It was interesting to me to see this level of indirection added in such an early system, but clearly the mismatch in speeds between various types of storage dictated the importance of this scheme.  Once again, it is interesting to see how little the problems we face have actually changed.
+
+The data sharing model also uses an extra level of indirection.  I'm familiar with this model from my own work in Windows, where shared memory is indirectly mapped in a similar fashion.  That this mechanism was around in the early 1970s is once again a reminder of how little operating systems have fundamentally changed.
+
+There are many aspects of this paper that I have glossed over, in no small part because they don't really apply to modern systems - we don't have to worry about drum memories, for example, no more than we need to worry about punch card readers.  These two papers, however, clearly lay out a deeper realization of the file system than I have seen in prior work.
+
+TENEX differed from MULTICS in a number of ways and the two systems remained competitors for many years.  TENEX ultimately would become TOPS-20 and in turn be supported by Digital Equipment Corporation.  It was an important part of the early (pre-VAX) ARPANET and survived for many years as a viable system.
+
+If you would like to read more about this, I'd recommend Dan Murphy's <a href="http://tenex.opost.com/hbook.html">Origins and Development of TOPS-20</a> post.  It provides further fascinating background on how TENEX evolved and how <em>systems</em> evolved.  I leave you with the final words from that post:
+<blockquote><em>Although this book is about DEC's 36-bit architecture, it is clear now that hardware CPU architectures are of declining importance in shaping software. For a long time, instruction set architectures drove the creation of new software. A new architecture would be introduced, and new software systems would be written for it. The 36-bit architecture was large in comparison to most other systems which permitted interactive use. It was also lower in cost than most other systems of that size. These factors were important in the creation of the kind of software for which the architecture is known.</em>
+
+<em>Now, new architectures are coming along with increasing frequency, but they are simply "slid in" under the software. The software systems are far too large to be rewritten each time, and a system which cannot adapt to new architectures will eventually suffer declining interest and loss of competitive hardware platforms. TOPS-20 didn't pass that test, although it did contribute a number of ideas to the technology of interactive systems. How far these ideas ultimately spread is a story yet to be told.</em></blockquote>
+There is considerable insight in this for me, particularly the admonishment "<strong>software systems are far too large to be rewritten each time</strong>" as it resonates with (one of) my own research directions.
+
+&nbsp;
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

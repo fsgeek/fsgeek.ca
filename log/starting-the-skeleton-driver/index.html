@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starting the Skeleton Driver &middot; fsgeek.ca</title>
+  <meta name="description" content="Starting the Skeleton Driver">
+  <link rel="canonical" href="https://fsgeek.ca/log/starting-the-skeleton-driver/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / starting-the-skeleton-driver</div>
+    <article class="entry">
+      <h1>Starting the Skeleton Driver</h1>
+      <div class="entry-meta"><span>2019-05-21</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<figure class="wp-block-image"><img src="https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/05/VS19-start-driver.png?fit=600%2C400&amp;ssl=1" alt="" class="wp-image-647"/><figcaption>Screen shot of my newly created skeleton driver</figcaption></figure>
+
+<p><a href="https://fsgeek.ca/wp-admin/post.php?post=641">In my last post</a>, I installed the WDK (and described why I want to build a file system driver).  I started up Visual Studio 2019, said I wanted to create a new project, narrowed down the options to "WDK" related projects, and scrolled down to the WDM driver option.</p>
+
+<p>I'm not building a WDM driver, but it is the closest project type to what I want to do.  It creates a <em>solution</em> with the name specified and then creates a <em>project</em> with the same name.  The only file that it pre-constructs for me is an <strong>inf</strong> file.  I will need to do work on that before I can use it, but I'll leave that for later.  File system installation files are surprisingly uncomplicated, since all we really need to do to install a file system driver is set up a few registry keys.</p>
+
+<p>Since I had just installed Visual Studio 2019, I'll need to tune things to my working environment.  I started by enabling git integration, since I will be using github.com for my source code repository (<a href="https://github.com/fsgeek/winskel">winskel</a>).</p>
+
+<p>That took more time than I anticipated - I installed the Github integration into Visual Studio, which restarted Visual Studio.  I was then told "there is an update to GitHub extension for Visual Studio".  Thus, I installed the update next.   That required another restart to install the update.  I hope the Visual Studio folks take a lesson from the VS Code team, since I install VS Code extension updates all the time with just a refresh, not a full restart.  Of course, I used that time to continue adding to my post here, so it wasn't <em>entirely </em>wasted time.  Still, it is stunning that they construct a restore point just for installing new extensions.<br></p>
+
+<figure class="wp-block-image"><img src="https://i1.wp.com/fsgeek.ca/wp-content/uploads/2019/05/disable-wdk-extensions-warning.png?fit=600%2C21&amp;ssl=1" alt="" class="wp-image-649"/><figcaption>The new helpful error message upon restarting!</figcaption></figure>
+
+<p>I really liked the fact that Visual Studio 2019 suggested to me that I could make startup faster by <em>disabling</em> the WDK extension - how <em>helpful</em>, given that the reason I'm running Visual Studio 2019 is because I want to use the WDK.  It makes me long for the days of SOURCES files and command line program building.  I know it is possible to develop without using Visual Studio and perhaps I'll explore that again at some point, but I'd rather be writing code for my new driver rather than fussing with the tools and environment at this point.</p>
+
+<figure class="wp-block-image"><img src="https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/05/code-analysis.png?fit=600%2C428&amp;ssl=1" alt="" class="wp-image-650"/><figcaption>I enable code analysis - it can be annoying, but it also finds bugs.</figcaption></figure>
+
+<p>Since this is a new project, I'm going to enable the static code analysis tools.  While not <em>required</em>, I choose the "All Rules" option because it is the most restrictive setting available.  Note that I am applying this to all the configurations (debug and release) as well as the platforms for which I have installed the compiler tools (I did not install the ARM compiler tools, so I cannot include them).</p>
+
+<p>Having enabled the checks, I built my simple file with just <strong>DriverEntry</strong> (and an error return).  Of course, as I expected, the static analysis tools are now reporting issues, so I add annotations (<strong>DRIVER_INITIALIZE DriverEntry;</strong> for example) and modify my code (the static analyzer points out that both the <strong>DriverObject</strong> and <strong>RegistryPath</strong> can be set as <strong>const</strong> pointers).  Since I will be changing <strong>DriverObject</strong> I suppress the warning.  I don't expect to change the <strong>RegistryPath</strong>, so I mark it as <strong>const</strong>.</p>
+
+<p>I also had a warning that while the spectre/meltdown mitigation option has been selected for the compiler, the libraries with the needed mitigations are not installed.  So back I went into the installer and installed the missing libraries.  Things now build well, and I have my super-minimal driver.  It won't <strong>do</strong> much, since the <strong>DriverEntry</strong> function returns a failure code, which means it will load and then unload.</p>
+
+<p>However, this is enough for me to make the <strong>inf</strong> file work, so I will do that next.</p>
+
+<figure class="wp-block-image"><img src="/media/2019/05/winskel.inf_.png" alt="" class="wp-image-652"/><figcaption>This is the default INF file that Visual Studio provided to me.<br><br></figcaption></figure>
+
+<p>Visual Studio generated a default INF file for me.  This isn't <em>quite</em> enough for me to install a working driver, so I'll need to modify it.  Plus, Microsoft changed some details about INF files for Windows 10 1903 and created a new <em><a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/develop/creating-a-primitive-driver">primitive</a></em><a href="https://docs.microsoft.com/en-us/windows-hardware/drivers/develop/creating-a-primitive-driver"> driver </a>type with rules that need to be followed if you want the driver to be properly (test) signed.</p>
+
+<p>So I worked through the INF file issues and I now have a working INF file, with a driver that (of course) won't actually <em>do</em> anything yet.</p>
+
+<p>Next, I turned my attention to pulling together a C++ runtime so that I <em>can</em> use C++ if I want.  Basically, there are several things that need to be done to make this work:</p>
+
+<ul><li>I need memory management functions</li><li>I need initializer support</li><li>I have to wrap the standard functionality (DriverEntry) and coordinate the Unload function so it calls the cleanup logic.</li></ul>
+
+<p>In the past, I've added a template layer above the allocators, which permits me to specify (on a per-object type) what the pool type and pool tag are for the allocations.  Unlike in user mode memory, where we normally don't worry about these things, in the kernel we <em>do</em> need to worry about whether memory is pageable or not.  Plus, we have to provide some mechanism for finding memory leaks since there is no automatic garbage collection.  Note that my goal isn't to port STL into the Windows kernel (though I <em>did</em> see one project where it looked like someone had done that).  Similarly, I don't plan on supporting C++ structured exception handling.  So it will provide me with most C++ code features, but I'll eschew those that require specialized run-time support.</p>
+
+<p>As I wrap this up for the day, I have the allocation routines plumbed.  The next step is to get the initializer code written - it revolves around walking through some memory locations where global and static constructors need to be called - the Microsoft C++ compiler embeds some magic information in memory to do this.  I also need to construct a list of things to be called when terminating the runtime.</p>
+
+<p>Once that's done, I'll move on to adding basic functionality.  One thing that will greatly simplify this initial effort is that I don't have to worry about integration with the memory manager or cache manager because I can defer I/O management to the native file system.  Perhaps, once we've proven the viability of this approach, I can look further at integration.</p>
+
+<p>I will continue describing my progress and updating the repository as I work through this project over the coming months.</p>
+
+<p><br></p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

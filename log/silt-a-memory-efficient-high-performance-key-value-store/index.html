@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SILT: A Memory-Efficient, High-Performance Key-Value Store &middot; fsgeek.ca</title>
+  <meta name="description" content="SILT: A Memory-Efficient, High-Performance Key-Value Store">
+  <link rel="canonical" href="https://fsgeek.ca/log/silt-a-memory-efficient-high-performance-key-value-store/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / silt-a-memory-efficient-high-performance-key-value-store</div>
+    <article class="entry">
+      <h1>SILT: A Memory-Efficient, High-Performance Key-Value Store</h1>
+      <div class="entry-meta"><span>2018-04-25</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=2043558">SILT: A Memory-Efficient, High-Performance Key-Value Store</a>
+Hyeontaek Lim, Bin Fan, David G. Andersen, Michael Kaminsky, <em>in Proceedings of the 23rd Symposium on Operating Systems Principles (SOSP '11)</em>, October 23-26, 2011, Cascais, Portugal.
+
+In this paper, we have an interesting hybrid key-value store; part of the store is in DRAM, while the rest of it is stored in flash storage.  The authors have focused on optimizing the performance of the store across the specific media chosen, which leads to some interesting choices and observations.
+<blockquote><em>SILT (Small Index Large Table) is a memory-efficient, highperformance</em>
+<em>key-value store system based on flash storage that</em>
+<em>scales to serve billions of key-value items on a single node. It requires</em>
+<em>only 0.7 bytes of DRAM per entry and retrieves key/value</em>
+<em>pairs using on average 1.01 flash reads each. SILT combines new</em>
+<em>algorithmic and systems techniques to balance the use of memory,</em>
+<em>storage, and computation. Our contributions include: (1) the design</em>
+<em>of three basic key-value stores each with a different emphasis on</em>
+<em>memory-efficiency and write-friendliness; (2) synthesis of the basic</em>
+<em>key-value stores to build a SILT key-value store system; and (3) an</em>
+<em>analytical model for tuning system parameters carefully to meet the</em>
+<em>needs of different workloads. SILT requires one to two orders of</em>
+<em>magnitude less memory to provide comparable throughput to current</em>
+<em>high-performance key-value systems on a commodity desktop</em>
+<em>system with flash storage.</em></blockquote>
+Thus, to achieve optimal performance they construct a <em>hybrid</em> ensemble of key-value stores that are optimized to particular underlying media.
+
+They start early with their performance observations, and continue this pace throughout the paper.  Thus, they point out that they have a small memory requirement (0.7 bytes per key value) and only a single read from flash required:
+
+<a href="/media/2018/04/silt-figure1-1.png"><img class="size-medium wp-image-460 aligncenter" src="/media/2018/04/silt-figure1-300x246.png" alt="" width="300" height="246" /></a> This fits well with their observation that memory efficiency is critically important for scalable key-value stores.  Their system saturated the capabilities of their hardware with 46,000 lookups per second, though this doesn't guarantee that it will do so on newer, faster hardware (and we will get to several current KV stores.
+
+&nbsp;
+
+<a href="/media/2018/04/silt-figure2-1.png"><img class="size-medium wp-image-461 aligncenter" src="/media/2018/04/silt-figure2-300x70.png" alt="" width="300" height="70" /></a> Figure 2 (from the paper) provides a basic description of the SILT architecture.  From this, we can see the three distinct types of stores that are used within their implementation:
+<ul>
+ 	<li><strong>LogStore</strong> - uses a CPU-efficient cuckoo-hash based only upon a <strong>tag</strong> derived from the full key (20 bytes).  The benefit of this approach is that it avoids accessing the flash memory if the key is not present.  It is probabilistic, in that a key might not be present in Flash with some low probability.</li>
+ 	<li><strong>HashStore</strong> - uses a memory-efficient storage model for their cuckoo flash table.  These stores are <em>immutable</em> and are stored in flash.</li>
+ 	<li><strong>SortedStore</strong> - They use an <em>entropy-coded trie</em>, which provides a very space efficient indexing mechanism: the average according to the authors is 0.4 bytes <em>per key</em>.  Given that keys are 160 bits (20 bytes), which means the index is 64 bits (8 bytes).   The authors provide us with an impressive list of specific optimizations they have applied to sorting data, packing indexes, intelligent (non-pointer) based addressing,</li>
+</ul>
+They also provide us with pretty figures to graphically lay out their data structures.   First, Figure 3, which shows the in-memory cuckoo hash table:
+
+<a href="/media/2018/04/silt-figure3-1.png"><img class="size-medium wp-image-462 aligncenter" src="/media/2018/04/silt-figure3-300x241.png" alt="" width="300" height="241" /></a> Note the fact the key-value insertions are logged to the flash storage.
+
+When we move onto <strong>HashStore</strong>, they show us how the structure of the data is moved from insertion order to hash sorted order as the data is moved from memory to flash.
+
+<a href="/media/2018/04/silt-figure4-1.png"><img class="size-medium wp-image-463 aligncenter" src="/media/2018/04/silt-figure4-300x265.png" alt="" width="300" height="265" /></a> Recall that once written to Flash, the <strong>HashStore</strong> is immutable - so this order will remain fixed.
+
+Of course, one of the important aspects of a key-value store is the ability to <em>look up</em> the data quickly.  Thus, they also show us how they sort data using a prefix tree (Trie).  This is a key aspect of their <strong>SortedStore:</strong>
+
+<a href="/media/2018/04/silt-figure5-1.png"><img class="size-medium wp-image-458 aligncenter" src="/media/2018/04/silt-figure5-300x243.png" alt="" width="300" height="243" /></a>
+
+The in-memory Trie, permits them to rapidly find the corresponding data in Flash.  This is one of their key motivations for very efficient encoding of the Trie: it ensures they can store it in memory.  Once they can no longer store the indices in memory the lookup system will become I/O bound (to the Flash, in this case).
+
+Figure 6 then shows how they actually encode the length of the tree in each direction, and how it is entropy encoded:<a href="/media/2018/04/silt-figure6-1.png"><img class="size-medium wp-image-459 aligncenter" src="/media/2018/04/silt-figure6-300x188.png" alt="" width="300" height="188" /></a>There is some serious thought that has gone into their layout.  They do admit, however, that they are not providing crash tolerance: there will be data that was stored in DRAM that cannot be recovered after a crash.  They do not discuss the use of NVM for achieving this.  Instead, they suggest a synchronous write mechanism in which the write blocks until the log data has been written to the flash-based log.
+
+One of the interesting aspects of their performance evaluation is the recognition that they have quite a few parameters that must be chosen.  Thus, they spend more than a page of the paper just discussing the relative merits of the trade-offs involved in selecting various parameters.  They consider <strong>write amplification</strong> (the need to write more than just the data being preserved), <strong>read amplification </strong>(performing reads only to discover the data that you seek is not present), <strong>memory overhead </strong>(how much DRAM is used), and <strong>update rate versus flash life time</strong>.  This latter point is an interesting one to keep in mind when reading about non-volatile memory: it <em>wears out</em>.  There is a certain amount of degradation that occurs in the underlying physical medium each time it is erased and re-used.  The specific details are dependent upon the characteristics of the medium, but it <em>is</em> an issue to keep in mind.
+
+The evaluation of SILT is certainly interesting.  They choose not to compare to any other KV system and instead focus on the performance of their system using a variety of fairly standard loads (YCSB) as well as simple get/put key operations as micro-benchmarks.    They end up claiming they they can lookup almost 45k keys per second in the <em>slowest</em> of their hybrid stores.  When combined, they indicate they can achieve almost 58k <strong>get</strong> operations per second on a single core.  As they move to multiple cores they see some further improvement (180k <strong>get</strong> operations per second for data that is already in memory).
+
+SILT offers some interesting observations, particularly about highly efficient use of memory and novel indexing schemes.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

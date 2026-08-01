@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projects (Winter 2023 Term 1) &middot; fsgeek.ca</title>
+  <meta name="description" content="Projects (Winter 2023 Term 1)">
+  <link rel="canonical" href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/projects-winter-2023-term-1/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link" aria-current="page">teaching</a>
+      <a href="/log/">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/teaching/">teaching</a> / <a href="/teaching/cpsc-416-winter-2023-term-1/">cpsc-416-winter-2023-term-1</a> / projects-winter-2023-term-1</div>
+    <article class="entry">
+      <h1>Projects (Winter 2023 Term 1)</h1>
+      <div class="entry-meta"><span>2023-08-17</span></div>
+      <div class="entry-body">
+<p>There will be <strong>fou</strong><strong>r</strong> projects this term.  Three of these projects are what I call <em>design project</em><em>s</em> because they emphasize the planning and design of a potential solution to a DSLabs project.  You will implement the design, but because the implementation is used as a tool to improve your design understanding and hone your skills of critical review and self-reflection <strong>your code is not directly grade</strong><strong>d</strong>.  You will submit your code, but as long as it compiles, you will receive credit for your submission. </p>
+
+<p>The fourth project is the <strong>Capstone Projec</strong><strong>t</strong>.  This is your opportunity to use your now enhanced design skills to build a system that incorporates concepts of distributed systems into your software solution. </p>
+
+<p>I'll describe each of these in greater detail below.</p>
+
+<h2 >Design Projects (3)</h2>
+
+<p>There will be three design projects:</p>
+
+<ul><li>Primary/Backup Design Project - this is based upon the DSLabs first substantive project, which is to implement a system with three functional components to provide reliable replicated data services.  <strong>This project will be a solo projec</strong><strong>t</strong>.  </li>
+
+<li>Paxos Design Project - this is based on the DSLabs second substantive project, which is to implement a system with multiple functional components that implement a specific optimized variant of the Paxos protocol, as described in the <strong><a rel="noreferrer noopener" href="https://paxos.systems/" target="_blank">PMM</a></strong><strong><a rel="noreferrer noopener" href="https://paxos.systems/" target="_blank">C</a></strong> paper. Interestingly enough, while this lab focuses on Paxos, in the past students have implemented other similar protocols (e.g., Raft) within that framework.  <strong>This project may be done in a group of up to three student</strong><strong>s</strong>. Note: the default will be that you do it on your own unless you declare your group to us by the deadline.</li>
+
+<li>Sharded Key-Value Store Project - this is based on the final DSLabs project, which is to implement a system using two-phase commit (2PC) transactions and shard rebalancing, combined with a Paxos implementation for replication of the individual shard groups.  Two relevant papers you will want to read as part of this project are <a rel="noreferrer noopener" href="https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf" data-type="link" data-id="https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf" target="_blank">Chord</a> and <a rel="noreferrer noopener" href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" target="_blank">Dynamo</a>. <strong>This project may be done in a group of up to four student</strong><strong>s<em>.</em></strong> Note: the default will be that you do it on your own unless you declare your group to us by the deadline.</li>
+</ul>
+
+<p>You have several deliverables for these projects:</p>
+
+<ul><li>You will provide your best effort design of a solution.  In doing so, you need to think about the components, their role in the project, and what the issues are that need to be addressed in the implementation. <strong>Grading for this is just for submissio</strong><strong>n</strong>.  The goal here is to help you learn better design skills.</li>
+
+<li>You will be given <strong>thre</strong><strong>e</strong> designs by other students to review.  You will then review those designs, providing feedback on them.  <strong>Grading for this is just for submissio</strong><strong>n</strong>.  The goal here is to help you provide critical review.  By <em>critical revie</em><em>w</em> I mean "feedback that strives to improve the original design through actionable suggestions." None of your feedback should be <em>ad hominem</em> or offensive.</li>
+
+<li>You will choose <strong>on</strong><strong>e</strong> of the three designs and implement it using the DSLabs framework on Gradescope.  <strong>Grading for this is just for submissio</strong><strong>n</strong>.  The purpose of the code isn't to make the best possible implementation (or one that gets 100% on the grader) and instead is focused on learning what issues you might have overlooked in your own review of the design, as well as additional flaws in the design.</li>
+
+<li>You will write an <strong>implementation repor</strong><strong>t</strong> that builds on your previous review by expanding that original design.  The purpose of this is not to criticize the original author, but to reflect upon the issues that <em>yo</em><em>u</em> may have overlooked and should demonstrate your abilities of self-reflection to think about how you can improve your future design work. <strong>Grading for this is just for submissio</strong><strong>n</strong>.</li>
+
+<li>You will be asked to review <strong>thre</strong><strong>e</strong> implementation reports by other students.  You will review those reports and provide feedback on them.  <strong>Grading is just for submissio</strong><strong>n</strong>.  The goal here is for you to see how others enhanced their understanding through self-reflection.  Since everyone is designing, implementing, and reflecting on the <strong>sam</strong><strong>e</strong> project, the goal is to help you increase your depth of understanding.</li>
+</ul>
+
+<p>Note that there's no explicit grade or review of your work. However, the instructional team will attempt to identify a handful of exemplary reports to showcase.</p>
+
+<h2 >Capstone Project</h2>
+
+<p>In the Capstone Project, <em>yo</em><em>u</em> get to utilize your design skills to demonstrate your understanding of the distributed systems principles we will have been discussing in the class. <strong>This project will be graded</strong><strong>.</strong> <strong>You may work in a team of up to five</strong><strong>.</strong> Unless you declare your group up front we will expect you to provide an individual submission.</p>
+
+<p>There are five distinct deliverables as part of your Capstone Project:</p>
+
+<ul><li>Design Document - this is where you describe your project: what problem is it solving, what are the goals for your problem, what is the architecture of your solution, what design did you choose to guide your implementation of your project.</li>
+
+<li>Implementation - this is your implementation.  It is in the language of your choice, with the tests of your choice. Your code will be submitted via GitHub.</li>
+
+<li>Status Reports - each week throughout the project, you will be responsible for submitting a written status report.  <strong>This is an individual activit</strong><strong>y</strong>; that is, each of you must submit a status report.</li>
+
+<li>Final Report - This will be your final document in which you review what you did and how it compares to your original design.  Our primary review here will be to ensure you demonstrate understanding and beneficial self-reflection, so we will be looking to see how effective you are at identifying the strengths and weaknesses of your work.</li>
+
+<li>Final Presentation - This will be a video presentation demonstrating your project. Criteria for grading will be the quality of the presentation, and clarity of your goals.</li>
+</ul>
+
+<p>Note that for <strong>AL</strong><strong>L</strong> projects and reports, the material will be included in a library that is visible to other students in the class.  <strong>Do not include personally identifiable information in your submission if you wish to remain anonymous</strong><strong>.</strong></p>
+
+<p>The instructional team will highlight the capstone projects we thought were the best overall by the end of the term.  Our goal here is to help those taking the class see the range of work that others have done and (hopefully) learn from the experience.  In this way you will leave the course with a solid understanding of distributed systems <em>an</em><em>d</em> good design.</p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Of file handles and implicit offsets (Follow-up) &middot; fsgeek.ca</title>
+  <meta name="description" content="Of file handles and implicit offsets (Follow-up)">
+  <link rel="canonical" href="https://fsgeek.ca/log/of-file-handles-and-implicit-offsets-follow-up/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / of-file-handles-and-implicit-offsets-follow-up</div>
+    <article class="entry">
+      <h1>Of file handles and implicit offsets (Follow-up)</h1>
+      <div class="entry-meta"><span>2017-12-02</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+My post about <a href="/log/of-file-handles-and-implicit-offsets/">file handles</a> elicited some interesting feedback, so I wanted to capture it because I thought it provided some insight.
+
+Shared libraries were not a standard part of UNIX systems in the 1980s (though they had certainly been described in prior work) and thus one interesting observation here is that putting code <strong>in the kernel</strong> was a way of minimizing the amplification of common runtime code.  The use of shared libraries today and our increased certainty that kernels need to be as small as we can make them certainly would lead to a very different divide today.
+
+Conversations with Malcolm are often insightful, so I wanted to capture it here because it is <em>definitely</em> germane to the area that I'm exploring, particularly as I try to explain some of the underlying rationale for it - a combination of software archaeology and pragmatically looking at how to evolve forward.
+
+<blockquote>
+I always thought this was just a programming convenience, because it allows a simple program to have "read next" semantics, and half of the core UNIX utilities are stream parsers that want that semantic. While you're in the area though, I'd ask "what's the purpose of a current directory?" which is implemented (on Windows) as a process wide value. I'm guessing it also started (on UNIX) as a programming convenience, but being process-wide has meant that it disappeared as a convenience and reemerged as a headache. (DOS arguably had a different history since it was trying to run non-directory aware applications in the presence of directories.)
+</blockquote>
+
+My response:
+
+<blockquote>
+If it were just a convenience we could easily bury it in a library. I’m trying to do some hybrid file systems implementation work and it creates complications that seem unnecessary. But who really looks at this old cruft anyway? 
+
+Current directory is another good one. And the directory enumeration offset a third.
+</blockquote>
+
+And his reply:
+
+<blockquote>
+As you mentioned though, POSIX was trying to codify existing implementations, and presumably at some point the choice between kernel and library could have been made, but once it's been made it's hard to change. UNIX libraries always seemed strange to me in that in many cases they're super-simple syscall wrappers (similar to NTDLL) but in some cases (file pattern matching) all the heavy lifting is there. Remember that in the beginning shared libraries weren't a thing, so requiring functionality to be in a library meant duplicated code while the kernel provided a natural place to share code/functionality. This probably influenced a lot of choices.
+</blockquote>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

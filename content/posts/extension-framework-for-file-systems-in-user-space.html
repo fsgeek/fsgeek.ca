@@ -17,11 +17,11 @@ tags: ["File System", "fuse", "linux"]
 <!-- /wp:image -->
 
 <!-- wp:paragraph -->
-<p>The idea of improving <a href="https://fsgeek.ca/2019/06/18/fuse-file-systems-in-user-space/">FUSE </a>performance has become a common theme.  This paper, which will be presented this week at USENIX ATC 2019 in Renton, WA, is one more to explore how we can improve FUSE performance.</p>
+<p>The idea of improving <a href="/log/fuse-file-systems-in-user-space/">FUSE </a>performance has become a common theme.  This paper, which will be presented this week at USENIX ATC 2019 in Renton, WA, is one more to explore how we can improve FUSE performance.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p>One bit of feedback I received from the <em><a href="https://fsgeek.ca/2019/07/02/direct-fuse-removing-the-middleman-for-high-performance-fuse-file-system-support/">last</a></em><a href="https://fsgeek.ca/2019/07/02/direct-fuse-removing-the-middleman-for-high-performance-fuse-file-system-support/"> FUSE performance paper </a>I reviewed (last week) suggested that people do want to build file systems in user space for a variety of reasons, not the least of which is because they want to move that complexity out of the kernel environment.  Thus, the argument is that the <em>reason</em> people build kernel file systems is because of performance.  While I remain unconvinced that this is not the only impediment to a broader adoption of FUSE file systems, I will save that for a future discussion.</p>
+<p>One bit of feedback I received from the <em><a href="/log/direct-fuse-removing-the-middleman-for-high-performance-fuse-file-system-support/">last</a></em><a href="/log/direct-fuse-removing-the-middleman-for-high-performance-fuse-file-system-support/"> FUSE performance paper </a>I reviewed (last week) suggested that people do want to build file systems in user space for a variety of reasons, not the least of which is because they want to move that complexity out of the kernel environment.  Thus, the argument is that the <em>reason</em> people build kernel file systems is because of performance.  While I remain unconvinced that this is not the only impediment to a broader adoption of FUSE file systems, I will save that for a future discussion.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
@@ -29,7 +29,7 @@ tags: ["File System", "fuse", "linux"]
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p>Their description of FUSE is quite a bit different than what I got from the <a href="https://fsgeek.ca/2019/06/20/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">FUSE performance paper at FAST 2018</a> - this paper describes FUSE as a "simple interposition layer"; the earlier description made it sound more complex than that.   They do point out that FUSE file systems in production are becoming more common and point to Gluster, Ceph, and even Android's SD card file system.  For network file systems the overhead of FUSE is unlikely to have a material impact all but the most performance sensitive environments because the overhead of the network likely dominates.  Similarly, SD card media is typically slow so once again the rate-limiting overhead is likely not the FUSE library and driver.</p>
+<p>Their description of FUSE is quite a bit different than what I got from the <a href="/log/to-fuse-or-not-to-fuse-performance-of-user-space-file-systems/">FUSE performance paper at FAST 2018</a> - this paper describes FUSE as a "simple interposition layer"; the earlier description made it sound more complex than that.   They do point out that FUSE file systems in production are becoming more common and point to Gluster, Ceph, and even Android's SD card file system.  For network file systems the overhead of FUSE is unlikely to have a material impact all but the most performance sensitive environments because the overhead of the network likely dominates.  Similarly, SD card media is typically slow so once again the rate-limiting overhead is likely not the FUSE library and driver.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->

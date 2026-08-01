@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time, Clocks, and the Ordering of Events in a Distributed System &middot; fsgeek.ca</title>
+  <meta name="description" content="Time, Clocks, and the Ordering of Events in a Distributed System">
+  <link rel="canonical" href="https://fsgeek.ca/log/time-clocks-and-the-ordering-of-events-in-a-distributed-system/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / time-clocks-and-the-ordering-of-events-in-a-distributed-system</div>
+    <article class="entry">
+      <h1>Time, Clocks, and the Ordering of Events in a Distributed System</h1>
+      <div class="entry-meta"><span>2018-02-24</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<em><a href="https://amturing.acm.org/p558-lamport.pdf">Time, Clocks, and the Ordering of Events in a Distributed System</a>
+Leslie Lamport, Communications of the ACM, July 1978, pp. 558-565. </em>
+
+I had not originally intended to cover this paper, but as I started trying to describe <a href="https://fsgeek.ca/?p=337&amp;preview=true"><em>Implementing Atomic Actions on Decentralized Data</em></a>, I realized that I needed to include it in order to better explain that work.  This is one of the papers for which Leslie Lamport was awarded the <a href="https://amturing.acm.org/award_winners/lamport_1205376.cfm">Turing Award</a>.  In it, he is wrestling with the effects of relativity in computer systems.
+
+What does this mean?  In essence, as soon as we have more than two distinct computer systems communicating with one another in a network, we must account for the fact that the order of events may now vary for each individual note.   Indeed, as it turns out, this effect is not restricted to distributed systems.  It can be seen in single computer systems with multiple processors as well (another area where Lamport was significantly involved) in the study of <a href="https://en.wikipedia.org/wiki/Consistency_model"><em>consistency models</em></a>.
+
+Networks tend to exacerbate these issues because the times involved often make it more apparent that there are issues. This will profoundly impact distributed systems (including distributed file systems, a notable and classic example of distributed systems) and we continue to wrestle with its manifestations 40 years after this paper.
+
+<a href="/media/2018/02/Figure-1.png"><img class="alignleft size-medium wp-image-345" src="/media/2018/02/Figure-1-300x280.png" alt="Figure 1" width="300" height="280" /></a>
+
+The paper describes a system (Figure 1) in which three different components, labeled <em>Process P, Process Q, </em>and <em>Process R, </em>are sending messages between them.  Individual messages are labeled and numbered in sequence and the time between them is shown.  It is worth noting that the times are of both when the message was <em>sent</em> as well as when it was <em>received</em>.
+
+This demonstrates that the <strong>observed</strong> order of events does not necessarily match what an external observer might see as the ordering.  Thus, for example, <em>Process R</em> receives messages in a different order than they were sent by <em>Process Q</em>.  This behavior might seem surprising initially, but is in fact a common occurrence.  This could be due to queue types, intermediate network components, scheduling delays, etc.
+
+Thus, he asks the question: what is the correct ordering of events in this system?  How do we capture this and ensure that the system behaves as we expect? <a href="/media/2018/02/Figure-2.png"><img class="alignright size-medium wp-image-346" src="/media/2018/02/Figure-2-300x268.png" alt="Figure 2" width="300" height="268" /></a>
+
+He introduces a nomenclature of describing the "happened before" relationship, establishing an ordering of events within the system.  He uses the → character to indicate this relationship.  Thus, if <em>a </em>comes before <em>b</em> he writes "<em>a</em> → <em>b</em>".  Similarly it is <a href="https://en.wikipedia.org/wiki/Transitive_relation">transitive</a> operation: if <em>a → b</em> and <em>b → c</em> then <em>a → c</em>.  Finally he defines an operation as <em>concurrent</em> if there is no ordering between <em>a</em> and <em>b</em>.   This applies to operations within a single process as well as between processes.  He notes in this discussion that <i>sending</i> a message must have happened before <em>receiving </em>a message.
+
+While this might sound simple, it helps us begin to reason about these events, since we can pay attention to the events that do have ordering constraints and ignore those that do not.  In many cases, we won't care about the order of two operations because the net effect is the same, regardless of the order.  What we do want to do, however, is ensure that we understand ordering for those operations where it <em>does</em> matter.
+
+Figure 2 then takes the same chart, but this time he adds the concept of a clock tick.  The dashed lines represents the tick of a clock; the ticks occurs <em>between</em> events.  He then defines the time ordering ("clock function") is related to the → relationship.  If <em>a → b</em> then C(<em>a</em>)  &lt; C(<em>b</em>). That is, the clock tick (time) is also well ordered.  He observes then that we can extend this definition to cover the prior case, where we look at the ordering of operations within a single process, as well as across processes: recall that <em>a → b </em>is required for messages sent between processes, where <em>a</em> is the send event and <em>b</em> is the receive event and thus C(<em>a)</em> &lt; C(<em>b</em>) in this case as well.  He calls this the "Clock Condition".
+
+<a href="/media/2018/02/Figure-3.png"><img class="alignleft size-medium wp-image-347" src="/media/2018/02/Figure-3-292x300.png" alt="Figure 3" width="292" height="300" /></a> He then goes one step further: he flattens out the clock ticks, yielding Figure 3.  Now our clock ticks are uniform time and our events are within one of the clock tick intervals.  Since we separate dependent operations, we now have a model we can use to order events globally.
+
+<em>This</em> was the point he was trying to make.  "<em>Being able to totally order the events can be very useful in implementing a distributed system.</em>"  This is a classic understatement and is the focus of much of distributed systems research and implementation to this day: how do you ensure that you have a definitive order of events.  We will see this when looking at later work.
+
+At this point he focuses on more rigorously defining his system.  This allows him to note that this becomes a "distributed algorithm".  He describes the <em>replicated state machine</em> that is being executed by all the nodes within the distributed system.  There is no central authority in this model forcing the ordering.
+
+<strong>This</strong> is an important point not to miss: in Lamport's distributed system there is no requirement for a centralized service.  He does not insist on a total ordering of events in the system and settles for a partial ordering - one in which he doesn't worry about the events that aren't sensitive to their ordering.  This is a powerful technique because it gives up total determinism; we gain performance through parallelism.
+
+From this article we get the <a href="http://carothersc.github.io/ROSS/model-dev/lamport.html"><strong>Lamport Clock</strong></a> which is not so much a clock as a monotonically increasing value that represents relative ordering.  Note that a hardware clock will satisfy this invariant requirement as well.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

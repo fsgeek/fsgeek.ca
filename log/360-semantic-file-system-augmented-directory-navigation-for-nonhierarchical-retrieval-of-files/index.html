@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>360° Semantic File System: Augmented Directory Navigation for Nonhierarchical Retrieval of Files &middot; fsgeek.ca</title>
+  <meta name="description" content="360° Semantic File System: Augmented Directory Navigation for Nonhierarchical Retrieval of Files">
+  <link rel="canonical" href="https://fsgeek.ca/log/360-semantic-file-system-augmented-directory-navigation-for-nonhierarchical-retrieval-of-files/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / 360-semantic-file-system-augmented-directory-navigation-for-nonhierarchical-retrieval-of-files</div>
+    <article class="entry">
+      <h1>360° Semantic File System: Augmented Directory Navigation for Nonhierarchical Retrieval of Files</h1>
+      <div class="entry-meta"><span>2019-07-18</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<p><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8618600">360° Semantic File System: Augmented Directory Navigation for Nonhierarchical Retrieval of Files</a>, Syed Rahman Mashwani and Shah Kusro, in IEEE<em> Access</em>, January 29, 2019.</p>
+
+<figure class="wp-block-image"><img src="/media/2019/07/AdobeStock_132012080.jpeg" alt="360° Perspective" class="wp-image-756"/><figcaption>360° Perspective</figcaption></figure>
+
+<p>This paper makes some interesting observations that resonate with my own research observations, though I will end up arguing (in a future blog post) that they don't go far enough.  But they do a good job of laying out the problem and why some solutions do not work.  One of the common themes I have heard when discussing my own work is an insistence there really isn't a problem, though usually a longer conversation ends up with us agreeing things <em>could<strong> </strong></em>be done better.</p>
+
+<p>The abstract is a bit long, but clearly describes the essence of the paper:</p>
+
+<blockquote class="wp-block-quote"><p>The organization of files in any desktop computer has been an issue since their inception. The file systems that are available today organize files in a strict hierarchy that facilitates their retrieval  either through navigation, clicking directories and sub-directories, in a tree-like structure or by searching (which allows for finding of the desired files using a search tool). Research studies show that the users rarely (4% - 15%) use the latter approach, thus leaving navigation as the main mechanism for retrieving files. <br>However, navigation does not allow a user to retrieve files nonhierarchically, which makes it limited in terms of time, human effort, and cognitive overload. To mitigate this issue, several semantic file systems (SFSs) have been periodically proposed that have made the nonhierarchical navigation of files possible by exploiting some basic semantics but no more than that. None of these systems consider aspects such as time, location, file movement, content similarity, and territory together with learning from user file retrieval behaviors in identifying the desired file and accessing it in less time and with minimum human and cognitive efforts. <br>Moreover, most of the available SFSs replace the existing le system metaphor, which is normally not acceptable to users. To mitigate these issues, this research paper proposes 360 SFS that exploits the SFS ontology to capture all the possible relevant file metadata and learns from user browsing behaviors to semantically retrieve the desired files both easily and timely. Based on user studies, the evaluation results show that the proposed 360 SFS outperforms the existing traditional directory navigation and recently open files.</p><cite>Paper Abstract</cite></blockquote>
+
+<p>Of course, the problem existed before the appearance of the desktop computer: the <a href="/log/the-unix-time-sharing-operating-system/">original UNIX </a>contained the <em>permuted index server</em>, which suggests to me that even in 1973 people were struggling to find things.  What I do find interesting is the observation that people really do not like search - I <a href="/log/the-ubiquitous-digital-file-a-review-of-file-management-research/">recently described this insightful (to me at least) observation</a>. Here it is once again, complete with references (in the paper) to prior work demonstrating this point.  Indeed, it suggests to me one alternative explanation as to why the <a href="https://en.wikipedia.org/wiki/Google_Desktop">Google Desktop Search</a> project was ultimately cancelled - not because it was "no longer necessary" but rather because it wasn't useful to most computer users.</p>
+
+<p>Another thing that I have observed, repeatedly, when working with students, is there seems to be a natural aversion to <em>searching</em> for answers.  Thus, students will post on class forums (such as Piazza, with which I am most familiary) asking questions, <em>even if the question has already been asked and answered</em>.  Searching for the answer does not seem to come naturally to such students.  Indeed, I often find myself using search engines to find the answer and giving the results back to the original question.  I have wondered about this "laziness" in the past and with this new insight I wonder if it is just because people prefer to <em>navigate</em> - and being told where to go is certainly one form of navigation.</p>
+
+<p>Interestingly, like the <a href="/log/gfs-a-graph-based-file-system-enhanced-with-semantic-features/">Graph File System</a> paper I described previously, these authors also argue that we cannot abandon the hierarchical <em>view </em>of files.  I am not convinced of this, but I can understand the appeal of starting from it as a basic premise.  We have been doing some work recently on a graph visualization model for the file system, more as a prototype, but it is surprisingly functional and encouraging us to look at alternative visualizations of file system data <em>for navigation</em>.  In other words, thinking of the problem as a <em>search</em> problem ultimately seems to be the wrong path - yet that is the point of things like semantic file systems, to improve search.</p>
+
+<p>The paper has an extensive review of prior work, much of which I've also previous described, though there were a few systems I had not previously seen.  Table 1 of the paper has a comparison of features across the various file systems.  Thus, the authors distinguish themselves from prior by focusing on providing enhanced functionality, using auxiliary directories, in which they display related content.  They focus on:</p>
+
+<ul><li>Temporal characteristics - they focus on <em>when</em> files are being used, not merely frequency.  This is an idea we've been exploring as well.</li><li>Geographical location - this is intriguing; identifying <strong>where</strong> the user was when they accessed a given file.</li><li>File movement - when files are reorganized and moved around.</li><li>File access patterns - they cluster files as related based upon the temporal proximity of their access; another idea we've been exploring.  I found it insightful they describe this as a "relationship" though they do not explore a broader range of relationships.</li><li>Content similarity - files that are identical or substantially similar can be associated together; this is another technique that we've been actively investigating.</li><li>Manual tagging</li></ul>
+
+<p>They describe the file system they implement, which is essentially a layered file system in which they add two virtual directories: <strong>NOW</strong> and <strong>TAGS</strong>.  They describe the interface for adding this information as well, which I found cumbersome, but it is in keeping with their goal of not deviating from the existing hierarchical interface.  They do also permit the creation of custom virtual directories as well, though that is only briefly mentioned in the paper.</p>
+
+<p>One of the problems they highlight, which resonated with me because we've been discussing the same problem, is how much information to display to users - in essence, when confronted with <em>too many</em> options, users quickly become overwhelmed.  </p>
+
+<p>Their evaluation focuses on the amount of time it took users to locate their files when using their enhanced file systems model and they lay out a case for the fact their system works well for their study group.  One limitation of their study group is that it is based upon an experienced computer user group, but this is reflective of their environment.</p>
+
+<p>One interesting comment was that while they used Linux for their evaluation, Windows would have been a better platform because of its broader usage within their organization.  I have wondered how much the use of Linux tends to create a bias in an evaluation of this type, since most people are using Windows or Apple computers.  Would the results be similar?</p>
+
+<p>The authors do point to their open source implementation of their file system.  I have not yet evaluated it, but it is definitely something on my (all too long) list of things to do.</p>
+
+<p></p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

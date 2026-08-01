@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database versus File System &middot; fsgeek.ca</title>
+  <meta name="description" content="Database versus File System">
+  <link rel="canonical" href="https://fsgeek.ca/log/database-versus-file-system/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / database-versus-file-system</div>
+    <article class="entry">
+      <h1>Database versus File System</h1>
+      <div class="entry-meta"><span>2018-01-09</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=1464088">A general purpose programming system for random access memories</a>
+<em>Proceedings of the October 27-29, 1964 Fall Joint Computer Conference, Part 1, pp. 411-422, ACM, 1964.
+Bachman, Charles W., and S. B. Williams. </em>
+
+When I discussed <a href="/log/multics/">MULTICS file systems</a> I disingenuously glossed over an important point they make there: namely, that file systems are an ordered sequence of <strong>elements</strong>.  Today, we think of those elements as bytes, but in fact their definition was more general than just bytes.
+
+Thus, I step back in time and look deeper.  What happens if the elements are not individual bytes?  Where does that lead us? In this paper, it discusses <strong>records</strong>.  Thus, we see before the clear division of unstructured data (byte oriented files) and structured data (record oriented data).  These two fields are inextricably linked in history and while we will see them diverge from one another, we will see the similarity as techniques from one are often used by the other.
+
+<a href="/media/2018/01/figure1.png"><img class="size-medium wp-image-256 alignleft" src="/media/2018/01/figure1-300x285.png" alt="" width="300" height="285" /></a>Thus we see the early concept of a database emerging.  While I won't talk extensively about databases, it seems useful to point them out because we will find ourselves returning to some of these ideas over time.
+
+Thus, they define a record: it has multiple data fields, with chained information.  They have <em>structure</em> - "describing an event, a thing, plan, [or] status".  If we have multiple records that are logically indexed, we have a file system - at least based upon the MULTICS definition.
+
+Of course, the astute reader might point out that this paper precedes the MULTICS paper by a year. Thus, I would suggest that in MULTICS they didn't wish to exclude the idea of record oriented systems.
+
+Today, we tend to think of files as being a logical array of bytes.  This doesn't have the inherent concept of a relationship between the fields (bytes) because in a byte oriented model there is no relationship.  But I'm getting ahead of the conversation at this point.
+
+What this paper is describing is a logical association of information elements that are internally linked together in some fashion.  There is structure to this information; the idea is that whatever we are describing requires some finite amount of storage.
+
+<a href="/media/2018/01/figure3.png"><img class="size-medium wp-image-257 alignright" src="/media/2018/01/figure3-255x300.png" alt="" width="255" height="300" /></a>Here is where things get interesting in this paper (at least to me).  They show us this wonderful diagram (Figure 3 from the paper) that views our storage space as being nothing more than an extension of memory - these records can be stored in "<a href="https://en.wikipedia.org/wiki/Magnetic-core_memory">core memory</a>" or they can be stored in "disk memory".  This concept of thinking about disks as being a form of memory might seem strange today, but there is a certain logic to it - and we see modern systems dealing with the hierarchical nature of storage.  Again, I'm getting ahead of myself.
+
+So what other interesting insights lurk in this paper?  May of its details are about their model for creating associations between records into a <strong>chain</strong>.  These chains are intriguing, as they form a closed loop in their model.  One benefit of this approach is that when you construct chains, you can traverse them from beginning to end, regardless of where you start.  The authors build on top of this model to construct an interesting system in which data is shared across different record chains.  They point out this avoids inconsistency and saves space.
+
+Today, we look at this and think "but of course, that's how we construct data structures". Thus, one of the contributions of this paper: an idea we now take for granted.  We've moved far beyond this concept, but it is rooted here.
+
+<a href="/media/2018/01/figure7.png"><img class="size-medium wp-image-258 alignleft" src="/media/2018/01/figure7-219x300.png" alt="" width="219" height="300" /></a>The paper links the insertion and retrieval of these records with the terminology of then modern languages <a href="https://en.wikipedia.org/wiki/COBOL">COBOL</a> and <a href="https://en.wikipedia.org/wiki/Fortran">FORTRAN</a>: they <strong>PUT</strong> and <strong>GET </strong>individual records (much like we do with the HTTP protocol).
+
+The paper discusses the details of moving data between core and disk of how to determine if something is in core, and even the need to try and keep frequently accessed data in core, while infrequently accessed data is transferred to disk.
+
+This is a common concern for file systems <em>and</em> databases, and we see it described in this paper.  In essence, they are describing the <a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_Recently_Used_(LRU)">least recently used</a> algorithm.
+
+The rest of this paper then uses a purchase ordering system as the basis of describing the interactions of the records and how they are used to implement the necessary functionality.  We don't tend to think of purchasing systems, or <em>any</em> database interaction, as being a systems level activity these days, but in 1964 it certainly was.
+
+Why is this structure useful?  "It yields efficient programs with buffered operation of the disc file."
+
+We will return to these issues in future papers as well.  My goal here was just to touch upon this divide between file systems and databases that forms in this early time period.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

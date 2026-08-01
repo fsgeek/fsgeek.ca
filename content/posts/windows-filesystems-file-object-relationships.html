@@ -17,7 +17,7 @@ tags: ["Cache Manager", "Memory Manager", "Windows File Systems"]
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p>Each time a user opens a file the I/O Manager creates a new file object (I described this in <a href="https://fsgeek.ca/2019/06/13/file-system-driver-create/">Create</a> previously.)  A Windows File system is responsible for initializing specific fields of the File Object including the <strong>SectionObjectPointers</strong> field.   This is a peculiar field - the file system <em>allocates</em> the space, but does not set the fields within it.  There is a many-to-one relationship between File Objects and this field.  The information here is used by two <em>other</em> parts of the operating system: the <strong>Memory Manager</strong> and the <strong>Cache Manager</strong>.</p>
+<p>Each time a user opens a file the I/O Manager creates a new file object (I described this in <a href="/log/file-system-driver-create/">Create</a> previously.)  A Windows File system is responsible for initializing specific fields of the File Object including the <strong>SectionObjectPointers</strong> field.   This is a peculiar field - the file system <em>allocates</em> the space, but does not set the fields within it.  There is a many-to-one relationship between File Objects and this field.  The information here is used by two <em>other</em> parts of the operating system: the <strong>Memory Manager</strong> and the <strong>Cache Manager</strong>.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->

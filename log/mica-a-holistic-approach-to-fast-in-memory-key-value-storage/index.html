@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MICA: A Holistic Approach to Fast In-Memory Key-Value Storage &middot; fsgeek.ca</title>
+  <meta name="description" content="MICA: A Holistic Approach to Fast In-Memory Key-Value Storage">
+  <link rel="canonical" href="https://fsgeek.ca/log/mica-a-holistic-approach-to-fast-in-memory-key-value-storage/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / mica-a-holistic-approach-to-fast-in-memory-key-value-storage</div>
+    <article class="entry">
+      <h1>MICA: A Holistic Approach to Fast In-Memory Key-Value Storage</h1>
+      <div class="entry-meta"><span>2018-05-15</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://www.usenix.org/system/files/conference/nsdi14/nsdi14-paper-lim.pdf">MICA: A Holistic Approach to Fast In-Memory Key-Value Storage</a>
+Hyeontaek Lim, Dongsu Han, David G. Andersen, and Michael Kaminsky in <em>Proceedings of the 11th USENIX Symposium on Networked Systems Design and Implementation (NSDI '14).</em>  April 2-4, 2014, Seattle, WA.
+
+It's time to turn attention to key value stores.  There are quite a few papers on this subject.  Seemingly simple, they turn out to be an important storage mechanism.  I had a delightful discussion about them over the weekend with <a href="https://en.wikipedia.org/wiki/Keith_Bostic">Keith Bostic</a>, who knows a fair bit about key-value stores (being the author of one of the most widely used KV stores.)  Of course, I have discussed some KVS already: <a href="/log/cache-craftiness-for-fast-multicore-key-value-storage/">MassTree</a>, <a href="/log/nvmcached-an-nvm-based-key-value-cache/">NVMCached</a>, and <a href="/log/silt-a-memory-efficient-high-performance-key-value-store/">SILT</a>.
+
+I'm going to continue looking at key-value stores (KVS) by starting with MICA. It is neither the first, nor the latest, work in this area, but it seems like a good place to start really describing key value stores in this space.  I have quite a few to cover so let's get started.
+<blockquote><em>MICA is a scalable in-memory key-value store that handles 65.6 to 76.9 million key-value operations per second using a single general-purpose multi-core system. MICA is over 4–13.5x faster than current state-of-the-art systems, while providing consistently high throughput over a variety of mixed read and write workloads.</em></blockquote>
+It is an interesting system in that the authors decided to look at making their KVS <em>tunable</em> - it can serve as a cache (which means items can be thrown out by the KVS as space becomes scarce) or it can serve as storage (which means items <em>cannot</em> be removed from the KVS by the system itself, though it permits the applications using it to do so.)
+
+To achieve this, they propose a series of data structures tuned to the task: circular logs, lossy concurrent hash indexes, and bulk chaining.  Their goal is to provide high performance through low contention.  They utilize <strong><a href="https://dpdk.org/">dpdk</a> </strong>for fast network processing.  They split their data structures so they independently handle caching and storage separately.  I might argue that this makes it two systems fused together, but let's give them the benefit of the doubt at this point by calling it "generality".
+
+One of the concerns they try to address is the <strong>hot key</strong> issue.  In many KVS systems they get terrific performance on synthetic workloads because they use a uniform distribution.  In the real world, particularly for web objects, the workloads tend to be <strong>mostly cold</strong> with a small subset of the keys that are hot.  Further, these keys <em>change over time</em>.
+
+They do restrict their domain somewhat to make the problem more tractable.  For example, they do not handle large items - everything must fit within a single network packet.  For systems that require larger items, they suggest using a separate memory allocator.  Their argument is that the extra indirection cost is a marginal increase in total latency.  They are optimizing for the common case.  Another aspect they exclude is <em>durability.</em>  That makes sense - they are only implementing an in-memory KVS, so durability is not a logical part of their work.  This also plays well in terms of performance, since persistence makes things much more complicated.
+
+So what <em>do </em>they want to achieve with MICA?
+<ul>
+ 	<li><strong>High single-node throughput</strong></li>
+ 	<li><strong>Low end-to-end latecy</strong></li>
+ 	<li><strong>Consistent performance across workloads</strong></li>
+ 	<li><strong>Support small (but variable length) key-value objects</strong></li>
+ 	<li><strong>Support basic KVS operations: </strong>get, put, delete</li>
+ 	<li><strong>Work efficiently on commodity hardware</strong></li>
+</ul>
+They propose achieving this using a combination of design choices:
+<ul>
+ 	<li>Parallel data access - in fact, they mean <em>read</em> access, as they do not parallelize these, as the cost is too high.</li>
+ 	<li>Optimized network overhead - as noted previously, they use <strong>dpdk</strong> to achieve this</li>
+ 	<li>Efficient KV structures - this includes dual memory allocators (one optimized for caching the other for store) and efficient index implementations.</li>
+</ul>
+<a href="/media/2018/05/MICA-fig7.png"><img class="alignleft size-medium wp-image-518" src="/media/2018/05/MICA-fig7-300x160.png" alt="Figure 7" width="300" height="160" /></a>
+
+There are some interesting characteristics to this system, including the fact that it employs <strong>dangling pointer</strong> handling.  Rather than remove pointers from the index, they allow the pointers to become invalid and instead trap that condition.  The paper describes <em>how</em> they do that in more detail.
+
+They also use an interesting "prefetcher" to encourage efficient memory loading.  This is done by receiving requests in bursts and scheduling those requests to be processed "soon" to this prefetch step.
+
+<a href="/media/2018/05/MICA-fig9.png"><img class="alignright size-medium wp-image-519" src="/media/2018/05/MICA-fig9-300x184.png" alt="Figure 9" width="300" height="184" /></a>Their evaluation of the system tries to focus on a range of workloads, varying key and value size as well as the range of operations being performed, with a read intensive workload being 95% reads and 5% writes.  A write intensive workload is split evenly.
+
+They also look at how the key space is handled.  In the "Exclusive Read, Exclusive Write" paradigm (EREW) each core of the system is responsible for handling both reads and write for a given key (or range of keys more likely).  In the "Concurrent Read, Exclusive Write" paradigm (CREW), any core may satisfy a read for the key, but only one core may satisfy a write operation for the core.  This is a hat tip towards the cost of "bouncing" control of the cache lines between cores and we will see this approach used by other systems as well.  One interesting question that this reminds me of each time I read about this model is what impact, if any, the Level 3 cache might have on this.  Level 1 and 2 caches are traditionally <em>per core</em> but Level 3 is typically <em>per socket</em>.  Thus, things stored in L3 cache are substantially faster to access than RAM.  Something to consider, perhaps.
+
+The paper has an extensive evaluation section and, of course, they demonstrate how their solution is substantially faster.  One interesting aspect to their evaluation is that they claim that each component of their design decision is important in enabling them to achieve their target performance.   To do this, they evaluate each individual aspect of their design decision.  For example for their parallel data model, they evaluate the variations on their choice and demonstrate that CREW is only faster with read skewed workloads.  They even go so far as to model Concurrent Read Concurrent Write (CRCW) workloads and point out that the cache overhead blunts the benefits of the concurrency.
+
+To make this point on their choice of network implementations, they take MassTree and convert it to use <strong>dpdk</strong>, which yields a substantial performance improvement.  While they argue that their key indexes also contribute, they do not have a distinct break-out of that implementation and fall back to pointing out how they work better, even in CREW than MassTree.
+
+There are certainly grounds to criticize MICA.  For example, they do choose workloads that fit well with their available resources.  I suspect that once they become resource constrained (e.g., cache) that the performance will drop substantially.  However, it provides an interesting contribution in the space and does point out how picking your data structures carefully can make a tremendous difference in the overall performance of the system.
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

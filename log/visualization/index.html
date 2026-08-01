@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visualization &middot; fsgeek.ca</title>
+  <meta name="description" content="Visualization">
+  <link rel="canonical" href="https://fsgeek.ca/log/visualization/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / visualization</div>
+    <article class="entry">
+      <h1>Visualization</h1>
+      <div class="entry-meta"><span>2019-05-30</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<p>Last post I discussed <em><a href="https://fsgeek.ca/?p=662">relationships</a></em>.  But relationships really are not enough.  Another key to this puzzle is <em>visualization</em>.  In other words, how do we present the information to users so that it is useful.</p>
+
+<div class="wp-block-image"><figure class="alignleft is-resized"><img src="https://wi-images.condecdn.net/image/Bv4YGW9Dv60/crop/2040/f/42b.png" alt="" width="114" height="76"/></figure></div>
+
+<p>But first, let me step back and point to a larger problem: <em>information overload</em><strong>. </strong> If we present users with a list of 100,000 options, they won't be able to necessarily find what they're actually seeking.  For example, one of the challenges of using an Internet search engine is that they can return millions of "answers" to my basic query.  In fact, I just typed in "What is the meaning of life?" to a search engine and it responded back with 1.1 <em>billion</em> possible answers, all in under a second.  They are a marvel at backing up the dump truck and offering to inundate me with answers.  When is the last time you went through even a <em>handful</em> of these, let alone a large percentage of them?</p>
+
+<div class="wp-block-image"><figure class="alignright is-resized"><img src="https://previews.123rf.com/images/martinotero/martinotero1611/martinotero161100398/66569780-muddy-pig-eating-in-a-pile-of-garbage.jpg" alt="" width="238" height="164"/></figure></div>
+
+<p>I suspect that if I ask the HCI folks they will be able to tell me what works for ordinary mortals, but I assure you that computers are capable of returning more information than one can possibly ever process - many years ago I received a bug report about a file system directory that contained over 700,000 files and did not display with the file system kit I'd constructed and the company sold.  I'd known I made decisions about resources when I did it; but we lifted that restriction and supported much larger directories than that.  I'm quite sure that no mere human would look at such a directory in any meaningful sense.  Maybe it was a collection of log files, in which case the names likely embed semantic information about the files themselves.  Indeed, in <em><a href="https://www.usenix.org/system/files/conference/tapp12/tapp12-final10.pdf">Burrito</a></em> the authors noted that scientists often embed the <strong>schema</strong> of their data within the file names.  I know that I have done the same and when I'm looking for specific data I am often <em>scripting</em> code to sift through the pile of data to find the subset that is useful to me.  The point remains the same: huge listings of files within a directory don't work for humans.</p>
+
+<div class="wp-block-image"><figure class="alignleft is-resized"><img src="https://media-cdn.tripadvisor.com/media/photo-s/0b/f1/e1/84/many-doors-that-leads.jpg" alt="" width="147" height="98"/><figcaption>May different possible directions!</figcaption></figure></div>
+
+<p>One potential area for considering navigation is <em><a href="https://en.wikipedia.org/wiki/Faceted_search">faceted search</a></em>, a technique for making vast quantities of data searchable.  Indeed, this fits well with the graph file system idea because what we expect to find in our graphs are <em>clusters</em> of related files.  The graph is likely to be a <a href="https://en.wikipedia.org/wiki/Dense_graph">sparse graph</a> because most files are unlikely to share common features with one another.  Thus, it suggests that at least one model for this data visualization problem is going to be rolling up data into these clusters, with an iterative approach to breaking it down and displaying it further.  Of course, we <em>might</em> be able to do that within the confines of the existing hierarchical structure, which would be great for retrofitting this into the vast array of existing applications; still, my hope is that we can also provide novel new variations (or rather <em>someone</em> more clever than I am at these things will do so).  The challenge is to build something that enables this means I need to have some level of understanding as to what kinds of information are needed to do so.</p>
+
+<p>For example, I was wondering about first order approximations - those that mimic an existing hierarchical file system.  Such a file system would present one or more <em>views</em> of the data.  Maybe we have a <strong>Time</strong> view, and the time view then shows you all the files in <em>time</em> order.  But if you have 1,000,000 files, that is going to be a mighty big list.  One option might be to divide it up into ever smaller chunks of time.  Eventually, we'd get to a point where you could see a few dozen files in some sort of time order.  Of course, strict sharding of time might not make sense either: why should two files that are <em>separated in time</em> by small intervals end up in separate locations.</p>
+
+<div class="wp-block-image"><figure class="alignright is-resized"><img src="http://desktop.arcgis.com/en/arcmap/10.3/map/time/GUID-5D44C8E6-2D04-4AD9-A1A6-6C043370DE09-web.png" alt="" width="197" height="37"/><figcaption><a href="http://desktop.arcgis.com/en/arcmap/10.3/map/time/a-quick-tour-of-temporal-data-management-and-visualization.htm">Time Slider</a></figcaption></figure></div>
+
+<p>One possible option would be to consider a <em>time slider</em> that controls the view.  This is something that we can find in other temporal data tools.  Thus, creating a time slider might help make visualization easier to perform - in some ways this is similar to the <a href="https://www.pcworld.com/article/3263905/windows-10-how-to-use-timeline.html">Windows </a><em><a href="https://www.pcworld.com/article/3263905/windows-10-how-to-use-timeline.html">timeline</a> </em>feature that has recently been added into Windows 10.  I suspect the file system doesn't do much to facilitate this.  From my own use of this feature it has some interesting limitations, not the least of which is that if you want full functionality they want to export data "to the cloud" for further analysis.  That sounds like whatever they are doing is data intensive, which in turn suggests to me that the file system is not doing anything to facilitate this.  If the answer really is "sorry, but you have to spend lots of computational cycles to mine this data" then my research is unlikely to be fruitful.  I push forward because I don't think this really is the case - the database community has done marvellous things that permit a vast treasure of relationships be mined.</p>
+
+<div class="wp-block-image"><figure class="alignleft is-resized"><img src="https://ars.els-cdn.com/content/image/3-s2.0-B9780128001080000059-f05-24-9780128001080.jpg" alt="" width="193" height="120"/><figcaption><a href="https://www.sciencedirect.com/topics/computer-science/faceted-search">Faceted Search</a></figcaption></figure></div>
+
+<p>If we combine this with a faceted search area, I can envision a <em>filtered</em> timeline model - in essence, this seems to be what the new Windows feature is doing, albeit by filtering the things they have deemed to be of interest. I suspect they will extend this capability over time, but a time ordered view is just <em>one</em> of the possible relationships I consider to be important for consideration.  I don't know what the relationships will be, but I do think that having a pre-defined list of those relationships will be self-limiting.  Perhaps it will be enough.  I proceed on the basis that I expect it will <em>not</em> be enough.</p>
+
+<p>One possible visualization I've been considering - and part of the motivation for me deciding I need to start building a file system - is that this sort of namespace might be achievable on our existing hierarchical model if I just add "an extra level of indirection".  Suppose we construct a file system that, instead of having the existing file name has a <em>directory</em> of the same name.  In turn, that directory then contains relationships associated with other objects.  One of those other objects could be the actual file (so we can still access it), but we could also have a "temporal" directory that would then display a list of files that were created, modified, or accessed around the same timeframe.  We could store information about what web sites were visited around times that the file was in use.  We could keep track of the music that was playing around the same time.  We could point to files that were similar to that specific file.  Such a visualization could be easily achieved <em>and compatible with existing tools</em>.  Rather than being an endpoint, this is more an intermediate staging area - a way of mocking up the concepts and ideas, and to see what works for people and what does not work.</p>
+
+<p>Thus the desire for a file system.  I think we can construct a static namespace by using an <em>existing</em> file system and symbolic links (so you can eventually get back to the real files) by mining existing data sources.   But eventually, we are going to want <em>dynamic</em> support here.  We can stub that out with FUSE (for example) but in my experience (and <a href="https://www.usenix.org/system/files/conference/fast17/fast17-vangoor.pdf">based upon the literature</a>) FUSE is slow for meta-data operations, which is really <em>all I will be doing</em>.  Building file systems is hard work, but it is something I've been doing for <em>years</em>, so that aspect doesn't really scare me. Visualization on the other hand is an area in which I don't have a lot of experience.</p>
+
+<p>I'm certainly open to ideas...</p>
+
+<p></p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

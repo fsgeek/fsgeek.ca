@@ -11,7 +11,7 @@ categories: ["Database", "File Systems"]
 <em>Proceedings of the October 27-29, 1964 Fall Joint Computer Conference, Part 1, pp. 411-422, ACM, 1964.
 Bachman, Charles W., and S. B. Williams. </em>
 
-When I discussed <a href="https://fsgeek.ca/2018/01/02/multics/">MULTICS file systems</a> I disingenuously glossed over an important point they make there: namely, that file systems are an ordered sequence of <strong>elements</strong>.  Today, we think of those elements as bytes, but in fact their definition was more general than just bytes.
+When I discussed <a href="/log/multics/">MULTICS file systems</a> I disingenuously glossed over an important point they make there: namely, that file systems are an ordered sequence of <strong>elements</strong>.  Today, we think of those elements as bytes, but in fact their definition was more general than just bytes.
 
 Thus, I step back in time and look deeper.  What happens if the elements are not individual bytes?  Where does that lead us? In this paper, it discusses <strong>records</strong>.  Thus, we see before the clear division of unstructured data (byte oriented files) and structured data (record oriented data).  These two fields are inextricably linked in history and while we will see them diverge from one another, we will see the similarity as techniques from one are often used by the other.
 

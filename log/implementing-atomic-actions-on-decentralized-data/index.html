@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Implementing Atomic Actions on Decentralized Data &middot; fsgeek.ca</title>
+  <meta name="description" content="Implementing Atomic Actions on Decentralized Data">
+  <link rel="canonical" href="https://fsgeek.ca/log/implementing-atomic-actions-on-decentralized-data/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / implementing-atomic-actions-on-decentralized-data</div>
+    <article class="entry">
+      <h1>Implementing Atomic Actions on Decentralized Data</h1>
+      <div class="entry-meta"><span>2018-02-25</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=357355"><em>Implementing Atomic Actions on Decentralized Data</em></a>
+David P. Reed, <em>Transactions on Computer Systems, Vol 1. No. 1, February 1983, pp. 3-23.</em>
+
+This certainly must have been an interesting choice to be the <strong>first</strong> paper of the <strong>first</strong> ACM Transactions on Computer Systems.  It is certainly an interesting work on concurrent activity within a distributed system.  It relies upon a basic concept of ordering within a distributed system ("decentralized data").  He builds upon the basics laid down by Leslie Lamport in <a href="/log/time-clocks-and-the-ordering-of-events-in-a-distributed-system/"><em>Time, Clocks, and the Ordering of Events in a Distributed System</em></a>. While Lamport was concerned about defining the (partial) ordering of events in the distributed system, Reed is concerned about using that ordering to construct useful distributed data updates.
+
+Given that file systems, especially <em>distributed</em><em> </em>file systems, are concerned with managing data across nodes in a consistent fashion, this work is of particular importance.  By 1983 we have seen the emergence of network file systems, which I plan on describing further in coming posts, but they are still fairly primitive.  Database systems are further along in allowing distributed data and coordination through things like two-phase commit.
+
+He starts by describing the goals of this work:
+<blockquote><em>The research reported here was begun with the intention of discovering methods for combining programmed actions on data at multiple decentralized computers into coherent actions forming a part of a distributed application program.</em></blockquote>
+His focus is on coordinating concurrent actions across distributed data and ensuring that failures are properly handled.  What does it mean to properly handle failures?  Essentially, it means that the data is in a consistent state once the system has recovered from the failure.  He starts by defining terms that relate to consistency models.  For example, he defines an <strong>atomic action</strong> as being a set of operations that execute in different locations and at different times but cannot be further decomposed.  A single action starts with a consistent state at the start and moves to a consistent state at the end.  Any intermediate state of the system is not visible (what we would call "isolation" now).  He formally defines these concepts as well.
+
+He touches on the idea of <em>consistency</em>, in which one starts with a consistent system and then proves each (atomic) operation yields a consistent state.  In my experience this aspect of distributed systems is sometimes skipped, often due to the complexity of doing the work required here.  In recent years, formal proof methods have been used to automate some aspects of this.  I'm sure I will touch upon it in later posts.
+
+One key benefit of this system of atomic actions is that it makes things simpler for application programmers: in general, they need not deal with unplanned concurrency and failure.  Indeed, that is one of the key contributions of this work: the <em>process</em> of reasoning about failure and how to handle it.  Indeed, in my experience, handling failure gracefully is one of the substantial challenges inherent in constructing distributed systems.  If something can fail, it will.
+
+Achieving atomic action requires the ability to interlock ("synchronization") against other actors within the system and the ability to gracefully recover from failure cases.  The author goes on to describe what his decentralized system looks like: a message passing model (via the network, presumably,) with nodes containing stable storage <strong>and</strong> the ability to read and write some finite sized storage unit atomically ("blocks").
+
+One class of failure the author explicitly disclaims: a situation in which the system performs an operation but ends up with a different but valid outcome.  This makes sense, as it would be difficult to reason in the face of arbitrary changes each time a given operation were requested.  He sets forth a series of objectives for his system:
+<blockquote><em>(1) Maximize node autonomy, while allowing multisite atomic actions</em>
+<em>(2) Modular composability of atomic actions.</em>
+<em>(3) Support for data-dependent access patterns.</em>
+<em>(4) Minimize additional communications.</em>
+<em>(5) No critical nodes.</em>
+<em>(6) Unilateral aborting of remote requests.</em></blockquote>
+Having laid this groundwork, the author then defines the tools he will use to achieve these objectives.  This includes a time-like ordering of events, version information for objects, and the ability to associate intermediate tentative steps together ("possibilities").
+
+He envisions a versioned object system, where the states of the object correspond to changes made to the object.
+
+At this point I'll stop and make an observation: one of the challenges for this type of versioning is that the way in which we view objects can greatly complicate things here.  For example, if we <em>modify an object in place</em> then this sort of versioning makes sense.  However, if we modify an object by creating a <strong>new</strong> object, writing it, and then replacing the old object with the new object, we have a more complex functional model than might be naively envisioned.  This is not an issue clearly addressed by the current paper as it relates mostly to <strong>usage</strong>.  But I wanted to point it out because this sort of behavior will make things more difficult.
+
+One of the important contributions in this work is the discussion about <strong>failure recovery</strong>.  This is, without a doubt, one of the most complex parts of building a distributed system: we must handle <em>partial</em> failures.  That is, one node goes offline, one network switch disappears, one data center loses power.
+
+The author thus observes: "If a failure prevents an atomic action from being completed, any WRITE the atomic action had done to share data should be aborted to satisfy the requirement that no intermediate states of atomic actions are visible outside the atomic action.  Thus, one benefit of the versioned objects is that the pending transaction ("possibilities") can track the updated version.  Abort simply means that the tentative versions of the objects in the transaction are deleted.  Committing means that the tentative versions of the object in the transaction are promoted to being the latest version.
+
+Thus, we see the basic flow of operations: a transaction is started and a <em>possibility</em> is created.  Each potential change is described by a <em>token</em>.  Tokens are then added to the possibility.  While the term is not here, is appears to be a model for what we refer to as <strong>write-ahead logging<em> </em></strong>(sometimes also called intention logging).
+
+Time stamps are introduced in order to provide the partial ordering of events or operations, so that the changes can be reliably reproduced.  The author goes into quite an extensive discussion about how the system generates time stamps in a distributed fashion (via a pre-reservation mechanism).  This approach ensures that the participants need not communicate in order to properly preserve ordering.  The author calls this <strong>pseudotime</strong>. He continues on to explain how timestamps are generated.
+
+Using his ordered pseudo-time operations, his read and write operations, possibilities, and tokens, he then constructs his distributed data system using these primitives.  There is detail about how it was implemented, challenges in doing so and the benefits of immutable versions.
+
+He admits there are serious issues with the implementation of this system: "<em>For most practical systems, our implementation so far suffers from a serious problem.  Since all versions of an object are stored forever, the total storage used by the system will increase at a rate proportional to the update traffic in the system.  Consequently, we would like to be able to throw away old versions of the objects in the system.  We can do this pruning of versions without much additional mechanism, however."  </em>His discussion of why this may not be desirable is interesting as it discusses the tension between reclaiming things and slow transactions. He does describe a mechanism for pruning.
+
+After this, the author turns his attention to using atomic transactions to construct new atomic transactions: <em>nested </em>transactions (also "composable transactions" so that we have multiple terms for the same concept!)  Again, this is proposed, but not explored fully.
+
+The breadth and scope of this paper is certainly impressive, as the author has described a mechanism by which distributed transactions can be implemented.  I would note there are no evaluations of the system they constructed, so we don't know how efficient this was, but the model is an important contribution to distributed storage.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

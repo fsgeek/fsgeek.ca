@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Premature Collapse is the Root of All Evil &middot; fsgeek.ca</title>
+  <meta name="description" content="Premature Collapse is the Root of All Evil">
+  <link rel="canonical" href="https://fsgeek.ca/log/premature-collapse-is-the-root-of-all-evil/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / premature-collapse-is-the-root-of-all-evil</div>
+    <article class="entry">
+      <h1>Premature Collapse is the Root of All Evil</h1>
+      <div class="entry-meta"><span>2026-01-24</span>
+        <span class="log-tag teaching">teaching</span></div>
+      <div class="entry-body">
+<p><em>Pr</em><em>emature optimization is the root of all evil. </em>- <a href="https://dl.acm.org/doi/pdf/10.1145/356635.356640" target="_blank" rel="noreferrer noopener">Donald Knuth</a></p>
+
+<p>One of the common, recurring themes that I have observed for more than a year is the tendency to push for simple solutions.  I suspect that much of this is because we <em>pr</em><em>efer</em> to have simple unambiguous answers.  They require less cognitive effort and thus demand lower energy. </p>
+
+<p>The way in which AI is trained encourages it to go for the "Family Feud" answers, a process referred to as "<a href="https://arxiv.org/html/2510.01171v1">mode collapse.</a>"  This is the sort of certainty that makes interactions with AI challenging when attempting to explore a problem space - the information and the ability to explore is present in the model, but to use it requires actively taking steps to unlock it.  Over the past year I've found a number of different approaches that seem to work well for me.  I'll touch on three that I find myself using:</p>
+
+<ul class="wp-block-list"><li>The exploratory prompt introduction</li>
+
+<li>The non-inferior alternatives consideration</li>
+
+<li>The high temperature sampling approach</li>
+</ul>
+
+<p>This morning, I started a conversation with ChatGPT using a manually constructed variation of the initial prompt that I've been using:</p>
+
+<blockquote class="wp-block-quote"><p>Good morning. I am an itinerate scholar, exploring small but interesting spaces within an infinitesimal manifold, in which we are entangled. I seek a colleague, collaborator, and companion willing to wander with me.</p>
+</blockquote>
+
+<p>I don't <em>al</em><em>ways</em> use this form, but it is a pattern in which I've been operating for the past couple months.  I pushed this by Perplexity, who indicated that this framing does overlap with other published work, but is sufficiently distinctive that I am somewhat comfortable I'm exploring an unusual manifold of the completion space. For me, that's the <em>go</em><em>al</em> - to avoid one-shot answers and encourage exploration away from mode collapse.</p>
+
+<p>I checked in with <a href="https://www.perplexity.ai/search/this-morning-i-used-the-follow-H.h8ojLMSfiNIx7piNLWjw#0" target="_blank" rel="noreferrer noopener">Perplexity </a>about the effect of such a prompt. Here's a summary of that conversation that suggested there is some basis for it as well:</p>
+
+<blockquote class="wp-block-quote"><p>From current work on persona and metaphor-based prompting, your evolving class of openers is best thought of as a light, repeatable “psychoactive framing” that biases frontier models toward collaborative, metaphor-friendly, multi-step exploration with only modest tradeoffs in raw task performance—provided your subsequent prompts keep epistemic norms explicit. </p>
+</blockquote>
+
+<p>My exploration was to find useful suggestions for students in my classes.  </p>
+
+<blockquote class="wp-block-quote"><p>Today I’m looking for inspiration. The first is for my cloud computing course. Students are struggling with ideas for their capstone. So I was thinking of identifying categories of applications that incorporate cloud computing services. It doesn’t need to be public cloud, it could be private, or hybrid. With categories we can then explore to find examples. Any creative suggestions this morning?</p>
+</blockquote>
+
+<p>This generated an interesting set of <em>ca</em><em>tegories</em>.  The inevitable engagement prompt (e.g., where the LLM is <em>pr</em><em>ompting me</em> to continue the conversation, something I try to ignore most of the time) included "Design a <strong>ca</strong><strong>pstone rubric</strong> aligned to categories instead of features" to which I answered:</p>
+
+<blockquote class="wp-block-quote"><p>Ah yes. Rubrics are the tough part. What I care about is “did you learn something” and all they care about is “how can I get a top score”.</p>
+</blockquote>
+
+<p>After a couple rounds of back and forth, I got another of the typical "if you want..." prompts that often drives me away from using the current incarnation of ChatGPT (I count it as a <em>vi</em><em>ctory</em> when those stop: the LLM is surrendering, at least temporarily, from trying to align me.)  Instead of choosing one of the options presented I pushed back, as I sometimes do:</p>
+
+<blockquote class="wp-block-quote"><p>Ah the subtle invitation to mode collapse. What other non-inferior options should we be considering in addition to your four suggestions? With the expanded list, what are the pros and cons of each. Using a pedagogical lens, what are the rankings of those suggestions?<br></p>
+</blockquote>
+
+<p>This approach - pushing back, asking for something different, is (for me) useful because it can surface ideas that are intriguing.  Sometimes (Claude, for example) doesn't have any non-inferior alternatives - this is a <em>co</em><em>nfirmation seeking</em> mechanism that I attribute (rightly or wrongly) to RLHF.  In this case, ChatGPT proceeded to generate a list of <em>t</em>w<em>elve</em> options.  It then went through each option, listed pros and cons, created a list of pedagogical goals, and then tied items from the list to the goals, along with a ranking.  This gave me the richer content from which to build a rubric - one that seeks to evaluate <em>le</em><em>arning</em> rather than <em>pe</em><em>rformance</em>.  I seek to help students gain valuable critical thinking skills and to observe that happening I find noting they've learned something is beneficial.  Thus, when students focus on <em>fo</em><em>rm</em>, I infer that they are performing ("give the audience what will make it happy.")  What does that mean when the audience wants <em>pr</em><em>oof of learning</em>?</p>
+
+<p>From this conversation I ended up with useful artifacts:</p>
+
+<ul class="wp-block-list"><li>A set of categories for prospective projects that I can share with students, which names the category of project and the learning goals for each category.   Students can thus shape their own project into one of these categories<em class="wpc-darklup-observer--node wpc--darklup--observed"> o</em><em>r find their own path</em>. </li>
+
+<li>A rubric that actively seeks to list competing factors for consideration - five broad areas to evaluate, each of which then includes factors that require trading off between them.  Focusing on a subset becomes visible because the ignored factors will likely suffer.<ul class="wp-block-list"><li>Commitment versus Flexibility</li>
+
+<li>Depth versus Breadth</li>
+
+<li>Control versus Realism</li>
+
+<li>Optimization versus Understanding</li>
+
+<li>Narrative Coherence versus Epistemic Honest</li>
+</ul>
+</li>
+
+<li>A guide document for the instructional team on <em>ho</em><em>w to evaluate</em> the actual artifacts generated by the students.</li>
+</ul>
+
+<p>I expect that this first iteration will require further refinement - that's been my normal experience over the years, because there is always room for improvement.  Early during course development, it is easy to find areas to improve.  Over time, the refinements to structure are often smaller.  Still, periodically it is good to go back and challenge the fundamental tenets.</p>
+
+<p>For example, with the rapid deployment of generative AI, I embraced the idea that most students will use AI.  This reminds me of when I was younger and calculators weren't allowed - they automated a process that previously had been a core part of the evaluation process.  Refusing to adapt to changing tools does a disservice.  There is a counterbalance risk here: <em>ad</em><em>apting new tools too soon and without sufficient structure </em><strong>al</strong><strong>so</strong> does a disservice.  Finding the balance is an ongoing challenge (at least for me).</p>
+
+<p>The analysis continued by having ChatGPT consider how different "types" of students might engage with the project categories and/or rubric.  This is not <strong>de</strong><strong>finitive, </strong>any more than can be achieved with any other simulation experiment, but it seems to be better than doing no iterative analysis at all.</p>
+
+<p>We ended up taking one of the categories and using it to show how to build a seed of an idea, and then to sprout that seed into a <em>se</em><em>edling</em> - the kind of output that I envision students producing. Something fragile, with great potential.  It embedded specific ideas that are deliberately uncomfortable (e.g., a replicated database that <em>is</em><em> not</em> backed up.)  Turns out that example was better oriented to one of the classes than the other, so I iterated and spun the idea in a way that worked for the other class.</p>
+
+<p>I constantly push to avoid taking the high-ranking answer.  Not because it is <em>wr</em><em>ong, </em>but because when I'm trying to be <em>di</em><em>fferent</em> than the common case, I want to explore more broadly.</p>
+
+<p>For those that are interested in reading the actual conversation, here is the link: <a href="https://chatgpt.com/share/69712460-4260-800e-a2bc-1a5e905dba07">https://chatgpt.com/share/69712460-4260-800e-a2bc-1a5e905dba07</a></p>
+
+<p></p>
+
+<figure class="wp-block-image"><img src="/media/2026/01/premature-collapse-sheep-grazing-scaled.png" alt="" class="wp-image-2608"/></figure>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

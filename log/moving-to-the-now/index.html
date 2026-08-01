@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Moving to the now &middot; fsgeek.ca</title>
+  <meta name="description" content="Moving to the now">
+  <link rel="canonical" href="https://fsgeek.ca/log/moving-to-the-now/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / moving-to-the-now</div>
+    <article class="entry">
+      <h1>Moving to the now</h1>
+      <div class="entry-meta"><span>2018-04-15</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+I've been gone for a bit; real life keeping me busy.  Part of that has been exploring the current edge of my technology space.  So I'm going to take a break from the historical paper review (but it will come back) and instead start talking about new storage technologies and the interesting things that we can do with them.
+
+Specifically, I have been looking at the brave new world of "non-volatile dual inline memory modules".  What this means is that we now have <strong>persistent memory</strong> that is directly accessed via <strong>processor primitives</strong>.  That means a <strong>load</strong> or a <strong>store<em> </em></strong>instruction can be used to access this kind of memory.  We have actually been talking about persistent memory since the dawn of time.  Many of the early operating systems papers think of disk storage and memory as being different forms of memory.
+
+The big change here was when computers moved away from <a href="https://en.wikipedia.org/wiki/Magnetic-core_memory">magnetic core memory</a> into solid state memory.  Intel's first product was <strong>dynamic RAM</strong> (though it was <a href="https://en.wikipedia.org/wiki/Dynamic_random-access_memory">invented by IBM</a>).  DRAM was cheaper and faster than core - and much faster than magnetic storage.  Thus the abstraction of memory and disk being part of the same continuum we began to think of them as being distinct.  DRAM was transient; disks and tapes were persistent (note that magnetic core was persistent <em>until</em> someone read it, at which point it lost its state and had to be rewritten - even across power cycles).
+
+Disk storage was often used to contain data from memory, such as for paging or segmentation.  Over the years the operating systems community learned many ways to make disks <em>seem</em> fast: caching, read-ahead, asynchronous I/O, reordering operations, etc.
+
+Computers - and memory - were able to experience vast increases in speed.  Disk drives did <a href="https://en.wikipedia.org/wiki/Hard_disk_drive_performance_characteristics">improve</a>, but only modestly in comparison.
+
+Memory technologies have continued to evolve.  Persistent memory options increased as well; <a href="https://en.wikipedia.org/wiki/Flash_memory">flash memory</a> is one of the most common today and is used inside solid state drives and NVMe disks, both of which are vastly faster than rotating media disks.
+
+Another memory technology that has been discussed for more than 20 years has been persistent RAM.  One way this has been done in "real products" has been to simply add a backup power source: some sort of battery.  Then if the power is lost, the data contents of volatile memory (DRAM) can be written to persistent storage (e.g., Flash).  This approach has been a stop-gap on the way to the actual persistent memory solution that has been promised for at least a decade: <a href="https://researcher.watson.ibm.com/researcher/files/us-gwburr/Almaden_SCM_overview_Jan2013.pdf">persistent memory</a> that acts like DRAM.  Intel is now starting to ship their new <a href="https://www.intel.sg/content/www/xa/en/support/products/99745/memory-and-storage/intel-optane-memory.html">Optane</a> memory products. Samsung has announced their new <a href="https://blog.architecting.it/samsung-z-nand/">Z-NAND</a> products.  Other technologies remain "in development" as well.
+
+Why does this matter?  Storage is suddenly getting faster.  We went from 10 <em>millisecond</em> access times to 0.2 millisecond access times (HDDs to SSDs).  Now we are looking at going from 0.2 milliseconds to <em>200 nanoseconds</em> - six orders of magnitude faster.  This sort of change is profound.  We've been talking about it for many years, trying to reason about it.  It is now materializing.  Over the next several years the other promise of NVM is going to materialize: it supports higher density than DRAM.  It <em>is</em> slower than DRAM; where DRAM access times are on the order of 50-100 nanoseconds, NVM access times are on the order of 125-800 nanoseconds (writes being slower than reads).
+
+File systems that have been optimized for working on hard disks or SSDs don't necessarily make sense on NVM.
+
+Thus, the area I've been looking at: expanding my own understanding of NVM.  Since this is still related to my own exploration of file systems, I'll use this as my soapbox for exploring the space.
+
+Let's see where this journey goes.  And I promise, I'll come back to the old file systems papers after this diversion.
+
+&nbsp;
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

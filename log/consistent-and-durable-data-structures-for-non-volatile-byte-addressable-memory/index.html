@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consistent and Durable Data Structures for Non-Volatile Byte-Addressable Memory &middot; fsgeek.ca</title>
+  <meta name="description" content="Consistent and Durable Data Structures for Non-Volatile Byte-Addressable Memory">
+  <link rel="canonical" href="https://fsgeek.ca/log/consistent-and-durable-data-structures-for-non-volatile-byte-addressable-memory/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / consistent-and-durable-data-structures-for-non-volatile-byte-addressable-memory</div>
+    <article class="entry">
+      <h1>Consistent and Durable Data Structures for Non-Volatile Byte-Addressable Memory</h1>
+      <div class="entry-meta"><span>2018-04-19</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="http://static.usenix.org/event/fast11/tech/full_papers/Venkataraman.pdf">Consistent and Durable Data Structures for Non-Volatile Byte-Addressable Memory</a>
+Shivaram Venkataraman, Niraj Tolia, Parthasarathy Ranganathan, and Roy H. Campbell in <em>Proceedings of File Systems and Storage Technology 2011, Volume 11, pp 61-75, USENIX.</em>
+
+In this paper the authors turn their attention to <em>data structure</em> considerations for Non-Volatile Memory (NVM).  Unlike the previous papers I have covered (<a href="https://wp.me/p8524b-6w">Mnemosyne</a> and <a href="https://wp.me/p8524b-6L">NV-Heaps</a>) they look at data structures specifically optimized to exploit the capabilities of NVM.  From the abstract:
+<blockquote><em>For these systems, where no distinction is made between a volatile and a persistent copy of data, we present Consistent and Durable Data Structures (CDDSs) that, on current hardware, allows programmers to safely exploit the low-latency and non-volatile aspects of new memory technologies. CDDSs use versioning to allow atomic updates without requiring logging.</em></blockquote>
+Some other aspects of this paper that stand out:
+<ul>
+ 	<li>They are looking at NVM replacing both DRAM <em>and</em> storage - thus, they view this as a single level store.</li>
+ 	<li>They use <em>versioning</em> to protect their data structures, versus logging.</li>
+ 	<li>They describe how to achieve this without hardware changes.</li>
+</ul>
+<a href="/media/2018/04/table1.png"><img class="alignleft size-medium wp-image-429" src="/media/2018/04/table1-300x91.png" alt="" width="300" height="91" /></a>The paper has a good review of NVM memory technologies that may emerge.  Table 1 (from the paper) underscores the dramatic decrease in latency.  <strong>This</strong> is why we've been waiting for this for more than 10 years now.  It really does change the platform in ways that we have not yet realized.
+
+But it is not <em>just</em> the speed aspect that matters, it is also the persistence aspect.  The density is much larger for these memories as well.  Anyone that has looked at an NVMe M.2 drive can notice how few and small the components on it.
+
+Do we treat it as storage?  If so, perhaps we should look to the file systems world for some insight.  The authors turn to the <a href="https://en.wikipedia.org/wiki/Write_Anywhere_File_Layout">WAFL</a> shadow page mechanism. They point to <a href="https://en.wikipedia.org/wiki/Btrfs">BTRFS</a> and their use of this technique with B-trees.  They dismiss this approach, concluding that they have "fewer data-copies" in CDDS.  They distinguish this work because it is <em>byte addressable</em> versus prior work that was block oriented (page addressable).  Again, the lessons learned from working with it aren't directly applicable.   They do point out that using NVM makes sense in a world of large, persistent storage backed data farms.  So there is a need, and one they see fulfilled by NVM.  It just needs efficient use of that NVM.
+
+Thus, the authors walk their own path.
+
+<a href="/media/2018/04/Figure-1-CDDS-Tree.png"><img class="alignleft size-medium wp-image-430" src="/media/2018/04/Figure-1-CDDS-Tree-300x79.png" alt="" width="300" height="79" /></a>The speed of NVM is such that direct access is the only mechanism that makes sense.  System calls impose too much overhead, doubling the cost of accessing the NVM itself.  Thus they posit that it will be direct access (and indeed that is what seems to come to pass).
+
+They observe that one of the challenges for persistent data is that CPUs do not provide mechanisms for ordering persistent writes (though they do, but at a fairly coarse granularity of a fence.)  So they describe the issues that must be handled:
+<ul>
+ 	<li>Reordering of writes from the caching behavior of the CPU itself as well as a multi-level cache hierarchy.</li>
+ 	<li>Failure semantics of atomic operations across power failures.</li>
+</ul>
+They summarize the various approaches available to them for ensuring data has been stored properly in NVM.  This includes memory fences, cache writeback and invalidate operations, marking memory as non-cacheable (which forces write-back), cache line flushes, and atomic processor operations.  They point out that this is not sufficient for more complex updates, such as tree rebalancing operation.  This leads them to <em>versioning</em>.
+
+I found it interesting that their goals were similar to those I have seen previously: durability, consistency, scalability, and ease-of-use for the programmer.  They also note that they focus on physical consistency of the data contents in memory.  Logical consistency of higher level meta-data structures is <em>not</em> addressed in the context of this work.
+
+Thus, the authors point out that a CDDS is an abstract idea; they demonstrate how they envision using it by implementing a b-tree structure (Figure 1 is from the paper as they describe their B-tree).
+
+In versioning, changes are not made in place to the current version; instead, a new version is written.  The current version is <em>immutable</em> (at least as long as it is the current version).  Atomic operation and copy-on-write techniques are used to make changes persistent.  Once done, a new version number is assigned and the new version becomes the current version.  The old version can be recycled once its reference count drops to zero.
+
+Failure recovery then becomes a function of "cleaning up" any in-progress operations that had not been written to disk.
+
+The authors then walk through their B-tree example.  They explain their use of versioning, they provide pseudo-code for the various B-tree operations (lookup, insert, delete) as well as the internal operations needed to support them.
+
+They evaluate their solution by simulating NVM on top of DRAM (a common solution as we have seen).  They compare against BerkeleyDB, STX B-Tree, Tembo, Cassandra, and Redis.  They were slower than the entirely in-memory STX B-Tree, presumably due to the cost overhead.  They are much faster than BerkeleyDB (even BerkeleyDB runing on a RAM disk.) They also tested using <a href="https://en.wikipedia.org/wiki/YCSB">YCSB</a> as their "end to end" benchmark.
+
+In the end, they <em>do</em> demonstrate that it is possible to rebuild existing data structures - preserving the interface - so they work efficiently with NVM.  They even point out it does not require processor changes to do so.   Given that better processor cache control mechanisms have been introduced since then, I would expect that exploiting them will lead to even better performance.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

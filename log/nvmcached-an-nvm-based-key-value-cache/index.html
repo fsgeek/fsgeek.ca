@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NVMCached: An NVM-based Key-Value Cache &middot; fsgeek.ca</title>
+  <meta name="description" content="NVMCached: An NVM-based Key-Value Cache">
+  <link rel="canonical" href="https://fsgeek.ca/log/nvmcached-an-nvm-based-key-value-cache/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / nvmcached-an-nvm-based-key-value-cache</div>
+    <article class="entry">
+      <h1>NVMCached: An NVM-based Key-Value Cache</h1>
+      <div class="entry-meta"><span>2018-04-30</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+NVMCached: An NVM-based Key-Value Cache
+Xingbo Wu, Fan Ni, Li Zhang, Yandong Wang, Yufei Ren, Michel Hack, Zili Shao, and Song Jiang, in <em>Proceedings of the 7th ACM SIGOPS Asia-Pacific Workshop on Systems</em>, 2016.
+
+This is a short (6 page) paper that discusses the challenges of taking a memory based key-value cache (e.g., <a href="https://memcached.org/"><strong>memcached</strong></a>) and converting it to use a non-volatile memory.  Because the authors do not have NVM available, they focus on simulating it using DRAM.  They simulate behaviors by using appropriate cache flushes and fence.  In fact, they use <a href="https://www.felixcloutier.com/x86/CLFLUSH.html"><strong>CLFLUSH</strong> </a>and <a href="https://www.felixcloutier.com/x86/MFENCE.html"><strong>MFENCE</strong></a>, which may be a bit more than is required.
+
+Here is an interesting thing for people familiar with Intel processor architecture for more than about the past 15 years: the <a href="https://peeterjoot.wordpress.com/2009/12/04/intel-memory-ordering-fence-instructions-and-atomic-operations/">CPUs no longer provide strong ordering guarantees</a>.  If you've learned or refreshed your knowledge about the memory consistency models more recently, then you are likely already familiar with this.  One of the interesting issues with NVM is that we need to think about memory consistency in a way that's never been required previously.  The authors of this paper do this.
+
+They note that flushes are expensive; they argue for using "consistency-friendly data structures" for minimizing the number of flushes required, which certainly makes sense, particularly given that they are expensive.  Some operations (like anything with the <a href="https://www.felixcloutier.com/x86/LOCK.html"><strong>LOCK</strong> </a>prefix) are performed atomically as well and are conceptually similar; both tie into the processor's cache architecture (for those that have been around a while, the cache line semantics for LOCK were introduced around 1995.)
+
+One of the important observations in this paper is that the reason to use NVM is that it allows fast restart after a system failure, such as a crash or power event.  For memcached, there <a href="https://github.com/memcached/memcached/issues/370">are users that are asking for persistence</a>.  Even if the service is only a cache, it turns out that offloading to the cache can be a powerful mechanism for improving overall throughput, but the larger the cache becomes, the higher the cost when the cache gets tossed after a system crash.
+
+However, this also simplifies the problem at hand: discarding data in this type of system is of minimal concern.   They utilize checksums to detect damaged data structures, which alleviates their need to perform ordered write operations; they reorganize their data structures to permit changes with only infrequent fencing.  They point out the problem of zombie data (data that is deleted, then the system crashes, so the data returns after the system reboots).  To prevent this situation they choose to split their data structures.
+
+The checksums prove to be much less expensive than flush; the authors claim up to 20x faster (my own reading indicates that using the optimized CRC32 built into modern Intel CPUs the cost is just over 1 clock cycle per byte checksummed, so a 64 byte cache line would have a cost of approximately 70 clock cycles; on a 2.0GHz processor, that would be roughly 17.5 nanoseconds, which certainly is somewhere between 5 and 20 times faster than writing back a cache line.
+
+The authors also touch on the challenges of memory allocation.  Memory fragmentation is something we often fix in <em>dynamic</em> memory by rebooting the machine.  However, now we have the storage level problem with fragmentation; fixing this involves write amplification.  They organize their allocation strategy by observing there is considerable locality across the KV store.  They combine a log structured allocation scheme with a "zone based" allocation model and attempt to combine cleaning, eviction, and updates to minimize the impact on performance.   They also use DRAM to track access information as part of their LRU implementation.  This creates a burden on crash recovery, but benefits from significant improved runtime performance.
+
+They also implement a DRAM write combining cache; the idea is that when an item is detected to be "hot" the item is cached in DRAM.  Those hot items will thus be discarded if the system crashes.
+
+Their evaluation is against a modified version of memcached.  They utilize four Facebook traces; interestingly they do not use one (VAR) because "it is write-dominant with only a few distinct keys touched."  I am not certain that I see why this makes it unsuitable for use, though I suspect they do not obtain favorable behavior in the face of it.
+
+They evaluate the performance of native memcached versus their NVM-enhanced version with a series of micro-benchmarks after a restart event.  They show that in several cases it takes more than 1 billion requests before the performance of the DRAM memcached to converge with the NVM enhanced version.  When they use the "real world" Facebook memached traces, they observe that three of the benchmarks show comparable performance.  Two of them, SYS and VAR, show substantially better performance.  Both benchmarks are write intensive.  I admit, this surprised me, since I am not certain why writing to (simulated) NVM should be substantially after than writing to DRAM.
+
+Overall, it is interesting work and touches on important challenges for working with NVM as well as improving system performance.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cache Craftiness for Fast Multicore Key-Value Storage &middot; fsgeek.ca</title>
+  <meta name="description" content="Cache Craftiness for Fast Multicore Key-Value Storage">
+  <link rel="canonical" href="https://fsgeek.ca/log/cache-craftiness-for-fast-multicore-key-value-storage/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / cache-craftiness-for-fast-multicore-key-value-storage</div>
+    <article class="entry">
+      <h1>Cache Craftiness for Fast Multicore Key-Value Storage</h1>
+      <div class="entry-meta"><span>2018-04-23</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=2168855">Cache Craftiness for Fast Multicore Key-Value Storage</a>
+Yandong Mao, Eddie Kohler, Robert Morris, <em>in Proceedings of the 7th ACM european conference on Computer Systems (Eurosys '12)</em>, pp. 183-196, Bern, Switzerland, April 10 - 13, 2012.
+
+In this work, the authors build a key-value system called <em>MassTree</em>.  This is an in-memory Key-Value store (I will look at several of them, in fact).  What is novel about this particular variant is the authors focus on providing a high-performance parallel access implementation and the mechanisms by which they achieve this.
+
+<a href="/media/2018/04/figure1-2.png"><img class="alignleft size-medium wp-image-443" src="/media/2018/04/figure1-2-300x207.png" alt="" width="300" height="207" /></a>
+
+<em>MassTree</em> support arbitrary-length keys; it assumes nothing about the keys (so they may be binary data).  It uses <a href="http://sketchingdream.com/blog/b-plus-tree-tutorial/">B+-trees</a> for storage organized into a <a href="https://medium.com/basecs/trying-to-understand-tries-3ec6bede0014">Trie</a> structure.  The B+-tree stores a fixed slice of the key; the Trie connects the various slices together.  This use is interesting, since most of the cases I've seen of Tries are for strings, as they do an excellent job of managing overlapping string data (prefix trees).  The authors use this for binary keys.  There is nothing inherently more difficult about binary versus string keys (since they are equivalent) but this choice makes the solution very flexible, as it is not particularly data dependent.  This basic layout is shown in Figure 1 (from the paper).
+
+One of the challenges with concurrent data structures is how to handle the common case - no collisions - with minimal performance overhead.  The classic mutual exclusion model (or reader/writer locks) involves a certain amount of overhead, even for non-contended locks, because of the need to perform interlocked operations against shared (common) memory where the locks are maintained.  The system implemented by the authors does not require any locking for readers (lookups). Updates are done with locks local to the CPU, which helps minimize the contention of typical locks.
+
+One interesting observation is that their choice of this hybrid Trie/B+-tree structure was motivated by prior systems that struggled with performance in the presence of variable length keys.  In <em>MassTree</em>, the rate limiting factor for queries is the cost of walking the tree.  They minimize this by using "a wide fan-out tree to reduce tree-depth, prefetches nodes from DRAM to overlap fetch latencies, and carefully lays out data in cache lines to reduce the amount of data needed per node."
+
+Hence, my interest in this paper: these all seem to be important lessons for persistent memory as well, where the latencies are somewhat larger than for DRAM. Further, the authors are concerned about correctness.  They have not looked at persistence (and recoverable consistency), so there is still further work for me to do should I investigate it further.
+
+The authors conclude by claiming the following contributions:
+<blockquote><em>First, an in-memory concurrent tree that supports keys with shared prefixes efficiently.  Second, a set of techniques for laying out the data of each tree node, and accessing it, that reduces the time spent waiting for DRAM while descending the tree.  Third, a demonstration that a single tree shared among multiple cores can provide higher performance than a partitioned design for some workloads.  Fourth, a complete design that addresses all bottlenecks in the way of million-query-per-second performance.</em></blockquote>
+Their emphasis on correctness and cache efficiency is certainly an attractive aspect of this work.
+
+The driving considerations for their design were: efficient support of many different key distributions <em>including</em> binary and variable length keys, with common prefixes; fine grained concurrent access for high performance parallel access, and cache efficiency through optimal data placement and prefetching.
+
+The authors establish the characteristics of their tree structure, including data placement.  These make reasoning about their tree characteristics simpler.  For example, they note that <em>MassTree</em> does not guarantee that it is a balanced structure.  However, due to the way the tree itself is structured, they have the same algorithmic cost: <em>O(l log n</em>) comparisions, where l is the length of the key and n is the depth of the tree.
+
+As a pragmatic check on their implementation, they also use a partial-key B-tree (pkB-Tree) for comparison.  Despite the fact the pkB-Tree is balanced, the authors note that <em>MassTree</em> performs favorably well on several benchmarks.  The authors go into detail about their implementation details, including the construction of border nodes and interior nodes, as well as how they lay out data (again, with an eye towards cache line efficiency).
+
+<a href="/media/2018/04/figure3-1.png"><img class="size-medium wp-image-444 alignright" src="/media/2018/04/figure3-1-300x198.png" alt="" width="300" height="198" /></a>To achieve this efficiently, they use a versioning scheme.  A node has a <em>version number</em>.  To modify the node, a given processor must update the version to indicate that it is changing the node.  A <em>reader</em> will snapshot the version at the start of the read, and compare it at the end of the read.  If it changed, the reader knows the state may have changed and can retry the read operation (essentially a variant of <a href="https://en.wikipedia.org/wiki/Software_transactional_memory">software transactional memory</a>).  The detailed diagram of this is shown in Figure 3 (from the paper).
+
+The paper describes the concurrency model in the face of conflicting writers as well.  By keeping their lock in the same cache line as their data, they exploit the cache coherence protocol.  The authors note that lock-free operations have comparable cache behavior (e.g., compare-and-swap or link-load-store-conditional).
+
+<a href="/media/2018/04/node-split.png"><img class="alignleft size-full wp-image-442" src="/media/2018/04/node-split.png" alt="" width="274" height="232" /></a>Indeed, much of the rest of the technical content of the paper is explaining why their approach is correct - an essential point for concurrent access systems.  Without that, there really is not much point!
+
+While brief, their discussion about <em>value</em> storage is interesting: their measurements are done assuming that values will be small.  They state they have a scheme for managing large values as well, via a separate allocator.  While they do not claim this, my observation is that a "real world" system would likely need to have some hybrid form of this.
+
+<em>MassTree</em> is an in-memory key-value store. To provide persistence, they rely upon a write-behind log scheme.  When used via the network interface, the writes <strong>are not</strong> guaranteed.  To minimize the loss window, they choose a 200 ms timer.  Thus, the log is written to disk every 200 ms.  They do not evaluate this persistence model, offering it to us as an explanation that persistence is not incompatible with performance.
+
+This last point is an interesting one, especially when considered in the context of NVM: what are the trade-offs.  The authors hint at this, but do not explore this space.
+
+For those interested, a version of the source code can be found here: https://github.com/kohler/masstree-beta
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

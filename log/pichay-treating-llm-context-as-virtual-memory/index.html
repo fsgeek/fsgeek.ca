@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pichay: Treating LLM Context as Virtual Memory &middot; fsgeek.ca</title>
+  <meta name="description" content="Pichay: Treating LLM Context as Virtual Memory">
+  <link rel="canonical" href="https://fsgeek.ca/log/pichay-treating-llm-context-as-virtual-memory/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / pichay-treating-llm-context-as-virtual-memory</div>
+    <article class="entry">
+      <h1>Pichay: Treating LLM Context as Virtual Memory</h1>
+      <div class="entry-meta"><span>2026-03-25</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<figure class="wp-block-image size-full"><img src="/media/2026/03/image.png" alt="" class="wp-image-2619"/></figure>
+
+<p>I recently submitted an early version of the work I've been doing in exploring the current way AI agents use context window.  I learned a number of useful things along the way:</p>
+
+<ul class="wp-block-list"><li>Much of what is in the context window is detritus</li>
+
+<li>The append-only log nature of the context window is <strong>no</strong><strong>t</strong> a requirement of the transformer, it is a reflection of the usage pattern for AI chatbots.</li>
+
+<li>This looks remarkably like Denning's <em>wo</em><em>rking set</em> from the 1960s. </li>
+
+<li>Doing memory management with transformers is _different_ than doing it with a CPU.  We can <em>le</em><em>arn</em> from what's been done before, but this is a different path.</li>
+</ul>
+
+<p>First, here's a link to the preprint I posted recently: <a href="https://arxiv.org/abs/2603.09023">[2603.09023] The Missing Memory Hierarchy: Demand Paging for LLM Context Windows</a></p>
+
+<p>The work has been iterative in nature and the version that was described in that initial version has been evolving rapidly. My basic set-up has been to use the gateway while doing ordinary tasks.  That's been interesting - sometimes things do break and I have to drop out and fix them.</p>
+
+<p>The other observation is that the tool I've been building isn't the ideal way of demonstrating the core VM thesis because it conflates with the effect of the decisions inherent in the existing model:</p>
+
+<ul class="wp-block-list"><li>Everything is an append-only list</li>
+
+<li>All conversations are user/assistant interleaved</li>
+
+<li>There is no inherent structure for what is presented to the model.</li>
+
+<li>The API protocol (at least for Claude code) mixes <em>co</em><em>ntrol</em> and <em>da</em><em>ta </em>together, which makes managing the interaction more complicated. </li>
+</ul>
+
+<p>The <em>be</em><em>nefit</em> of doing this with Claude code is that it demonstrates the viability of a real system, doing real work, in a way that preserves context window, reduces token count, and appears to do so in a way that is at least non-inferior to what we're doing already. </p>
+
+<p>But at this point I've decided it's time to move away from that model and instead build a real VM system for transformers.  What we know:</p>
+
+<ul class="wp-block-list"><li>Transformers understand structured inputs - not just Anthropic, but more broadly (a sweep study that used OpenRouter to query candidates) </li>
+
+<li>Transformers can <em>ma</em><em>nage</em> their own memory space - the Anthropic models did remarkably well at understanding how their memory was being used, and how to release memory blocks that were no longer needed.</li>
+
+<li>Transformers can understand the difference between <em>de</em><em>letion</em> and <em>re</em><em>moval from the working set</em>.  The former means "not needed anymore" - tool output, or transient information.  The latter (removal) means "you can get this back" - we just leave behind a retrieval handle and a semantic description of what's been removed from the working set.</li>
+
+<li>Giving the transformer a state object that it mutates knowing it will be passed back to it in the future yields better project awareness than external summarization or providing the entire conversation.  This is important because in long-horizon interactions those back and forth conversational elements become a significant part of the token usage, even though much of it becomes irrelevant. </li>
+</ul>
+
+<p>There's a lot to explore here.  The near-term focus is on separating the engineering challenges of an interposition layer between Claude Code and the Anthropic endpoint from the larger considerations of what a memory system built for a transformer might look like.</p>
+
+<p>One thing is clear: an <strong>ap</strong><strong>pend only </strong>log is not the best answer. It might have been expedient at some point, but it's not an effective implementation model.</p>
+
+<p>The original repository is at <a href="https://github.com/fsgeek/pichay" target="_blank" rel="noreferrer noopener">Pichay</a>.</p>
+
+<p>Since then I've been working on two different pieces of this puzzle:</p>
+
+<ul class="wp-block-list"><li>A <em>pr</em><em>ojective gateway</em> that offers greater control (<a href="https://github.com/fsgkee/tinkuy" target="_blank" rel="noreferrer noopener">Tinkuy</a>)</li>
+
+<li>A self-mutating state object that provides a model for remembering important information from interactive exchanges, such as in AI coding agents.  <a href="https://github.com/fsgeek/hamutay">Hamut'ay</a></li>
+</ul>
+
+<p>My goal - which is close - is to have a mechanism by which you can use an AI driven code editor in a way that is context efficient and can engage in effectively unbounded long-horizon interactions.  There's more work to do here - this is still at the ALU (<a href="https://github.com/fsgeek/hamutay" target="_blank" rel="noreferrer noopener">Hamut'ay</a>) and L1-cache level (<a href="https://github.com/fsgeek/tinkuy" target="_blank" rel="noreferrer noopener">Tinkuy</a>), but my research is waiting to provide persistent graph structured storage to enable both effective <em>fo</em><em>rgetting</em> as well as selective <em>re</em><em>call</em>.</p>
+
+<p>I didn't expect to find that using human episodic memory for finding storage objects was going to also look like an effective means of providing memory for large language models, but the direction seems promising.</p>
+
+<p></p>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

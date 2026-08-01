@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MRAMFS: A compressing file system for non-volatile RAM &middot; fsgeek.ca</title>
+  <meta name="description" content="MRAMFS: A compressing file system for non-volatile RAM">
+  <link rel="canonical" href="https://fsgeek.ca/log/mramfs-a-compressing-file-system-for-non-volatile-ram/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / mramfs-a-compressing-file-system-for-non-volatile-ram</div>
+    <article class="entry">
+      <h1>MRAMFS: A compressing file system for non-volatile RAM</h1>
+      <div class="entry-meta"><span>2018-04-20</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://ieeexplore.ieee.org/abstract/document/1348317/">MRAMFS: A compressing file system for non-volatile RAM</a>
+Nathan K. Edel, Deepa Tuteja, Ethan L. Miller, and Scott A. Brandt in <em>Proceedings of the 12th IEEE/ACM International Symposium on Modeling, Analysis, and Simulation of Computer and Telecommunication Systems (MASCOTS 2004)</em>, Volendam, Netherlands, October 2004.
+
+This paper allows me to provide both a file systems paper <em>and</em> look at an interesting approach to byte-addressable non-volatile memory (NVM).
+<blockquote><em>We have developed a prototype in-memory file system which utilizes data compression on inodes, and which has preliminary support for compression of file blocks.  Our file system, mramfs, is also based on data structures tuned for storage efficiency in non-volatile memory.</em></blockquote>
+One of the interesting aspects of NVM is that it has characteristics of <em>storage</em> (persistence) and <em>memory </em>(byte-addressability).  Storage people are used to having vast amounts of time to do things: it is quite difficult, though not impossible, to do anything computationally with data that will be an important factor when it is combined with the overhead of I/O latency to disk drives.  In-memory algorithms worry about optimal cache line usage and efficient usage of the processor, but they don't need to worry about what happens when the power goes off.
+
+Bringing these two things together requires re-thinking things.  NVM isn't as fast as DRAM.  Storage people aren't used to worrying about CPU cache effects on data resilience.
+
+So <em>mramfs</em> looks at this from a very file systems centric perspective: how do we exploit this nifty new memory to build a new kind of RAM disk: it's still RAM but now it's persistent.   NVRAM is <em>slower</em> than DIMM and hence it makes sense to compress it to increase the effective data transfer rate (though it is not clear if that really will be the case.)
+
+I didn't find a strong motivation for compression, though I can see the viability of it now, in a world in which we want to pack as much as we can into a 64 byte cache line.  The authors point out that one of the previous systems (Conquest) settled on a 53 byte inode size. The authors studied existing systems and found they could actually compress down to 20 bytes (or less) for a single inode.   They achieved this using a combination of gamma compression and compressing common file patterns (mode, uid, and gid).  Another reason for this approach is they did not wish to burden their file system with a computationally expensive compression scheme.
+
+<a href="/media/2018/04/figure1-1.png"><img class="size-medium wp-image-434 alignleft" src="/media/2018/04/figure1-1-300x214.png" alt="MRAMFS Figure 1" width="300" height="214" /></a>In Figure 1 (from the paper) the authors provide a graphic description of their data structures.  This depicts a fairly traditional UNIX style file system, with an inode table, name space (directories), references from directory entries to the inodes.  Inodes then point to control structures that eventually map to the actual data blocks.
+
+The actual memory is managed by the file system from a single chunk of non-volatile memory; the memory is virtually addressed and the paper points out that they don't actually <em>care</em> how that mapping is achieved.
+
+Multiple inodes are allocated together in <em>inode blocks</em> with each block consisting of 16 (variable length) inodes.  The minimum size of a block is 256 bytes. inodes are rewritten in place whenever possible, which can lead to slack space.  If an inode doesn't fit within its existing space, the entire block is reconstructed and then written to a new block.  Aftewards, the block pointer is changed to point to the new block.  Then the old block is freed.
+
+One thing that is missing from this is much reasoning about crash consistency, which surprised me.
+
+The authors have an extensive evaluation section, comparing to ext2fs, ramfs, and jffs2 (all over RAM disk).  Their test was a create/unlink micro-benchmark, thus optimizing the meta-data insertion/deletion case.  They then questioned their entire testing mechanism by pointing out that the time was also comparable to what they achieved using tmpfs building the <em>openssl</em> package from source.  Their final evaluation was done without the compression code enabled ("[U]nfortuantely, the data compression code is not yet reliable enough to complete significant runs of Postmark or of large builds...").  They said they were getting about 20-25% of the speed without compression.
+
+Despite this finding, their conclusion was "We have shown that both metadata and file data blocks are highly compressisble with little increase in code complexity.  By using tuned compression techniques, we can save more than 60% of the inode space required by previous NVRAM file systems, and with little impact on performance."
+
+My take-away?  This was an early implementation of a file system on NVM.  It demonstrates one of the risks of thinking too much in file systems terms.  We'll definitely have to do better.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

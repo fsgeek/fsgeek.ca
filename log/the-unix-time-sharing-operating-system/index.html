@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The UNIX Time-Sharing Operating System &middot; fsgeek.ca</title>
+  <meta name="description" content="The UNIX Time-Sharing Operating System">
+  <link rel="canonical" href="https://fsgeek.ca/log/the-unix-time-sharing-operating-system/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / the-unix-time-sharing-operating-system</div>
+    <article class="entry">
+      <h1>The UNIX Time-Sharing Operating System</h1>
+      <div class="entry-meta"><span>2018-01-18</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://compas.cs.stonybrook.edu/~nhonarmand/courses/fa17/cse306/papers/unix.pdf">The UNIX Time-Sharing Operating System</a>
+Dennis M. Ritchie and Ken Thompson, Bell Labs, <em>Communications of the ACM, </em><i>July 1974, Volume 17, Number 7, pp. 365-375.</i>
+
+This paper describes <strong>Version 3</strong> of UNIX.  It was Version 6 that became the basis of the Berkeley Software Distribution (BSD) version of UNIX.  The only other operating system in CS history to date that has had so much impact on operating systems development is <a href="/log/multics/">MULTICS</a>, and UNIX is a direct descendant.  Developed by several Bell Labs researchers that had been involved in MULTICS, its goal was to try and build a smaller operating system that retained what they viewed as the key benefits of MULTICS.
+
+Much of UNIX Version 3 was written in the C programming language, itself derived from BCPL, a language that had been used on the MULTICS project.
+<blockquote>"<em>The most important job of UNIX is to provide a file system.</em>"</blockquote>
+These words leave little doubt about the role of file systems in UNIX and the importance assigned to them.  The paper then goes on to describe files, in similar terms to MULTICS: files, directories, and special files (devices).  We see the hierarchical file system of MULTICS reflected back in the description of the system.  They talk about file names being 14 characters or less, the formation of paths, and the iterative walk of names through the file system name space to find other directories, as well as the terminal file nodes.
+<blockquote>"<em>The directory structure is constrained to have the form of a rooted tree.</em>"</blockquote>
+This is what I am looking for - the <em>why</em> of hierarchical file systems.  I found the answer here, unsurprising yet ironically disappointing:
+<blockquote>"<em>The reason for this is to simplify the writing of programs which visit subtrees of the directory structure, and more important, to avoid the separation of portions of the hierarchy.</em>"</blockquote>
+Not surprising, yet not precisely what I had expected.  I had <em>expected</em> the reason to be for the simplicity of the operating system (though they do allude to this by discussing the difficulty of knowing when it is safe to delete a directory.  They describe <em>links</em> to files, however, so their file system is not really a tree.  Rather, it is more like a directed acyclic graph (DAG).  Files do not have pointers back to their directories, but directories have pointers back to their parent.  Thus we have the distinction.  The namespace is a DAG.  Files don't really live in the name space directly, they are referenced <em>from</em> the namespace, but have a reference count.
+
+Oddly, with that, I found what I came for, at least in terms of insight for my own research area.  There is a certain satisfaction in being able to point to this seminal document and say "this is why we got to where we are now."
+
+But if I stopped at this point, I would be leaving out the bits I had not expected to find.
+
+First, the mundane: they discuss removable file systems, the fact that this is in fact a <em>collection</em> of name spaces, combining persistent name spaces with one another using a non-persistent mechanism (mounting),  There is a simple description of how the file system is itself implemented.  They describe the <em>i-number<strong> </strong></em>(now the inode number) as an index into the file table.  Thus, a directory entry is where the name lives, it merely refers to the file using its <em>i-number</em>.  These entries are then called <em>i-node</em>s.  The i-node contains information about the owner of the file, the protection bits governing the file, the location information for where logical data is physically stored on the medium, the size of the file, its timestamps, it's attribute bits, and the number of directory entries referencing the given <em>i-node</em>.
+
+Surprisingly, not all that different than it is now, 45 years later.  Implementation details <em>have</em> changed, as we no longer limit files to 10MB in size.
+
+They describe bufering, they describe sector sized I/O and how it is more efficient for a program to do sector-sized I/O operations.
+
+Much of the paper has nothing to do with file systems.  I leave that to the interested reader to explore beyond that.
+
+There are two interesting tid-bits remaining:
+<ul>
+ 	<li>They lost data once, on a hard disk that failed.  The backup was 3 days old.</li>
+ 	<li>They considered the <em>permuted index</em> application as one of the "major programs available".</li>
+</ul>
+The fact they considered the permuted index important at this early stage <em>was </em>an interesting insight to me.  Clearly, the ability to "find our stuff" is one that's been around since the dawn of time.  Maybe this research direction of mine <em>does</em> make sense.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CPSC 416 Winter 2023 Term 1 &middot; fsgeek.ca</title>
+  <meta name="description" content="CPSC 416 Winter 2023 Term 1">
+  <link rel="canonical" href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link" aria-current="page">teaching</a>
+      <a href="/log/">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/teaching/">teaching</a> / cpsc-416-winter-2023-term-1</div>
+    <article class="entry">
+      <h1>CPSC 416 Winter 2023 Term 1</h1>
+      <div class="entry-meta"><span>2023-06-10</span></div>
+      <div class="entry-body">
+<p><strong>Note</strong><strong>:</strong> This is preliminary and will be changing over the next couple of weeks.  The course starts September 5, 2023.  The first in-person lecture is September 7, 2023.<br><br>The first time that I taught this course (<a rel="noreferrer noopener" class="wpc-darklup-observer--node darklup--link" href="https://courses.students.ubc.ca/cs/courseschedule?pname=subjarea&amp;tname=subj-course&amp;dept=CPSC&amp;course=416" target="_blank">Distributed Systems (CPSC 416)</a>) was January to April 2023 (UBC called it Winter 2022 Term 2).  This course will differ from my prior offering, so while you are free to review the materials from my prior offering, <strong>do no</strong><strong>t</strong> expect that this offering will be the same.</p>
+
+<p>First: this course is challenging. It is not&nbsp;<em>gratuitously</em>&nbsp;challenging (e.g., I won’t make you suffer because&nbsp;<em>I&nbsp;</em>suffered and think you somehow need to “pay your dues.”) My goal is to help you build a mental model for understanding the field but the field is&nbsp;<em>difficult</em>.</p>
+
+<p>Distributed Systems are difficult because:</p>
+
+<ul><li>The&nbsp;<em>primary</em>&nbsp;concern for this field is dealing with&nbsp;<em>failure</em>. Most of the courses you have taken teach you how to do things. Frequently “failure” means killing the program, rebooting the computer, fixing the bug in the code. In distributed systems we have to figure out how to make things work&nbsp;<em>in the presence of failure</em>.</li>
+
+<li>A major challenge is that, unlike programs running on a single computer, there is limited&nbsp;<a rel="noreferrer noopener" href="https://en.wikipedia.org/wiki/Fate-sharing" target="_blank"><em>fate sharing</em>.</a>&nbsp;In other words, parts of the system can keep running while other parts have failed. When different parts of the system do not have the same view of reality we lose the ability to know what the “correct” state of the system is.</li>
+
+<li>We care about <strong>persistent stat</strong><strong>e</strong>.  What this means is that, unlike ephemeral state where we can reboot to recover, any errors we make will be there <strong>after we reboo</strong><strong>t</strong>.  That's why this version of the course is organized around the two primary ways we store persistent data: <strong>database</strong><strong>s</strong> and <strong>file system</strong><strong>s</strong>.  They're really mostly the same, with different access interfaces.  Even databases come in a variety of flavours, depending upon the access model for which they optimize (e.g., SQL, NoSQL, Graph, Vector, etc.)</li>
+
+<li>We are primarily interested in just <strong>tw</strong><strong>o</strong> core problems:<ul><li>How do we ensure that changes to two <em>different</em><em> </em>databases that are related to each other are done in a <em>consisten</em><em>t</em> fashion. In other words, <strong>if and only i</strong><strong>f</strong> the bank machine gives you the cash you requested should your account balance be adjusted.  For this we use <strong>transactional consistenc</strong><strong>y</strong> mechanisms.</li>
+
+<li>How do we ensure that our databases can recover from the failure of a single copy (or instance) of the database.  For this we use <strong>consensus algorithm</strong><strong>s</strong>.</li>
+</ul>
+</li>
+
+<li>We can easily develop working solutions that are not <em>practically usabl</em><em>e</em> because they are too slow.  The complications arise because we must both <em>optimiz</em><em>e</em> our techniques and <em>preserv</em><em>e</em> our correctness.</li>
+</ul>
+
+<p>We cannot protect against all possible failures.  What we do, instead, is identify failures we <strong>d</strong><strong>o</strong> want to protect against.  Over time, we can expand on the failures we can handle.  Of course, it turns out that <em>figuring out if you did it righ</em><em>t</em> is <strong>har</strong><strong>d</strong>.  It's like backups: the time you figure out they didn't work is when you need them.  Failure at that point often means data loss.  There are numerous articles that describe the impact of data loss on organizations.  Here's a good quotation from one: "<a href="https://www.businessdit.com/impact-of-data-loss-on-business/" target="_blank" rel="noreferrer noopener">[M]any companies don't understand what constitutes their most critical data and how to protect it.</a>"</p>
+
+<p>Why do distributed systems matter? Because, while they are not 100% proof against all possible failures they can achieve high – but not absolute – reliability. Cloud compute vendors use the techniques we will discuss in this course to build “high availability systems.” Their failure model extends to protecting against regional level disasters.</p>
+
+<p>During the term I will be updating the materials I have provided here as necessary:</p>
+
+<ul><li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/instructional-team-winter-2023-term-1/" target="_blank" rel="noreferrer noopener">Instructional Team</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/books-winter-2023-term-1/">Books</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/syllabus-winter-2023-term-1/">Syllabus</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/projects-winter-2023-term-1/">Projects</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/exams-winter-2023-term-1/">Exams</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/rubric-w23t1/">Rubric</a></li>
+
+<li><a href="https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/resources-winter-2023-term-2/">Resources</a></li>
+</ul>
+      <ul class="pagelist">
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/books-winter-2023-term-1/">Books (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/exams-winter-2023-term-1/">Exams (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/guest-lecture-modeling-formal-verification/">Guest Lecture: Modeling & Formal Verification</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/instructional-team-winter-2023-term-1/">Instructional Team (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/projects-winter-2023-term-1/">Projects (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/resources-winter-2023-term-2/">Resources (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/rubric-w23t1/">Rubric (Winter 2023 Term 1)</a></li>
+          <li><a href="/teaching/cpsc-416-winter-2023-term-1/syllabus-winter-2023-term-1/">Syllabus (Winter 2023 Term 1)</a></li>
+      </ul>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

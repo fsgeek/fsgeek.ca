@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NV-Heaps: Making Persistent Objects Fast and Safe with Next-Generation, Non-Volatile Memories &middot; fsgeek.ca</title>
+  <meta name="description" content="NV-Heaps: Making Persistent Objects Fast and Safe with Next-Generation, Non-Volatile Memories">
+  <link rel="canonical" href="https://fsgeek.ca/log/nv-heaps-making-persistent-objects-fast-and-safe-with-next-generation-non-volatile-memories/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / nv-heaps-making-persistent-objects-fast-and-safe-with-next-generation-non-volatile-memories</div>
+    <article class="entry">
+      <h1>NV-Heaps: Making Persistent Objects Fast and Safe with Next-Generation, Non-Volatile Memories</h1>
+      <div class="entry-meta"><span>2018-04-18</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=1950380">NV-Heaps: Making Persistent Objects Fast and Safe with Next-Generation, Non-Volatile Memories</a>
+Joel Coburn, Adrian M. Caulfield, Ameen Akel, Laura M. Grupp, Rajesh K. Gupta, Ranjit Jhala, Steven Swanson
+in <em>ASPLOS XVI Proceedings of the sixteenth international conference on Architectural support for programming languages and operating systems, </em>Pages 105-118, March 5-11, 2011.
+
+This paper was presented at the same conference as <a href="https://wp.me/p8524b-6w">Mnemosyne</a>.  The authors explore a <em>different </em>use of Non-Volatile Memory (NVM): using it for storing persistent <em>objects</em>.  The authors sum up the motivation for this:
+<blockquote><em>Creating these data structures requires a system that is lightweight enough to expose the performance of the underlying memories but also ensures safety in the presence of application and system failures by avoiding familiar bugs such as dangling pointers, multiple free()s, and locking errors. In addition, the system must prevent new types of hard-to-find pointer safety bugs that only arise with persistent objects. These bugs are especially dangerous since any corruption they cause will be permanent.</em></blockquote>
+Thus, their motivation is to enable the use of these nifty "persistent, user-defined objects" that are not practical when backed by disks ("[T]he slow speed of persistent storage (i.e., disk) has restricted their design and limited their performance.")
+
+<a href="/media/2018/04/figure1.png"><img class="alignleft size-medium wp-image-422" src="/media/2018/04/figure1-300x241.png" alt="" width="300" height="241" /></a>
+
+The authors make some important observations that are just as applicable today as they were in 2011.  These include the observation that persistent objects in NVM cannot reasonably be treated like disk based objects "... because the gap between memory and storage performance drove many design decisions that shaped them."  Nor can they be treated like volatile memory: "To guarantee consistency and durability, non-volatile structures must meet a host of challenges, many of which do not exist for volatile memories."
+
+They also observe that NVMs greatly expand the possibility of bug sources from having disparate address spaces.  In other words, while you have a single address space, part of it is ephemeral and if you store a reference to the ephemeral part in the persistent part, it will be inconsistent after the current process terminates.
+
+I found their observation about the ability of programmers to reason about this also apropos: "[t]rusting the average programmer
+to “get it right” in meeting these challenges is both unreasonable..."  This is consistent with more than 50 years of experience in systems.  Personally, I don't think this is an indictment of the programmer so much as it is a burden on the system (a perspective the authors appear to endorse as well).  To make this viable, we need to make it easy to get it right.<a href="/media/2018/04/figure3.png"><img class="alignright size-medium wp-image-423" src="/media/2018/04/figure3-300x131.png" alt="" width="300" height="131" /></a>
+
+Figure 1 shows the general architecture of NV-Heaps: It is envisioned as a library of useful services layered on top of the operating system provided abstractions.  One important observation here is that this model completely avoids the need to interact with the operating system in ordinary program execution.  Persistence no longer relies upon utilizing the standard file systems interface.
+
+The authors' explanation of their goals looks like a veritable "wish list" to me: <em>prevent programmer errors, transactions, referential integrity, performance and scalability, </em>and <em>ease of use.</em>  I'm not sure how referential integrity is different than programmer errors, but clearly it is a very important aspect of their persistent system.
+
+<a href="/media/2018/04/figure8.png"><img class="alignleft size-medium wp-image-424" src="/media/2018/04/figure8-300x281.png" alt="" width="300" height="281" /></a>Figure 3 shows how they handle one of the complex consistency cases inherent in managing NVM: the need to ensure that operations can be safely restarted.  For example, when deleting a large data structure, such as a tree, it must be removed in a way that it can be stopped and restarted (e.g., if the system were to crash, it must then be able to resume removal).  To resume after a crash, they use a log of operations and replay it - a classic solution to the problem.
+
+To make their goal of referential integrity work properly they utilize the programming language constructs to do this.  The authors note they achieve this by using 128 bit pointer values (on a 64 bit system).
+
+The paper describes their implementation in considerable detail.  Again, as we would expect, the implementation yields substantially better performance than comparable systems backed by disks - this really shouldn't come as a surprise, given the performance differential between disks and non-volatile memory.  Even if they had used solid state disks (which existed but were rare in 2011) their results would have still be notably better.  Figure 8 shows their performance information, comparing themselves against several other systems.  One thing to note: they do not have NVM memory.  They use a memory <em>simulator</em> to model the behavior of the system.  The performance figures they provide surprised me: they are substantially faster than I would have expected.  For PCM, they used a 67 nano-second (ns) read time and 215 ns write time.  The paper explains how they obtained these values and how they validated them.  For STTM (a different NVM technology) they reported 29 ns read and 95 ns write.  As a baseline, their DRAM read time was 25 ns, and write time was 35 ns.
+
+While these numbers were lower than I would have expected, the relative ratio is close to what I expected from other things that I have read: PCM memory is about 2.5 times slower for reads, and 10 times slower for writes.  This is consistent with what the paper reports.  I guess it's time to update my mental <a href="https://gist.github.com/jboner/2841832">"Jeff Dean" numbers</a>.  And indeed, it turns out that <a href="http://www.crucial.com/usa/en/memory-performance-speed-latency">DRAM latency is around 15 ns</a>.
+
+The authors were able to modify <strong><a href="https://memcached.org/">memcached</a></strong> to use their library for persistence.  They report that they were able to get within 8% of the original memcached.  That seems like an excellent outcome.
+
+All we need now are NVMs.
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>An Experimental Implementation of the Kernel/Domain Architecture &middot; fsgeek.ca</title>
+  <meta name="description" content="An Experimental Implementation of the Kernel/Domain Architecture">
+  <link rel="canonical" href="https://fsgeek.ca/log/an-experimental-implementation-of-the-kernel-domain-architecture/">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link">teaching</a>
+      <a href="/log/" aria-current="page">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/log/">log</a> / an-experimental-implementation-of-the-kernel-domain-architecture</div>
+    <article class="entry">
+      <h1>An Experimental Implementation of the Kernel/Domain Architecture</h1>
+      <div class="entry-meta"><span>2018-01-23</span>
+        <span class="log-tag">research</span></div>
+      <div class="entry-body">
+<a href="https://dl.acm.org/citation.cfm?id=808043">An Experimental Implementation of the Kernel/Domain Architecture</a>
+Michael J. Spier, Thomas N. Hastings, David N. Cutler,  <i>ACM SIGOPS Operating Systems Review</i>, vol. 7, no. 4, pp. 8-21. ACM, 1973.
+
+While looking for file systems papers, one of the approaches that I used was to walk through the successive years of conference proceedings from the <a href="http://www.sosp.org/">Symposium on Operating Systems Principles (SOSP)</a>.  This biennial conference has been going on for more than 50 years at this point and contains a wealth of interesting and influential papers from the operating systems domain.  It is common to find file systems papers at these conferences.
+
+This particular gem comes from the fourth such symposium (1973).  While it discusses various aspects of operating systems, which makes it quite interesting anyway, but it also discusses file systems within the context of this experimental operating system that may prove insightful.
+
+This paragraph caught my eye:
+<blockquote><em>On our proposed architecture with its many monitor-like domains we envisioned the possibility of supporting the concurrent existence of similar purpose redundant supervisory services (e.g., 3 file systems, 7 file nomenclature hierarchies, 4 login responders, etc.) which, for all practical intents and purposes, would provide the external appearance of concurrent operating systems of disparate natures.</em></blockquote>
+This is the first time I have seen a reference to the concept of having multiple file systems simultaneously as an explicit part of the operating system model.  It also describes this intriguing concept of "concurrent operating systems of disparate natures".  One of the authors (David N. Cutler) goes on to work on the construction of several different operating systems including what is now Windows today - and it's architecture is one in which it was designed to provide precisely this type of concurrent disparate operating system environments.  Windows also supports multiple dynamically loaded file systems which now does not look so novel, as essentially all modern operating systems do.
+
+Indeed, what they go on to describe is the "domain machine" in which the monolithic operating system has been divided up into distinct components, which constitute distinct supervisory domains.  One of these domains represents the small set of functionality necessary to manage the actual hardware,   The goal was to keep it small and bug free.
+
+Complicating this was the author's observation that the system must be re-entrant in order to avoid deadlock.  This was a deliberate goal and they even go so far as to point out this behavior when involving the file system - the kernel may need to invoke the file system to handle demand loading of a domain, but the file system must invoke the kernel in order to access the disk where the data is stored.
+
+Another of their observations intrigued me: they separate the "traditional file system" into a storage layer ("disk space manager" as they call it) and a "name space manager".  They admit the possibility that this name space <em>might</em> be hierarchical.  They also explicitly note they could support "differently flavored file systems".
+
+In scheduling, they touch on the fact that I/O bound processes (e.g., the file system) benefit from being given real-time scheduling priority on traditional operating systems; in this domain system they do not need to do so.
+
+This paper definitely surprised me, as I see the germs of ideas here that will be clearly realized in later systems work.  Some of these ideas clearly survive and emerge later, including those that affect file systems.
+
+As we will see later, this logical divide of file systems actually naturally develops along the storage line, though the name space is not so clearly delineated.  Perhaps it should be.
+
+While not directly germane to file systems, Dave Cutler goes on to work on RSX-11M and VMS (at Digital Equipment Corporation), as well as Windows NT (at Microsoft).  The latter became the basis of the Windows OS beginning with Windows XP.
+
+&nbsp;
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>
