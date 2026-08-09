@@ -1,0 +1,25 @@
+# CPSC 416 (Winter 2022 Term 2): Projects
+
+2022-12-23 · https://fsgeek.ca/teaching/cpsc-416-winter-22-term-2/cpsc-416-winter-2022-term-2-projects/
+
+The course will use the DS Labs from the University of Washington (<https://github.com/emichael/dslabs>).
+
+## Project 1 DSLabs Intro (5%)
+
+Students are guided to become familiar with the project framework and programming routines used in the DSLabs. This lab will be released in the first week of the course and is due at the end of the second week.
+
+## Project 2 Client-Sever (10%)
+
+This project uses an exactly-once RPC protocol, which you will implement, for a client-server style interface. The project is tested over an asynchronous network test framework. This lab will be released in the first week of the course and is due at the end of the fourth week.
+
+## Project 3 Primary-Backup (10%)
+
+This project asks you to implement a primary-backup replication system that provides fault tolerance. This lab will be released on January 24, 2023 and is due March 5, 2023.
+
+## Project 4 Paxos (25%)
+
+This project asks you to implement the Paxos consensus protocol. Testing is done against a search space based analysis of your code to ensure your implementation meets correctness and performance requirements. Note that this is a very challenging project. This lab will be released on January 24, 2023 and is due March 26, 2023.
+
+## Project 5 Sharded Key-Value Store (25%)
+
+This project will have two options: one will be to use our reference PAXOS implementation in implementing your Key-Value store. The other will allow you to use your own custom consensus protocol (e.g., the Paxos implementation you did for Project 4) in implementing your Key-Value store. Your grade will be the higher of the two implementations. This lab will be released on January 24 and is due April 16, 2023.

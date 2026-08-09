@@ -1,0 +1,27 @@
+# Using Focus, Relationship, Breadcrumbs, and Trails for Success in Finding
+
+2022-01-12 · https://fsgeek.ca/log/using-focus-relationship-breadcrumbs-and-trails-for-success-in-finding/
+
+As I mentioned in my [last post](https://fsgeek.ca/tag/indaleko/), I am considering how to add _activity context_ as a system service that can be useful in improving findings. Last month (December 2021) my examination committee asked me to consider a useful question: "If this service _already existed_ what would you build using it?"
+
+The challenge in answering this question was _not_ finding examples, but rather finding examples that fit into the "this is a systems problem" box that I had been thinking about while framing my research proposal. It has now been a month and I realized at some point that I do not need to constrain myself to systems. From that, I was able to pull a number of examples that I had considered while writing my thesis proposal.
+
+The first of this is likely what I would consider the _closest_ to being "systems related." This hearkens back to the original motivation for my research direction: I was taking [Dr. David Joyner's "Human-Computer Interaction" course at Georgia Tech ](https://omscs.gatech.edu/cs-6750-human-computer-interaction)and at one point he used the "file/folder" metaphor as an example of HCI. I had been wrestling with the problem of scope and finding and this simple presentation made it clear _why_ we were not escaping the file/folder metaphor - it has been "good enough" for _decades_.
+
+More recently, I have been working on figuring out better ways to encourage _finding_ , and that is the original motivation for my thesis proposal. The key idea of "activity context" has potentially broader usage beyond building better search tools.
+
+In my research I have learned that humans do not like to _search_ unless they have no other option. Instead, they prefer to **navigate**. The research literature says that this is because searching creates more cognitive load for the human user than navigation does. I think of this as meaning that people prefer to be told where to go rather than being given a list of possible options.
+
+Several years ago (pre-pandemic) Ashish Nair came and worked with us for nine weeks one summer. I worked with him to look at building tools to take existing file data across multiple distinct storage domains and present them based upon commonality. By clustering files according to both their meta-data and simply extracted semantic context, he was able to modify an existing graph data visualizer to permit browsing files based on those relationships, regardless of where they were actually stored. While simple, this demonstration has stuck with me.
+
+https://youtu.be/LQxvAhM5Oss 
+
+Ashish Nair (Systopia Intern) worked with us to build an interesting file browser using a graph data visualizer.
+
+Thus, pushed to think of ways in which I would use _Indaleko_ , my proposed activity context system, it occurred to me that using activity context to cluster related objects would be a natural way to exploit this information. This is also something easy to achieve. Unlike some of my other ideas, this is a tool that can demonstrate an associative model because "walking a graph" is an easy to understand way to walk related information.
+
+There is a small body of research that has looked at similar interfaces. One that stuck in my mind was called _Focus_. While the authors were thinking of tabletop interfaces, the basic paradigm they describe, where one starts with a "primary file" (the focus) and then shows similar files (driven by content and meta-data) along the edges. This is remarkably like Ashish's demo.
+
+The exciting thing about having _activity context_ is that it provides interesting new ways of associating files together: independent of location and clustered together by commonality. Both the demo and Focus use existing file meta-data and content similarity, which is useful. With activity context added as well, there is further information that can be used to both refine similar associations as well as cluster along a greater number of axis.
+
+Thus, I can show off the benefits of _Indaleko_ 's activity context support by using a Focus-style file browser.

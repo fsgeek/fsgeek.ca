@@ -16,6 +16,8 @@ Draft/private content is skipped entirely (prior-classes-1442 among them).
 import re
 from pathlib import Path
 
+import html2text
+
 MONO = '"IBM Plex Mono", ui-monospace, monospace'
 RENAME_ROOT = {'my-research': 'research', 'about-me': 'about'}
 RAW_PASSTHROUGH = {'ai-development-environment-setup', 'cloud-development-kit'}
@@ -54,6 +56,19 @@ def clean_body(body):
     body = re.sub(r'https?://fsgeek\.ca/wp-content/uploads/', '/media/', body)
     body = re.sub(r'\n{3,}', '\n\n', body).strip()
     return body
+
+
+def body_to_markdown(title, date, canonical, body_html, kids=None):
+    h = html2text.HTML2Text()
+    h.body_width = 0
+    h.unicode_snob = True
+    md = h.handle(body_html).strip()
+    header = f'# {title}\n\n{date} · {canonical}\n\n'
+    footer = ''
+    if kids:
+        links = '\n'.join(f'- [{k[2]}](https://fsgeek.ca{k[1]})' for k in sorted(kids, key=lambda k: k[2]))
+        footer = '\n\n' + links
+    return header + md + footer + '\n'
 
 
 def wing_tag(categories):
@@ -102,7 +117,8 @@ def header_for(section):
     )
 
 
-def page_shell(title, description, canonical, section, breadcrumb_html, body_html):
+def page_shell(title, description, canonical, section, breadcrumb_html, body_html, markdown_href=None):
+    alternate = f'\n  <link rel="alternate" type="text/markdown" href="{markdown_href}">' if markdown_href else ''
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,7 +127,7 @@ def page_shell(title, description, canonical, section, breadcrumb_html, body_htm
   <title>{title} &middot; fsgeek.ca</title>
   <meta name="description" content="{description}">
   <link rel="canonical" href="{canonical}">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css">{alternate}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -185,15 +201,19 @@ def main():
         date = fm['date'][:10]
         meta_html = f'<span>{date}</span>\n        <span class="log-tag{" teaching" if tag == "teaching" else ""}">{tag}</span>'
         body_html = clean_body(body)
+        canonical = f'https://fsgeek.ca/log/{slug}/'
         page = page_shell(
             title=fm['title'],
             description=fm['title'],
-            canonical=f'https://fsgeek.ca/log/{slug}/',
+            canonical=canonical,
             section='log',
             breadcrumb_html=breadcrumb(['log', slug]),
             body_html=article_block(fm['title'], meta_html, body_html),
+            markdown_href=f'/log/{slug}/index.md',
         )
         (out_dir / 'index.html').write_text(page, encoding='utf-8')
+        md = body_to_markdown(fm['title'], date, canonical, body_html)
+        (out_dir / 'index.md').write_text(md, encoding='utf-8')
         log_entries.append((date, tag, fm['title'], f'/log/{slug}/'))
         posts_written += 1
 
@@ -264,16 +284,22 @@ def main():
             else:
                 extra = '\n' + pagelist(kids_sorted)
 
-        meta_html = f'<span>{fm["date"][:10]}</span>'
+        date = fm['date'][:10]
+        meta_html = f'<span>{date}</span>'
+        href = '/' + '/'.join(mapped_parts) + '/'
+        canonical = f'https://fsgeek.ca{href}'
         page = page_shell(
             title=title,
             description=title,
-            canonical=f'https://fsgeek.ca{"/" + "/".join(mapped_parts) + "/"}',
+            canonical=canonical,
             section=section,
             breadcrumb_html=breadcrumb(mapped_parts),
             body_html=article_block(title, meta_html, body_html + extra),
+            markdown_href=f'{href}index.md',
         )
         out_file.write_text(page, encoding='utf-8')
+        md = body_to_markdown(title, date, canonical, body_html, kids=kids)
+        (out_file.parent / 'index.md').write_text(md, encoding='utf-8')
         pages_written += 1
 
     write_homepage(root, log_entries[:12])

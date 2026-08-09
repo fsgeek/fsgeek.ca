@@ -1,0 +1,5 @@
+# Welcome!
+
+2016-11-04 · https://fsgeek.ca/log/hello-world/
+
+![File Systems](/media/2016/11/llsfs4-300x140.jpg) This is my new blog, dedicated to the world of file systems. I've been working with file systems for some time now (longer than I'd care to admit). If you are not familiar with a file system think of it as the software inside your computer that stores your data away and gets it back for you when you want it. It provides the  _organization_ to your storage device - whether it is a disk drive on your local computer or storage in some far-away location ("the cloud"). It plugs into the critical software that runs your computer system and provides services to that applications can find your data as well. When it works right, you hardly notice it - much like plumbing. When it doesn't work right, you suffer. I'm not sure where this blog will take me, but I'm going to use it as a mechanism for tracking my own journey, organizing my own research. If you find it interesting as well, that's awesome! If you don't, it won't diminish my own purpose for doing this.

@@ -1,0 +1,26 @@
+# Collaboration versus Cheating
+
+2019-05-07 · https://fsgeek.ca/log/collaboration-versus-cheating/
+
+_[Collaboration Versus Cheating: Reducing Code Plagiarism in an Online MS Computer Science Program](https://dl.acm.org/citation.cfm?id=3287443)_ Tony Mason, Ada Gavrilovska, and David A. Joyner, _Proceedings of the 50th ACM Technical Symposium on Computer Science Education_ , pp. 1004-1010, Minneapolis, MN, February 27 - March 2, 2019.
+
+This is a rather different paper than my usual but I thought I would write about it since I was the one that drove this particular work. I first started as a teaching assistant for the _Graduate Introduction to Operating Systems_ in [Georgia Tech's Online Master of Science in Computer Science ](http://www.omscs.gatech.edu/)program. One of my motivations at the time was to really learn more about how online education could be realized. The program's goals were to achieve scale (which it has) and to maintain a quality level that was non-inferior to their online MSc program offering. I achieved many of my goals here, as I learned how to improve the pedagogical goals (by improving feedback to students, and helping them understand the topics) of the class while also finding ways to ensure academic honesty.
+
+![](https://i1.wp.com/fsgeek.ca/wp-content/uploads/2019/04/timeline3.png?fit=600%2C232&ssl=1)  
+Figure 1: Detected plagiarism rates over time
+
+I started working with the class in Fall 2015; at that point we had no proactive plagiarism detection in place, though we were collecting similarity data. It wasn't until 2016 that I started looking at that data and began to realize we had a noticeable plagiarism rate. We tried a number of techniques to try and reduce this. We explained what plagiarism was, we offered "amnesties" if people that cheated would come forward and admit it. Neither worked. Amnesty actually lead to cases where students we did not think had plagiarized were admitting to things we considered to be fair use (e.g., using existing code to set up socket connections).
+
+Figure 1 shows the progress over time, and clearly delineates when our intervention strategies were successful. What it does not capture is the qualitative difference. By Spring 2017, I was observing students wholesale submitting other students' projects and claiming it as their own! It was that semester when I prioritized "early intervention" in which I quickly identified students suspected of cheating and confronted them. The plagiarism rate for subsequent projects dropped precipitously.
+
+The downside to this approach is that it took a tremendous amount of work to do this, which makes it impractical because _it does not scale_. Effective is great, but scalability was also a requirement if it was going to be useful. In the summer of 2017 we introduced one new mechanism to the class: we added a mandatory _quiz_ that went over the policy and asked students if they understood the course policies defining collaboration and cheating, as well as understanding _why_ this was important and the potential penalties.
+
+The results surprised me: the plagiarism rate _plummeted_. I was cautiously optimistic though because the Summer 2017 class was the smallest we'd ever had. Thus, I suspected it might simply be an anomaly. But this encouraged me to begin making the evaluation more rigorous. In the Fall of 2018 I spent time automating the process of doing code comparisons not only with other students in the same class, but also comparing submissions across _all_ prior submissions. My motivation for doing _this_ work was to validate what I thought I was seeing.
+
+Thus I performed retrospective analysis on prior semesters in which the course was offered. I used that data to [write a paper for Learning at Scale 2018](/media/2019/04/learning-at-scale.pdf) but that paper was rejected. I used the feedback from that to revise my draft and [submit an update to it to ICER 2018 ](/media/2019/04/icer-submission.pdf)but _that_ was also rejected. I once again dug deep and revised the paper and submitted it to SIGCSE 2019, where it was accepted (and astoundingly, all the reviews were accepts!) I revised the final paper to address the concerns of some reviewers (the weak accepts) and that is what was included at SIGCSE.
+
+This doesn't move my research forward per-se, but it helped me understand how incredibly important data visualization is - like Figure 1. I also learned how important it is to construct reproducible data analysis flows. The scripts I wrote helped me build a suite of tools for improving reproducibility. The research I did helped me better understand _why_ the primary automated tool we use works (MOSS) and its limitations. When I was done I realized that I could easily continue exploring this research area, but since it isn't core to my focus, I'll leave it to others to push the frontiers.
+
+Still it was an interesting project and helped confirm my interest in doing research.
+
+I have a [public repository](https://github.com/fsgeek/collaboration-versus-cheating) with further information (beyond what is in my paper) on GitHub. It includes a copy of the slides from my presentation in March at SIGCSE (in which I think I had around 60 people, which was far more than I'd expected given that it was the last half-day of the conference!)

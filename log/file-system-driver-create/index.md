@@ -1,0 +1,32 @@
+# File System Driver: Create
+
+2019-06-13 · https://fsgeek.ca/log/file-system-driver-create/
+
+![](https://i2.wp.com/fsgeek.ca/wp-content/uploads/2019/06/AdobeStock_173912327.jpeg?fit=600%2C433&ssl=1)The road ahead.
+
+The usual place to start when building a file system is to think about the _Create_ operation. This may also be referred to as an _open_ operation, but that conflates the object with the handle.
+
+I think of _Create_ as being "create a handle to the object". The creation of the object itself can be a _side effect_ of creating the handle; it does not make much sense to create a handle to something that doesn't exist.
+
+POSIX actually does have a **create** system call (and at one point it was _****_**creat** for obscure historical reassons). Now you can call **open** and specify **O_CREATE** and it will perform the same operation. In Windows the native call is **NtCreateFile** , though there is also an **NtOpenFile** , but they both ultimately invoke the same internal kernel operation (**IoCreateFile** or its successor **IoCreateFileEx** \- the _Ex_ thing is one way of saying "oh, we need to pass in more parameters, so sorry." I'll just talk about **IoCreateFile** since it is shorter and if you need the other version for some peculiar reason you can figure it out. Remember, it's an operating system internal call, so it _only_ matters to people writing software to execute in the kernel.
+
+Inside Windows, **IoCreateFile** is actually a rather large, complicated function: while the concept of _creating_ a new file object is simple, the details are complicated because as much as we like to pretend files are nothing more than byte streams, there are so many special cases and exceptions to this that our illusion thin, at best. UNIX suffers from this as well, with symbolic links and special files. So, files are byte streams, except when they aren't.
+
+Since I'm writing _this_ article as a description of how file systems on Windows work, I'll stick with talking about Windows behavior and leave talking about other operating systems behavior to another time.
+
+![Windows Flow of Control for Create](/media/2019/06/Windows-Create-2.gif)Windows Flow of Control for Create (Simplified)
+
+The animation shows the basic flow of a request through the system:
+
+  1. An application opens (or creates) a file. Depending upon the implementation for the subsystem, it will call through the subsystem itself; often this is just implemented inside a shared library (dynamic link library or DLL).
+  2. Since this requires a system call, it will invoke the relevant system call interface inside ntdll.dll, which is mapped into every process in the system. It will format the request _as appropriate_ for the platform and then issue a system call (**syscall** /**sysenter** on Intel platforms, or **swi** on ARM platforms).
+  3. The Windows system call dispatcher will forward this to the I/O Manager, since it handles files.
+  4. The I/O Manager is presented with a _name_ but it does not yet know which device and driver will handle this specific request. Thus, the I/O Manager will ask the Object Manager (**ObLookupObject**) to parse the name until it finds a relevant device. Assuming it does reference a specific device, the Object Manager will then invoke the I/O Manager, because **DeviceObjects**(and **FileObjects**) point to a function registered by the I/O Manager with the Object Manager. For example, this will invoke **IopParseDevice**. At this point the I/O Manager now has a **DeviceObject** and the balance of the name. At this point it can allocate an I/O Request Packet (**IRP**) and set it up. In the case of a physical file system, however, the I/O Manager must reference the _volume parameter block_ (**vpb)**. Thus, it retrieves the relevant file system's device object from the **vpb**. It asks the Object Manager to create a new **FileObject**. The I/O Manager will complete initialization of the **FileObject** and format the **IRP** with the relevant parameters. **Create** is a complex I/O request and the fields are scattered, unlike other I/O requests. Once formatted, the I/O Manager will invoke the file system driver (via **IoCallDriver**).
+  5. The file system driver will receive the **IRP**. It will process the request, which may involve creating a new file as a _side effect_ of creating the file object. It will parse the balance of the name. It may check security, sharing, allocate space for new files, validate options. It must handle symbolic links at this point as well (including reparse points) and format return information appropriately. It might attach **ExtraCreateParameters** to the I/O request. It could perform the operation within the context of a kernel transaction if the **FileObject** is part of a transaction. It may have special cases for volumes, directories, alternate data streams, or other file system specific behavior. While the Windows I/O Model allows any **IRP** to be processed asynchronously, the I/O Manager will block and wait for completion of the request. The file system may also need to perform additional operations for _oplocks_ , which even have a case where the create is completed, even though the file is not yet usable.
+  6. Once the file system is done processing the request - successfully or not - it will complete the request by calling **IoCompleteRequest**. The I/O Manager will unwind the I/O request stack (in case there are filters, which there almost always are now) and once done, it will copy results from the kernel to the user address space and return control to the system call dispatcher.
+  7. The system call dispatcher will restore state, set the return code in the return register, and complete the system call.
+  8. In user mode, ntdll will process the request, may raise exceptions if needed, and return to the application caller.
+
+
+
+For a Windows file system **Create** is often one of the most complex routines - I have seen file systems with almost 20% of their code in this path. There are numerous edge conditions: open by file ID, for example, as well as oplocks, not to mention creating new files, creating in-memory data structures and managing the many-to-one relationship between file objects and the file system control structures. **Each open of a file creates a new FileObject**. I will discuss why this becomes complicated in a future post, because it leads to unexpected behavior for the unwary.
