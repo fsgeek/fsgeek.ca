@@ -1,3 +1,4 @@
 tmp/
 .mcp.json
 CLAUDE.md
+__pycache__/

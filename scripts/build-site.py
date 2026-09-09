@@ -14,9 +14,14 @@ their embedded <style>/<script> into our template risks breaking them.
 Draft/private content is skipped entirely (prior-classes-1442 among them).
 """
 import re
+import sys
 from pathlib import Path
 
 import html2text
+from markdown_it import MarkdownIt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from validate_posts import validate_all
 
 MONO = '"IBM Plex Mono", ui-monospace, monospace'
 RENAME_ROOT = {'my-research': 'research', 'about-me': 'about'}
@@ -28,6 +33,7 @@ SKIP_PAGES = {
 }
 
 FM_RE = re.compile(r'^---\n(.*?)\n---\n\n(.*)$', re.DOTALL)
+MD = MarkdownIt('commonmark').enable('table')
 
 
 def parse(path):
@@ -73,6 +79,13 @@ def body_to_markdown(title, date, canonical, body_html, kids=None):
 
 def wing_tag(categories):
     return 'teaching' if 'Teaching' in (categories or []) else 'research'
+
+
+def wing_tag_for_section(section):
+    # 'teaching' gets the highlighted CSS treatment (see .log-tag.teaching);
+    # everything else (research, log, ...) shares the plain .log-tag style,
+    # so pass the section straight through as the displayed label.
+    return section
 
 
 def breadcrumb(parts):
@@ -183,38 +196,59 @@ def out_path_for_page(rel_no_ext):
     return Path(*parts) / 'index.html'
 
 
+def write_post(root, slug, fm, body_html):
+    out_dir = root / 'log' / slug
+    out_dir.mkdir(parents=True, exist_ok=True)
+    tag = wing_tag_for_section(fm['section']) if 'section' in fm else wing_tag(fm.get('categories'))
+    date = fm['date'][:10]
+    meta_html = f'<span>{date}</span>\n        <span class="log-tag{" teaching" if tag == "teaching" else ""}">{tag}</span>'
+    canonical = f'https://fsgeek.ca/log/{slug}/'
+    page = page_shell(
+        title=fm['title'],
+        description=fm['title'],
+        canonical=canonical,
+        section='log',
+        breadcrumb_html=breadcrumb(['log', slug]),
+        body_html=article_block(fm['title'], meta_html, body_html),
+        markdown_href=f'/log/{slug}/index.md',
+    )
+    (out_dir / 'index.html').write_text(page, encoding='utf-8')
+    md = body_to_markdown(fm['title'], date, canonical, body_html)
+    (out_dir / 'index.md').write_text(md, encoding='utf-8')
+    return (date, tag, fm['title'], f'/log/{slug}/')
+
+
 def main():
     root = Path('.')
+
+    validation = validate_all(root)
+    if not validation.ok:
+        for e in validation.errors:
+            print(f'error: {e}')
+        print(f'\n{len(validation.errors)} error(s) — nothing was built.')
+        raise SystemExit(1)
+
     posts_written = pages_written = skipped = raw_written = 0
 
     # ---- posts -> log/<slug>/ ----
     log_entries = []  # (date, tag, title, href) for homepage
+
+    for f in sorted((root / 'content/posts').glob('*.md')):
+        fm, body = parse(f)
+        if fm.get('status') != 'publish':
+            skipped += 1
+            continue
+        body_html = MD.render(body)
+        log_entries.append(write_post(root, f.stem, fm, body_html))
+        posts_written += 1
+
     for f in sorted((root / 'content/posts').glob('*.html')):
         fm, body = parse(f)
         if fm.get('status') != 'publish':
             skipped += 1
             continue
-        slug = f.stem
-        out_dir = root / 'log' / slug
-        out_dir.mkdir(parents=True, exist_ok=True)
-        tag = wing_tag(fm.get('categories'))
-        date = fm['date'][:10]
-        meta_html = f'<span>{date}</span>\n        <span class="log-tag{" teaching" if tag == "teaching" else ""}">{tag}</span>'
         body_html = clean_body(body)
-        canonical = f'https://fsgeek.ca/log/{slug}/'
-        page = page_shell(
-            title=fm['title'],
-            description=fm['title'],
-            canonical=canonical,
-            section='log',
-            breadcrumb_html=breadcrumb(['log', slug]),
-            body_html=article_block(fm['title'], meta_html, body_html),
-            markdown_href=f'/log/{slug}/index.md',
-        )
-        (out_dir / 'index.html').write_text(page, encoding='utf-8')
-        md = body_to_markdown(fm['title'], date, canonical, body_html)
-        (out_dir / 'index.md').write_text(md, encoding='utf-8')
-        log_entries.append((date, tag, fm['title'], f'/log/{slug}/'))
+        log_entries.append(write_post(root, f.stem, fm, body_html))
         posts_written += 1
 
     log_entries.sort(reverse=True)

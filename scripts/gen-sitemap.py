@@ -42,7 +42,7 @@ def main():
     root = Path('.')
     urls = list(STATIC_URLS)
 
-    for f in sorted((root / 'content/posts').glob('*.html')):
+    for f in sorted((root / 'content/posts').glob('*.md')) + sorted((root / 'content/posts').glob('*.html')):
         fm = parse_fm(f)
         if fm.get('status') != 'publish':
             continue
