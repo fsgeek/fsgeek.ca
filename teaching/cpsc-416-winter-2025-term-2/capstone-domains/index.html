@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capstone domains &middot; fsgeek.ca</title>
+  <meta name="description" content="Capstone domains">
+  <link rel="canonical" href="https://fsgeek.ca/teaching/cpsc-416-winter-2025-term-2/capstone-domains/">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="text/markdown" href="/teaching/cpsc-416-winter-2025-term-2/capstone-domains/index.md">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link" aria-current="page">teaching</a>
+      <a href="/log/">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/teaching/">teaching</a> / <a href="/teaching/cpsc-416-winter-2025-term-2/">cpsc-416-winter-2025-term-2</a> / capstone-domains</div>
+    <article class="entry">
+      <h1>Capstone domains</h1>
+      <div class="entry-meta"><span>2026-10-08</span></div>
+      <div class="entry-body">
+<p>The course will suggest 4–6 capstone domains. Students can also propose a different domain; it will be approved if it meaningfully exercises distributed systems reasoning (failures, invariants, coordination, consistency, and observability).</p>
+
+<h2>Suggested domains (draft)</h2>
+<ol>
+  <li><strong>Distributed key-value store:</strong> sharding + replication + reconfiguration; explicit consistency model; failure recovery.</li>
+  <li><strong>Coordination service (etcd/ZooKeeper-like):</strong> consensus-backed configuration, leader election, locks/leases, and watches.</li>
+  <li><strong>Real-time collaboration:</strong> CRDT-based shared document/state with offline edits and merge semantics.</li>
+  <li><strong>Secure messaging / decentralized relay:</strong> end-to-end encryption plus distributed delivery, replay protection, and metadata-aware tradeoffs.</li>
+  <li><strong>Distributed compute / serverless mini-platform:</strong> scheduling, retries, idempotency, and failure isolation across workers.</li>
+  <li><strong>Transactional system across shards:</strong> 2PC-based transactions or ledger/banking-style transfers with clear atomicity guarantees.</li>
+</ol>
+
+<p>Alternative domains are welcome via nomination; the goal is not a specific application, but that the project forces protocol-level reasoning under failure.</p>
+
+<h2>Nomination criteria</h2>
+<ul>
+  <li>Clear failure model (crash, partition, byzantine is optional, slow nodes, message loss/duplication).</li>
+  <li>Concrete invariants or safety/liveness statements.</li>
+  <li>Protocol-level design (not just “use X library”).</li>
+  <li>Evaluation plan that includes failure injection or adversarial scenarios.</li>
+</ul>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

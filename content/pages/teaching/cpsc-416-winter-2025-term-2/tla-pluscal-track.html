@@ -1,0 +1,43 @@
+---
+title: "TLA+ / PlusCal track"
+date: "2026-10-08 12:00:00"
+status: "publish"
+---
+
+<p>This course is design-first and failure-first. TLA+ (and optionally PlusCal) is a tool for making assumptions explicit and checking whether a protocol sketch actually enforces the properties you claim.</p>
+
+<p><strong>Goal:</strong> use a small model to rule out bad designs early and to produce evidence-bearing artifacts for peer feedback and capstone risk reduction.</p>
+
+<h2>What this is (and is not)</h2>
+<ul>
+  <li><strong>Is:</strong> a structured way to practice “invariants first” and to get concrete counterexamples (TLC traces) when an idea is wrong.</li>
+  <li><strong>Is not:</strong> a formal methods course; we keep models intentionally small and focused on one safety property at a time.</li>
+</ul>
+
+<h2>Where it appears in the term</h2>
+<ul>
+  <li><strong>Week 03:</strong> first tiny model (atomic commit / coordination) + how to read a counterexample trace.</li>
+  <li><strong>Week 07–08:</strong> optional extension tied to DP2 (Paxos safety in a deliberately small model).</li>
+  <li><strong>Capstone:</strong> optional modeling milestone to de-risk assumptions and sharpen the failure evaluation plan.</li>
+</ul>
+
+<h2>Minimum expected artifacts</h2>
+<ul>
+  <li><strong>One-page spec:</strong> state the failure model, the safety invariant(s), and the liveness assumption(s) you rely on.</li>
+  <li><strong>Model:</strong> a small TLA+ or PlusCal spec that captures just enough structure to check the invariant.</li>
+  <li><strong>Evidence:</strong> a TLC run (or equivalent) and either (a) “passes with invariant X” or (b) a counterexample trace plus your fix.</li>
+  <li><strong>Reflection:</strong> a short note explaining what the model changed about your design thinking.</li>
+</ul>
+
+<h2>How to use GenAI with TLA+ without fooling yourself</h2>
+<ul>
+  <li><strong>Use GenAI for syntax and patterns</strong> (operators, state variables, typical spec structure).</li>
+  <li><strong>Use TLC as the judge</strong>: treat the model checker’s trace as the ground truth, not plausibility.</li>
+  <li><strong>Log decisions</strong>: record what you asked, what you adopted, and the TLC evidence that resulted.</li>
+  <li><strong>Explain in your own words</strong>: restate invariants and traces without copying tool output verbatim.</li>
+</ul>
+
+<h2>Recommended learning resource</h2>
+<ul>
+  <li><a href="https://learntla.com/">https://learntla.com/</a> (TLA+ fundamentals; PlusCal optional)</li>
+</ul>

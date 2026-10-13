@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Readings &middot; fsgeek.ca</title>
+  <meta name="description" content="Readings">
+  <link rel="canonical" href="https://fsgeek.ca/teaching/cpsc-416-winter-2025-term-2/readings/">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="text/markdown" href="/teaching/cpsc-416-winter-2025-term-2/readings/index.md">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link" aria-current="page">teaching</a>
+      <a href="/log/">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/teaching/">teaching</a> / <a href="/teaching/cpsc-416-winter-2025-term-2/">cpsc-416-winter-2025-term-2</a> / readings</div>
+    <article class="entry">
+      <h1>Readings</h1>
+      <div class="entry-meta"><span>2026-10-08</span></div>
+      <div class="entry-body">
+<p>Readings are short, targeted, and chosen to support the <strong>failure-first</strong> protocol development we do in lecture and the <strong>design-first</strong> work you do in DP1/DP2 and the capstone.</p>
+
+<p><strong>Baseline:</strong> this mapping is adapted from the previous offering’s reading list (Winter 2023 Term 1 syllabus) and aligned to the current lecture spine.</p>
+
+<p><strong>Where PDFs live:</strong> Canvas Files → Readings.</p>
+
+<h2>Core sources</h2>
+<ul>
+  <li><strong>Petrov:</strong> Alex Petrov, <em>Database Internals</em> (O’Reilly; selected chapters)</li>
+  <li><strong>Kleppmann:</strong> Martin Kleppmann, <em>Designing Data-Intensive Applications</em> (O’Reilly; selected chapters)</li>
+  <li><strong>Primary papers:</strong> Lamport (Paxos; Byzantine), Castro &amp; Liskov (PBFT), Chandy-Lamport (snapshots)</li>
+</ul>
+
+<p><strong>Textbook access:</strong> both core books are O’Reilly titles and are available electronically to UBC students at no additional charge (via the UBC Library’s O’Reilly platform): <a href="https://techserv.library.ubc.ca/2020/10/13/oreilly-for-higher-education-safari-new-log-in/">UBC Library — O’Reilly for Higher Education (log in)</a>.</p>
+
+<p><strong>Accessibility:</strong> O’Reilly often provides audio versions for some titles/chapters. Audio can be helpful for commuting and for students whose first language is not English.</p>
+
+<h2 id="w01">Week 01 (Jan 6 / Jan 8)</h2>
+<ul>
+  <li><strong>Tue (Jan 6) — Required:</strong> Start Here</li>
+  <li><strong>Tue (Jan 6) — Required:</strong> <a href="/teaching/cpsc-416-winter-2025-term-2/assessment-and-evidence/">Assessment &amp; evidence chain</a></li>
+  <li><strong>Tue (Jan 6) — Required:</strong> <a href="/teaching/cpsc-416-winter-2025-term-2/genai-without-goodharting/">Using GenAI in this course without Goodharting it</a></li>
+  <li><strong>Thu (Jan 8) — Required:</strong> Petrov, Chapters 1–2</li>
+  <li><strong>Thu (Jan 8) — Required:</strong> DS Labs framework (how we use it)</li>
+</ul>
+
+<h2 id="w02">Week 02 (Jan 13 / Jan 15)</h2>
+<ul>
+  <li><strong>Tue (Jan 13) — Required:</strong> Petrov, Chapters 3–4</li>
+  <li><strong>Thu (Jan 15) — Required:</strong> Petrov, Chapter 5 and Chapter 7</li>
+  <li><strong>Week 02 — Required:</strong> DS Labs Client/Server lab handout (Gradescope)</li>
+  <li><strong>Recommended background:</strong> “Distributed Systems for Fun and Profit” (partial failure, retries/timeouts): <a href="https://book.mixu.net/distsys/">https://book.mixu.net/distsys/</a></li>
+</ul>
+
+<h2 id="w03">Week 03 (Jan 20 / Jan 22)</h2>
+<ul>
+  <li><strong>Tue (Jan 20) — Required:</strong> Kleppmann, Chapter 7 (Transactions)</li>
+  <li><strong>Thu (Jan 22) — Required:</strong> Petrov, Chapter 13 (Distributed Transactions)</li>
+  <li><strong>Thu (Jan 22) — Required:</strong> Introduction to formal verification (guest lecture slot): modeling + TLA+/PlusCal background</li>
+  <li><strong>Tool intro:</strong> Learn TLA+ (PlusCal optional): <a href="https://learntla.com/">https://learntla.com/</a></li>
+</ul>
+
+<h2 id="w04">Week 04 (Jan 27 / Jan 29)</h2>
+<ul>
+  <li><strong>Tue (Jan 27) — Required:</strong> Petrov, Chapter 8 (through Two Generals’ Problem)</li>
+  <li><strong>Thu (Jan 29) — Required:</strong> Petrov, Chapter 8 (from FLP Impossibility to end)</li>
+  <li><strong>Week 04 — Required:</strong> DP1 prompt: <a href="/teaching/cpsc-416-winter-2025-term-2/design-project-1-primary-backup/">Design Project 1 — Primary/Backup replication</a></li>
+</ul>
+
+<h2 id="w05">Week 05 (Feb 3 / Feb 5)</h2>
+<ul>
+  <li><strong>Tue (Feb 3) — Required:</strong> Petrov, Chapter 11 (Replication &amp; Consistency)</li>
+  <li><strong>Thu (Feb 5) — Required:</strong> Kleppmann, Chapter 5 (Replication)</li>
+</ul>
+
+<h2 id="w06">Week 06 (Feb 10 / Feb 12)</h2>
+<ul>
+  <li><strong>Tue (Feb 10) — Required:</strong> Petrov, Chapter 10 (Leader Election)</li>
+  <li><strong>Thu (Feb 12) — Required:</strong> Petrov, Chapter 14 (Consensus)</li>
+  <li><strong>Week 06 — Required:</strong> Lamport’s bakery algorithm (mutual exclusion as “ballots before Paxos”): bakery.pdf</li>
+  <li><strong>Week 06 — Required:</strong> Viewstamped Replication (primary/backup with view change as a “Raft 25 years earlier” lens): 1988 Viewstamped Replication (Oki-Liskov).pdf</li>
+  <li><strong>Week 06 — Required:</strong> DP1 peer review + implementation instructions (Canvas assignments)</li>
+</ul>
+
+<h2 id="w07">Week 07 (Feb 24 / Feb 26)</h2>
+<ul>
+  <li><strong>Tue (Feb 24) — Required:</strong> Lamport, “Paxos Made Simple”: paxos-simple-Copy.pdf</li>
+  <li><strong>Thu (Feb 26) — Required:</strong> Petrov, Chapter 14 (Consensus) — continue/discuss</li>
+  <li><strong>Week 07 — Recommended:</strong> Lamport, “The Part-Time Parliament” (for the underlying ballot/acceptor story): 1998 The Part-Time Parliament (Lamport).pdf</li>
+  <li><strong>Week 07 — Required:</strong> DP2 prompt: <a href="/teaching/cpsc-416-winter-2025-term-2/design-project-2-paxos/">Design Project 2 — Paxos</a></li>
+</ul>
+
+<h2 id="w08">Week 08 (Mar 3 / Mar 5)</h2>
+<ul>
+  <li><strong>Tue (Mar 3) — Required:</strong> Altinbuken &amp; van Renesse, “Paxos Made Moderately Complex”: PaxosMMCAltinbukenVanRenesse.pdf</li>
+  <li><strong>Thu (Mar 5) — Required:</strong> Kleppmann, Chapter 6 (Partitioning)</li>
+  <li><strong>Week 08 — Recommended:</strong> Ongaro &amp; Ousterhout, “In Search of an Understandable Consensus Algorithm (Raft)”: 2014 In Search of an Understandable Consensus Algorithm (Raft).pdf</li>
+  <li><strong>Week 08 — Recommended:</strong> “Viewstamped Replication Revisited” (modernized write-up of the VR protocol): 2012 Viewstamped Replication Revisited.pdf</li>
+  <li><strong>Tool refresher:</strong> Learn TLA+ (model-checking safety properties): <a href="https://learntla.com/">https://learntla.com/</a></li>
+</ul>
+
+<h2 id="w09">Week 09 (Mar 10 / Mar 12)</h2>
+<ul>
+  <li><strong>Tue (Mar 10) — Required:</strong> Chandy &amp; Lamport, “Distributed Snapshots”: 1985 Distributed Snapshots Determining Global States of Distributed Systems.pdf</li>
+  <li><strong>Thu (Mar 12) — Required:</strong> Mid-course “Goodhart revisit” notes (posted in Week 09 module)</li>
+</ul>
+
+<h2 id="w10">Week 10 (Mar 17 / Mar 19)</h2>
+<ul>
+  <li><strong>Tue (Mar 17) — Required:</strong> Lamport et al., “The Byzantine Generals Problem”: 1982 The Byzantine Generals Problem OCR.pdf</li>
+  <li><strong>Thu (Mar 19) — Required:</strong> Castro &amp; Liskov, “Practical Byzantine Fault Tolerance”: 1999 Practical Byzantine Fault Tolerance.pdf</li>
+</ul>
+
+<h2 id="w11">Week 11 (Mar 24 / Mar 26)</h2>
+<ul>
+  <li><strong>Tue (Mar 24) — Required:</strong> “Making Reads in BFT SMR Fast, Linearizable and Live” (2021): 2021 Making Reads in BFT State Machine Replication Fast Linearizable and Live.pdf</li>
+  <li><strong>Thu (Mar 26) — Required:</strong> Bitcoin whitepaper (ledger incentives): <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitcoin.pdf</a></li>
+</ul>
+
+<h2 id="w12">Week 12 (Mar 31 / Apr 2)</h2>
+<ul>
+  <li><strong>Tue (Mar 31) — Required:</strong> Petrov, Chapter 12 (Anti-Entropy &amp; Dissemination)</li>
+  <li><strong>Thu (Apr 2) — Required:</strong> “A comprehensive study of Convergent and Commutative Replicated Data Types” (CRDT overview): <a href="https://hal.inria.fr/inria-00555588/document">https://hal.inria.fr/inria-00555588/document</a></li>
+</ul>
+
+<h2 id="w13">Week 13 (Apr 7 / Apr 9)</h2>
+<ul>
+  <li><strong>Low-risk week:</strong> project reviews, demos, and capstone clinics (no required reading).</li>
+</ul>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

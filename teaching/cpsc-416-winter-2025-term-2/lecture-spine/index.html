@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lecture spine &middot; fsgeek.ca</title>
+  <meta name="description" content="Lecture spine">
+  <link rel="canonical" href="https://fsgeek.ca/teaching/cpsc-416-winter-2025-term-2/lecture-spine/">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="text/markdown" href="/teaching/cpsc-416-winter-2025-term-2/lecture-spine/index.md">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap-wide site-row">
+    <a class="wordmark" href="/"><span class="prompt">~/</span>fsgeek.ca</a>
+    <nav class="primary" aria-label="Primary">
+      <a href="/research/">research</a>
+      <a href="/teaching/" class="teaching-link" aria-current="page">teaching</a>
+      <a href="/log/">log</a>
+      <a href="https://wamason.com/">wamason.com</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="/">~</a> / <a href="/teaching/">teaching</a> / <a href="/teaching/cpsc-416-winter-2025-term-2/">cpsc-416-winter-2025-term-2</a> / lecture-spine</div>
+    <article class="entry">
+      <h1>Lecture spine</h1>
+      <div class="entry-meta"><span>2026-10-08</span></div>
+      <div class="entry-body">
+<p>This is a topic roadmap for the term. The <strong>assignment schedule</strong> and <strong>milestones</strong> are stable; the exact ordering of topics can shift (e.g., for a guest lecture) without changing what is assessed.</p>
+<p><strong>Readings:</strong> see <a href="/teaching/cpsc-416-winter-2025-term-2/readings/">Readings</a> for the week-by-week mapping.</p>
+<p><strong>Modeling:</strong> see <a href="/teaching/cpsc-416-winter-2025-term-2/tla-pluscal-track/">TLA+ / PlusCal track (lightweight)</a> for how formal specs fit into the course.</p>
+
+<h2>Three arcs</h2>
+<ol>
+  <li><strong>Universal agreement:</strong> transactions and atomic commit (2PC/3PC) — what breaks under failure, and what assumptions are needed to recover.</li>
+  <li><strong>Partial agreement:</strong> quorums (set quorum first), view changes, and crash-fault consensus (Viewstamped Replication / Paxos).</li>
+  <li><strong>Adversarial agreement:</strong> Byzantine consensus (pBFT) and incentive-driven ledger systems.</li>
+</ol>
+
+<h2>Two recurring lenses</h2>
+<ul>
+  <li><strong>Failure-first:</strong> start from the failure, then derive the protocol mechanism that prevents or recovers from it.</li>
+  <li><strong>Optimization &amp; Goodhart:</strong> metrics are projections; optimizing one property can erase other properties. We use this lens both for distributed systems (e.g., incentives, availability vs correctness) and for GenAI-assisted work (polish vs evidence).</li>
+</ul>
+
+<h2>Week-by-week sketch (W01–W12)</h2>
+<p>Reading week sits between W06 and W07. The final week of class meetings (W13) is reserved for low-risk activities (reviews/demos).</p>
+
+<ul>
+  <li><strong>W01:</strong> Course framing (failure-first, evidence chain) + GenAI/Goodhart + DS Labs scaffold</li>
+  <li><strong>W02:</strong> Communication semantics (timeouts/retries, at-most-once) and why “exactly-once” is hard</li>
+  <li><strong>W03:</strong> Transactions under failure: 2PC (blocking) + invariants; introduce TLA+/PlusCal as a tool</li>
+  <li><strong>W03 (slot):</strong> Guest lecture on modeling and formal verification (TLA+/PlusCal)</li>
+  <li><strong>W04:</strong> 3PC and synchrony assumptions; failure detectors; DP1 design due by start of week</li>
+  <li><strong>W05:</strong> Replication: primary/backup + view change; set quorum intuition; DP1 peer review</li>
+  <li><strong>W06:</strong> Leader election &amp; “ballots before Paxos”: Lamport’s bakery algorithm as a warm-up; then partial consensus (viewstamped → Paxos safety); DP1 implementation + reflection setup</li>
+  <li><strong>W07:</strong> Paxos mechanics and Multi-Paxos; DP1 reflection; DP2 design (leveraging DP1 lessons)</li>
+  <li><strong>W08:</strong> Paxos in systems: reconfiguration, performance, observability; optional follow-up on TLA+ modeling</li>
+  <li><strong>W09:</strong> Mid-course Goodhart revisit: measurement, incentives, fault injection, and “evidence vs polish”</li>
+  <li><strong>W10:</strong> Byzantine failures: pBFT and quorum intersection under adversarial behavior</li>
+  <li><strong>W11:</strong> Ledgers: Nakamoto-style consensus and incentive design; optimization tradeoffs (sourdough analogy)</li>
+  <li><strong>W12:</strong> Avoiding consensus: CRDTs/eventual consistency; capstone evaluation clinic (failure plans)</li>
+</ul>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <a href="mailto:fsgeek@cs.ubc.ca">fsgeek@cs.ubc.ca</a>
+    &middot; <a href="https://wamason.com/">wamason.com</a>
+    &middot; <a href="https://github.com/fsgeek">github.com/fsgeek</a>
+    &middot; <a href="/privacy/">privacy</a>
+  </div>
+</footer>
+
+</body>
+</html>

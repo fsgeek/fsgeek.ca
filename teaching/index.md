@@ -16,4 +16,5 @@ Prior Classes:
 
 - [CPSC 416 (Winter 22 Term 2)](https://fsgeek.ca/teaching/cpsc-416-winter-22-term-2/)
 - [CPSC 416 Winter 2023 Term 1](https://fsgeek.ca/teaching/cpsc-416-winter-2023-term-1/)
+- [CPSC 416 Winter 2025 Term 2](https://fsgeek.ca/teaching/cpsc-416-winter-2025-term-2/)
 - [CPSC 436C: Cloud Computing](https://fsgeek.ca/teaching/cpsc-436c-2025-winter-term-1/)

@@ -1,0 +1,27 @@
+---
+title: "Capstone domains"
+date: "2026-10-08 12:00:00"
+status: "publish"
+---
+
+<p>The course will suggest 4–6 capstone domains. Students can also propose a different domain; it will be approved if it meaningfully exercises distributed systems reasoning (failures, invariants, coordination, consistency, and observability).</p>
+
+<h2>Suggested domains (draft)</h2>
+<ol>
+  <li><strong>Distributed key-value store:</strong> sharding + replication + reconfiguration; explicit consistency model; failure recovery.</li>
+  <li><strong>Coordination service (etcd/ZooKeeper-like):</strong> consensus-backed configuration, leader election, locks/leases, and watches.</li>
+  <li><strong>Real-time collaboration:</strong> CRDT-based shared document/state with offline edits and merge semantics.</li>
+  <li><strong>Secure messaging / decentralized relay:</strong> end-to-end encryption plus distributed delivery, replay protection, and metadata-aware tradeoffs.</li>
+  <li><strong>Distributed compute / serverless mini-platform:</strong> scheduling, retries, idempotency, and failure isolation across workers.</li>
+  <li><strong>Transactional system across shards:</strong> 2PC-based transactions or ledger/banking-style transfers with clear atomicity guarantees.</li>
+</ol>
+
+<p>Alternative domains are welcome via nomination; the goal is not a specific application, but that the project forces protocol-level reasoning under failure.</p>
+
+<h2>Nomination criteria</h2>
+<ul>
+  <li>Clear failure model (crash, partition, byzantine is optional, slow nodes, message loss/duplication).</li>
+  <li>Concrete invariants or safety/liveness statements.</li>
+  <li>Protocol-level design (not just “use X library”).</li>
+  <li>Evaluation plan that includes failure injection or adversarial scenarios.</li>
+</ul>
