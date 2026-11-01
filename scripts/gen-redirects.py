@@ -49,6 +49,8 @@ def main():
         lines.append(
             f'RedirectMatch 301 "^/{y}/{mo}/{d}/{old_slug}/?$" "/log/{new_slug}/"'
         )
+    # WordPress served the post feed at /feed/; feed readers still poll it.
+    lines.append('RedirectMatch 301 "^/feed/?$" "/feed.xml"')
 
     out = root / 'deploy' / 'fsgeek.ca-redirects.conf'
     out.parent.mkdir(exist_ok=True)

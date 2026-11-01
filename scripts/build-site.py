@@ -12,7 +12,11 @@ relocated verbatim rather than run through the template, since merging
 their embedded <style>/<script> into our template risks breaking them.
 
 Draft/private content is skipped entirely (prior-classes-1442 among them).
+
+The most recent posts also go to an Atom feed at /feed.xml (the old
+WordPress /feed/ URL redirects there; see scripts/gen-redirects.py).
 """
+import html
 import re
 import sys
 from pathlib import Path
@@ -31,6 +35,8 @@ SKIP_PAGES = {
     'privacy',             # superseded by the hand-written /privacy/ (see write_privacy)
     'privacy-policy',      # superseded by the hand-written /privacy/ (see write_privacy)
 }
+
+FEED_SIZE = 20
 
 FM_RE = re.compile(r'^---\n(.*?)\n---\n\n(.*)$', re.DOTALL)
 MD = MarkdownIt('commonmark').enable('table')
@@ -140,7 +146,8 @@ def page_shell(title, description, canonical, section, breadcrumb_html, body_htm
   <title>{title} &middot; fsgeek.ca</title>
   <meta name="description" content="{description}">
   <link rel="canonical" href="{canonical}">
-  <link rel="stylesheet" href="/static/style.css">{alternate}
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/atom+xml" title="fsgeek.ca log" href="/feed.xml">{alternate}
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -215,7 +222,7 @@ def write_post(root, slug, fm, body_html):
     (out_dir / 'index.html').write_text(page, encoding='utf-8')
     md = body_to_markdown(fm['title'], date, canonical, body_html)
     (out_dir / 'index.md').write_text(md, encoding='utf-8')
-    return (date, tag, fm['title'], f'/log/{slug}/')
+    return (date, tag, fm['title'], f'/log/{slug}/', body_html)
 
 
 def main():
@@ -252,6 +259,8 @@ def main():
         posts_written += 1
 
     log_entries.sort(reverse=True)
+    feed_entries = log_entries[:FEED_SIZE]
+    log_entries = [e[:4] for e in log_entries]
 
     # ---- pages ----
     page_files = sorted((root / 'content/pages').glob('**/*.html'))
@@ -338,6 +347,7 @@ def main():
 
     write_homepage(root, log_entries[:12])
     write_log_index(root, log_entries)
+    write_feed(root, feed_entries)
     write_404(root)
     write_privacy(root)
 
@@ -397,6 +407,7 @@ def write_homepage(root, recent):
   <meta name="description" content="A decade of notes on filesystems, distributed systems, and how systems remember: research, teaching, and an ongoing log.">
   <link rel="canonical" href="https://fsgeek.ca/">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="alternate" type="application/atom+xml" title="fsgeek.ca log" href="/feed.xml">
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -446,6 +457,38 @@ def write_log_index(root, entries):
     out_dir = root / 'log'
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / 'index.html').write_text(page, encoding='utf-8')
+
+
+def write_feed(root, entries):
+    """Atom feed of the most recent posts, full content, for feed readers.
+    Relative links in post bodies resolve against xml:base."""
+    def stamp(date):
+        return f'{date}T00:00:00Z'
+    items = '\n'.join(
+        f'''  <entry>
+    <title>{html.escape(title)}</title>
+    <link href="https://fsgeek.ca{href}"/>
+    <id>https://fsgeek.ca{href}</id>
+    <updated>{stamp(date)}</updated>
+    <category term="{tag}"/>
+    <content type="html">{html.escape(body_html)}</content>
+  </entry>'''
+        for date, tag, title, href, body_html in entries
+    )
+    updated = stamp(entries[0][0]) if entries else '1970-01-01T00:00:00Z'
+    feed = f'''<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:base="https://fsgeek.ca/">
+  <title>fsgeek.ca log</title>
+  <subtitle>Notes on filesystems, distributed systems, and how systems remember: research, teaching, and an ongoing log.</subtitle>
+  <link href="https://fsgeek.ca/feed.xml" rel="self"/>
+  <link href="https://fsgeek.ca/log/"/>
+  <id>https://fsgeek.ca/log/</id>
+  <updated>{updated}</updated>
+  <author><name>Tony Mason</name></author>
+{items}
+</feed>
+'''
+    (root / 'feed.xml').write_text(feed, encoding='utf-8')
 
 
 def write_404(root):
